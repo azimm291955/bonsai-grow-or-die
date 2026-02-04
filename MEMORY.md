@@ -23,6 +23,12 @@
 Total dried yield (grams) ÷ Flowering canopy square footage = Grams per square foot
 ```
 
+⚠️ **UNRESOLVED:** What counts as "yield" in this metric?
+- Industry sources say "dry flower" or "primary and secondary bud"
+- Unclear if this includes: Flower only? Flower + Smalls? All yield including trim?
+- Bonsai Cultivation tracks all 3 separately (Flower, Smalls, Trim)
+- **Need to resolve before benchmarking against industry standards**
+
 **Industry Benchmarks:**
 - **Startups/Basic:** 35 g/sq ft per harvest
 - **Established operations:** 50-70 g/sq ft per harvest
