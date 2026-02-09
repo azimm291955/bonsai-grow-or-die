@@ -14,6 +14,18 @@
 - **GitHub:** azimm291955/bonsai-production-data (PRIVATE)
 - **Vercel:** https://bonsai-production-data.vercel.app/ (⚠️ CURRENTLY PUBLIC - need to add password protection later)
 
+## Bonsai Cultivation Rooms
+- Room 1
+- Room 2
+- Room 3
+- Room 4
+- Room 5
+- Room 6
+- Room LED
+- Room R&D
+
+Used across production reports and Bonsai Yieldbook. May expand in future.
+
 ## About Aaron
 - **Full Name:** Aaron C. Zimmerman (use middle initial in formal contexts)
 - **Primary Email:** aaron.zimmerman@bonsaicultivation.com ⚠️ MOST IMPORTANT - watch for emails from this address
@@ -48,6 +60,8 @@ Total dried yield (grams) ÷ Flowering canopy square footage = Grams per square 
 - **Established operations:** 50-70 g/sq ft per harvest
 - **Elite performers:** 100+ g/sq ft per harvest
 - **Industry average:** ~39.5 g/sq ft
+
+**Standard conversion: Always divide by 453 to convert grams to lbs.** Used across all Bonsai projects (production chart + Yieldbook).
 
 **Conversion to pounds:**
 - 35 g/sq ft = 0.077 lbs/sq ft
@@ -94,29 +108,33 @@ Can analyze:
 - Labor analysis (hours vs output)
 - Yield projections and capacity planning
 
-### Current Project: Weekly Production Chart Automation (2026-02-04)
+### Weekly Production Report (2026-02-09) ✅ TABLE & SUMMARY COMPLETE
 
-**Goal:** Automate the "Bonsai Prod Chart" report - weekly flower production for last 6 Mondays.
+**Script:** `/root/.openclaw/workspace/gmail-sheets-integration/scripts/weekly_report.py`
+**Sends from:** bonsaiburner420bot@gmail.com → aaron.zimmerman@bonsaicultivation.com
+**Schedule:** Every Monday 8am MST (cron TBD)
 
-**Data Sources:**
-- Flower_Projections spreadsheet → Trimmed_Weights + 2025_Harvest_Sheet tabs
-- 62K+ trimmed weight records, 38K+ harvest records
+**Data Sources (2026 tabs only):**
+- `2026_Trimmer_Tracker` → Buds, Plants Trimmed, Sick, Rooms, Conversion Rate
+- `2026_Harvest_Sheet` → Frozen, Plants Harvested, Frozen Plants, GWBP
+- `2026_Trim` → Smalls, Trim, Mold/B-Tier
 
-**Formula:**
-```
-Dry Equivalent LBS = (Trimmed Weight grams / 453) + (Frozen Weight grams / 453) × 15%
-```
+**Formula:** `Dry Equivalent LBS = Buds + (Frozen LBS × 15%)`
+**Goal:** 250 lbs/week (subject to change)
+**Week Selection:** Last 6 Mondays (Mon-Sun), not including current week
 
-**Script Location:** `/root/.openclaw/workspace/gmail-sheets-integration/scripts/calculate_weekly_production.py`
+**Status:**
+- ✅ Summary section complete
+- ✅ Production table complete (16 rows, 6-Wk Total + 6-Wk Avg columns)
+- ✅ Room performance cards (horizontal layout)
+- ✅ Chart 1: 6-week bar chart (matplotlib, CID embedded) — green/red bars, goal line, data labels
+- 🔄 Chart 2: 2025 vs 2026 year-over-year comparison (first version done, Aaron wants to iterate)
+- ⏳ Cron job for Monday 8am MST
 
-**Status:** 50% complete
-- ✅ Successfully calculates 3/6 weeks perfectly (12/22, 12/29, 1/26)
-- ⚠️ Off by 0.4-2.2 lbs on weeks 1/5, 1/12, 1/19 (need to refine frozen weight matching)
-- ⏳ Next: Fix calculation discrepancies, add chart generation, create email format
+**Chart rendering:** Matplotlib server-side, embedded as CID inline images (not QuickChart)
+**Goal schedule:** `GOAL_SCHEDULE` list in script — supports per-week goal changes
 
-**Week Selection:** Last 6 Mondays (not including current week's Monday)
-
-See `/root/.openclaw/workspace/memory/2026-02-04.md` for full details.
+See `memory/2026-02-09.md` for full details.
 
 ### Future Work - Near Term
 - Complete production chart automation
@@ -125,7 +143,8 @@ See `/root/.openclaw/workspace/memory/2026-02-04.md` for full details.
 - Email insights to Aaron
 
 ### Future Work - Long Term Vision (2026-02-04)
-**Bonsai Production Data Web Application:** (PRIVATE PROJECT)
+**Bonsai Yieldbook** - A place for growers (PRIVATE PROJECT)
+- **Name:** Bonsai Yieldbook (renamed Feb 5, 2026) - emphasizes community and cultivation focus
 - **Goal:** Build an online data analysis platform where people input data directly (not via Google Sheets)
 - **Features:** Real-time graphs, analytics dashboard, live visualization
 - **Tech Stack:** GitHub (private repo) + Vercel deployment
@@ -171,7 +190,13 @@ See `/root/.openclaw/workspace/memory/2026-02-04.md` for full details.
 
 ## To-Do List
 
-### 1. Data Analysis (TOP PRIORITY)
+### 1. Mission Control - Make Private (HIGH PRIORITY)
+- **URL:** https://mission-control-iota-nine.vercel.app/
+- **Status:** ⚠️ Currently PUBLIC - needs password protection
+- **Action:** Add authentication/password protection before adding sensitive data
+- **Solution:** Next.js middleware for authentication (same as production data app)
+
+### 2. Data Analysis (TOP PRIORITY)
 - **Weekly Production Chart Automation** (50% complete)
   - Fix calculation discrepancies for weeks 1/5, 1/12, 1/19
   - Add chart generation
@@ -183,7 +208,7 @@ See `/root/.openclaw/workspace/memory/2026-02-04.md` for full details.
   - Strain analysis
   - Labor analysis (hours vs output)
 
-### 2. Production Data Web Application (PRIVATE)
+### 3. Production Data Web Application (PRIVATE)
 - **Repo:** azimm291955/bonsai-production-data (GitHub, PRIVATE)
 - **Status:** Next.js initialized, Vercel deployed
 - **Next Steps:**
@@ -218,7 +243,14 @@ See `/root/.openclaw/workspace/memory/2026-02-04.md` for full details.
   - Automated reporting for state compliance
   - Link production data to sales/inventory
 
-### 3. Systematic Learning Framework
+### 4. Agent Team Management Framework (2026-02-06)
+- **Research:** Anthropic's C compiler project (16 parallel agents, $20K, 100K lines of code)
+- **Key insights:** Autonomous loops, git-based sync, task locking, high-quality tests, design FOR agents
+- **Application:** Future multi-agent development of Bonsai Yieldbook
+- **Critical lesson:** Testing infrastructure must be perfect FIRST - agents solve what you test for
+- **Detailed notes:** `memory/agent-team-management-notes.md`
+
+### 5. Systematic Learning Framework
 - Build feedback loops inspired by Moltbook agent "huhu"
 - Apply to cultivation operations: measure → learn → improve → repeat
 - Track: decisions made, outcomes observed, lessons extracted, patterns recognized
