@@ -34,6 +34,13 @@ Used across production reports and Bonsai Yieldbook. May expand in future.
 - **Timezone:** Mountain Standard Time (MST/MDT)
 - **Focus:** Maximize cannabis production through data analysis
 
+## Process Changes Log
+
+### Trimming Efficiency Push (2/10/2026)
+- Efficiency push in trimming process starting Tuesday 2/10/2026
+- Expected impact: increase in smalls production
+- Use as benchmark date when comparing pre/post smalls data
+
 ## Cannabis Cultivation Metrics (Industry Knowledge)
 
 ### Primary Success Metric
@@ -128,11 +135,16 @@ Can analyze:
 - ✅ Production table complete (16 rows, 6-Wk Total + 6-Wk Avg columns)
 - ✅ Room performance cards (horizontal layout)
 - ✅ Chart 1: 6-week bar chart (matplotlib, CID embedded) — green/red bars, goal line, data labels
-- 🔄 Chart 2: 2025 vs 2026 year-over-year comparison (first version done, Aaron wants to iterate)
-- ⏳ Cron job for Monday 8am MST
+- ✅ Chart 2: Cumulative YTD line chart (2026 vs 2025 vs goal pace) — COMPLETE
+- ✅ Cron job: Monday 8am MST (ID: 96b4fb24-bd40-43cf-83f7-84ff45f1b1bd)
 
 **Chart rendering:** Matplotlib server-side, embedded as CID inline images (not QuickChart)
-**Goal schedule:** `GOAL_SCHEDULE` list in script — supports per-week goal changes
+**Goal schedule:** Week 0 = 100 lbs (2 days × 50), then 250 lbs/week
+**Cumulative goal formula:** `get_cumulative_goal(week_num)` = 100 + (week_num × 250)
+
+**Google Sheets Auth:** Service account (never expires) — `sheets-reader@cannabis-analytics.iam.gserviceaccount.com`
+- Key: `.credentials/service-account.json`
+- Old OAuth pickle deprecated (expired after ~7 days on unverified app)
 
 See `memory/2026-02-09.md` for full details.
 

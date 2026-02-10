@@ -19,27 +19,37 @@ CREDS_DIR = Path(__file__).parent.parent.parent / '.credentials'
 # Weekly goal schedule: list of (start_date, goal_lbs) tuples, ordered by date.
 # The goal applies from start_date onward until the next entry.
 # To change the goal mid-year, just add a new entry with the Monday it takes effect.
+GOAL_WEEK0_LBS = 100.0  # 2 days × 50 lbs/day for partial first week
+GOAL_WEEKLY_LBS = 250.0  # standard weekly goal (Mon-Sun)
+
 GOAL_SCHEDULE = [
-    ("2026-01-01", 250.0),
+    ("2026-01-01", GOAL_WEEKLY_LBS),
     # ("2026-06-02", 300.0),  # example: bump to 300 starting week of June 2
 ]
 
 def get_goal_for_week(monday):
     """Look up the goal for a given week's Monday from GOAL_SCHEDULE."""
-    goal = GOAL_SCHEDULE[0][1]  # default to first entry
+    goal = GOAL_SCHEDULE[0][1]
     for date_str, g in GOAL_SCHEDULE:
         d = datetime.strptime(date_str, "%Y-%m-%d")
         if monday >= d:
             goal = g
     return goal
 
-GOAL_LBS = 250.0  # legacy default, used for YTD baseline calc
-# First 2 days of 2026 count as 100 lbs baseline for YTD
-YTD_BASELINE_LBS = 100.0
+def get_cumulative_goal(week_num):
+    """Cumulative goal through a given week number. Week 0 = partial week (100 lbs)."""
+    if week_num == 0:
+        return GOAL_WEEK0_LBS
+    return GOAL_WEEK0_LBS + (week_num * GOAL_WEEKLY_LBS)
+
+GOAL_LBS = GOAL_WEEKLY_LBS  # alias for chart1 and table rows
 
 def load_sheets_service():
-    with open(CREDS_DIR / 'sheets-token.pickle', 'rb') as f:
-        creds = pickle.load(f)
+    from google.oauth2 import service_account
+    creds = service_account.Credentials.from_service_account_file(
+        CREDS_DIR / 'service-account.json',
+        scopes=['https://www.googleapis.com/auth/spreadsheets.readonly']
+    )
     return build('sheets', 'v4', credentials=creds)
 
 def read_tab(service, tab, cols='A:Z'):
@@ -64,6 +74,7 @@ def safe_float(row, idx):
 def get_last_6_weeks(today=None):
     if today is None:
         today = datetime.now()
+    today = today.replace(hour=0, minute=0, second=0, microsecond=0)
     this_monday = today - timedelta(days=today.weekday())
     weeks = []
     for i in range(6, 0, -1):
@@ -282,7 +293,12 @@ def render_chart1(results):
 
 
 def calculate_year_weekly(year, today=None):
-    """Calculate weekly Dry Equivalent LBS for an entire year (or YTD)."""
+    """Calculate weekly Dry Equivalent LBS for a year, with Week 0 for partial first week.
+    
+    Week 0: Jan 1 through the Friday before the first Monday.
+    Week 1+: Monday-Sunday weeks starting from the first Monday of the year.
+    If today is provided and year == today.year, only includes completed weeks.
+    """
     service = load_sheets_service()
     
     tt_tab = f'{year}_Trimmer_Tracker'
@@ -311,53 +327,63 @@ def calculate_year_weekly(year, today=None):
     
     TR_SMALLS = 1; TR_TRIM = 2; TR_MOLD = 3; TR_DATE = 5
     
-    # Build all weeks for the year (Mon-Sun)
     jan1 = datetime(year, 1, 1)
-    first_monday = jan1 - timedelta(days=jan1.weekday())
-    if first_monday.year < year:
-        first_monday += timedelta(weeks=1)
+    # First Monday of the year
+    first_monday = jan1 + timedelta(days=(7 - jan1.weekday()) % 7)
+    if first_monday == jan1 and jan1.weekday() == 0:
+        first_monday = jan1  # Jan 1 is already a Monday
     
     # Determine end date
     if today and year == today.year:
-        # Only go up to the last completed week
+        today = today.replace(hour=0, minute=0, second=0, microsecond=0)
         this_monday = today - timedelta(days=today.weekday())
-        end = this_monday - timedelta(days=1)  # last Sunday
+        end = this_monday - timedelta(days=1)  # last completed Sunday
     else:
         end = datetime(year, 12, 31)
     
+    # Build week ranges: Week 0 (partial), then Week 1+ (Mon-Sun)
     weeks = []
+    
+    # Week 0: Jan 1 to the Sunday before first Monday (if Jan 1 is not Monday)
+    if first_monday > jan1:
+        wk0_end = first_monday - timedelta(days=1)
+        weeks.append((0, jan1, wk0_end))
+    
+    # Week 1+
+    wk_num = 1
     m = first_monday
     while m + timedelta(days=6) <= end:
-        weeks.append((m, m + timedelta(days=6)))
+        weeks.append((wk_num, m, m + timedelta(days=6)))
         m += timedelta(weeks=1)
+        wk_num += 1
     
-    results = []
-    for monday, sunday in weeks:
-        buds_g = 0; plants_trimmed = 0
+    def calc_dry_equiv(start, stop):
+        """Calculate dry equivalent lbs for a date range."""
+        buds_g = 0
         for row in tt_d:
             if len(row) <= TT_DATE or not row[TT_DATE]: continue
             d = parse_date(row[TT_DATE])
-            if not d or not (monday <= d <= sunday): continue
+            if not d or not (start <= d <= stop): continue
             is_sick = len(row) > TT_SICK and str(row[TT_SICK]).strip().upper() in ('Y', 'YES')
             if is_sick: continue
             buds_g += safe_float(row, TT_WEIGHT)
-            plants_trimmed += 1
         
         frozen_g = 0
         for row in hs_d:
             if len(row) <= HS_DATE or not row[HS_DATE]: continue
             d = parse_date(row[HS_DATE])
-            if not d or not (monday <= d <= sunday): continue
+            if not d or not (start <= d <= stop): continue
             frozen_g += safe_float(row, HS_FROZEN)
         
-        buds_lbs = buds_g / 453.0
-        frozen_lbs = frozen_g / 453.0
-        dry_equiv = buds_lbs + (frozen_lbs * 0.15)
-        
-        wk_num = monday.isocalendar()[1]
+        return (buds_g / 453.0) + ((frozen_g / 453.0) * 0.15)
+    
+    results = []
+    for wk_num, start, stop in weeks:
+        dry_equiv = calc_dry_equiv(start, stop)
         results.append({
             'week_num': wk_num,
-            'monday': monday,
+            'start': start,
+            'end': stop,
             'dry_equiv': dry_equiv,
         })
     
@@ -365,10 +391,12 @@ def calculate_year_weekly(year, today=None):
 
 
 def render_chart2(results, today=None):
-    """2025 vs 2026 weekly production comparison chart."""
+    """Cumulative YTD production: 2025 vs 2026 with goal pace line."""
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
+    import matplotlib.ticker as mticker
+    import numpy as np
     import io
     
     if today is None:
@@ -379,46 +407,125 @@ def render_chart2(results, today=None):
     print("Calculating 2026 weekly data...")
     data_2026 = calculate_year_weekly(2026, today)
     
-    # Build lookup by week number
-    w25 = {r['week_num']: r['dry_equiv'] for r in data_2025}
-    w26 = {r['week_num']: r['dry_equiv'] for r in data_2026}
+    # Build cumulative totals by week number
+    def cumulate(data):
+        cum = {}
+        running = 0
+        for r in data:
+            running += r['dry_equiv']
+            cum[r['week_num']] = running
+        return cum
     
-    # X-axis: all weeks that have data in either year, up to max 2026 week
-    max_week = max(w26.keys()) if w26 else 6
-    # Show a few weeks ahead of 2026 for 2025 context
-    show_weeks = list(range(1, min(max_week + 4, 53)))
+    cum_2025 = cumulate(data_2025)
+    cum_2026 = cumulate(data_2026)
     
-    vals_2025 = [w25.get(w) for w in show_weeks]
-    vals_2026 = [w26.get(w) for w in show_weeks]
-    week_labels = [f'Wk {w}' for w in show_weeks]
+    # Only show weeks 0 through max week in 2026 data (no lookahead)
+    max_week = max(cum_2026.keys()) if cum_2026 else 6
+    show_weeks = list(range(0, max_week + 1))
     
-    fig, ax = plt.subplots(figsize=(10, 5.5))
+    vals_2025 = [cum_2025.get(w) for w in show_weeks]
+    vals_2026 = [cum_2026.get(w) for w in show_weeks]
+    
+    # Goal pace line: week 0 = 100, then +250/week
+    goal_pace = [get_cumulative_goal(w) for w in show_weeks]
+    
+    # Adaptive sizing: wider as weeks grow
+    chart_width = max(11, min(18, 8 + len(show_weeks) * 0.2))
+    fig, ax = plt.subplots(figsize=(chart_width, 6))
     fig.patch.set_facecolor('#FFFFFF')
     ax.set_facecolor('#FAFAFA')
     
-    # Plot 2025 - full line (grey/muted)
+    # Plot 2025 — grey, muted
     x25 = [i for i, v in enumerate(vals_2025) if v is not None]
     y25 = [v for v in vals_2025 if v is not None]
-    ax.plot(x25, y25, color='#95A5A6', linewidth=2, marker='o', markersize=5,
-            markerfacecolor='#95A5A6', label='2025', zorder=2, alpha=0.8)
+    marker25 = 'o' if len(show_weeks) <= 20 else None
+    ms25 = 5 if len(show_weeks) <= 20 else 0
+    ax.plot(x25, y25, color='#95A5A6', linewidth=2.5, marker=marker25, markersize=ms25,
+            markerfacecolor='#95A5A6', label='2025', zorder=3, alpha=0.8)
     
-    # Plot 2026 - bold green
+    # Plot 2026 — bold green
     x26 = [i for i, v in enumerate(vals_2026) if v is not None]
     y26 = [v for v in vals_2026 if v is not None]
-    ax.plot(x26, y26, color='#2ECC71', linewidth=3, marker='o', markersize=7,
-            markerfacecolor='#2ECC71', label='2026', zorder=3)
+    marker26 = 'o' if len(show_weeks) <= 20 else None
+    ms26 = 7 if len(show_weeks) <= 20 else 0
+    ax.plot(x26, y26, color='#2ECC71', linewidth=3, marker=marker26, markersize=ms26,
+            markerfacecolor='#2ECC71', label='2026', zorder=4)
     
-    # Goal line
-    ax.axhline(y=GOAL_LBS, color='#2C3E50', linewidth=2, linestyle='--', zorder=10, label=f'Goal ({int(GOAL_LBS)} lbs)')
+    # Shaded delta between 2025 and 2026
+    common_x = [i for i in range(len(show_weeks)) if vals_2025[i] is not None and vals_2026[i] is not None]
+    if len(common_x) >= 2:
+        common_y25 = [vals_2025[i] for i in common_x]
+        common_y26 = [vals_2026[i] for i in common_x]
+        y25_arr = np.array(common_y25)
+        y26_arr = np.array(common_y26)
+        ax.fill_between(common_x, y25_arr, y26_arr,
+                        where=(y26_arr >= y25_arr), interpolate=True,
+                        color='#2ECC71', alpha=0.15, zorder=1)
+        ax.fill_between(common_x, y25_arr, y26_arr,
+                        where=(y26_arr < y25_arr), interpolate=True,
+                        color='#E74C3C', alpha=0.15, zorder=1)
     
-    ax.set_xticks(range(len(week_labels)))
-    ax.set_xticklabels(week_labels, rotation=45, ha='right', fontsize=9)
-    ax.set_ylabel('Dry Equivalent LBS', fontsize=13)
+    # Goal pace line
+    ax.plot(range(len(show_weeks)), goal_pace, color='#2C3E50', linewidth=2,
+            linestyle='--', zorder=2, alpha=0.6, label=f'Goal Pace ({int(GOAL_LBS)}/wk)')
+    
+    # Data label on latest 2026 point
+    if y26:
+        last_x26 = x26[-1]
+        last_y26 = y26[-1]
+        ax.annotate(f'{last_y26:,.0f} lbs', xy=(last_x26, last_y26),
+                    xytext=(12, 8), textcoords='offset points',
+                    fontsize=11, fontweight='bold', color='#27AE60',
+                    bbox=dict(boxstyle='round,pad=0.3', facecolor='white', edgecolor='#2ECC71', alpha=0.9),
+                    zorder=10)
+    
+    # Data label on latest 2025 point at same week
+    if y25 and x26:
+        last_2025_val = vals_2025[x26[-1]] if x26[-1] < len(vals_2025) and vals_2025[x26[-1]] is not None else None
+        if last_2025_val is not None:
+            ax.annotate(f'{last_2025_val:,.0f} lbs', xy=(x26[-1], last_2025_val),
+                        xytext=(12, -12), textcoords='offset points',
+                        fontsize=10, fontweight='bold', color='#7F8C8D',
+                        bbox=dict(boxstyle='round,pad=0.3', facecolor='white', edgecolor='#95A5A6', alpha=0.9),
+                        zorder=10)
+    
+    # X-axis: monthly labels for 15+ weeks, week labels for fewer
+    if len(show_weeks) <= 15:
+        ax.set_xticks(range(len(show_weeks)))
+        ax.set_xticklabels([f'Wk {w}' for w in show_weeks], fontsize=9)
+    else:
+        # Monthly markers: show "Jan", "Feb", etc. at roughly week 2, 6, 10...
+        # Week 0=Jan1, Week 4~Feb, Week 8~Mar, etc.
+        import calendar
+        month_ticks = []
+        month_labels = []
+        for w_idx, w in enumerate(show_weeks):
+            # Approximate month from week number
+            approx_month = min(12, max(1, (w * 7 + 1) // 30 + 1))
+            # Place label at first week of each month
+            if w == 0 or (w > 0 and min(12, max(1, ((w-1) * 7 + 1) // 30 + 1)) != approx_month):
+                month_ticks.append(w_idx)
+                month_labels.append(calendar.month_abbr[approx_month])
+        ax.set_xticks(month_ticks)
+        ax.set_xticklabels(month_labels, fontsize=10)
+        # Minor ticks for each week
+        ax.set_xticks(range(len(show_weeks)), minor=True)
+        ax.tick_params(axis='x', which='minor', length=3, width=0.5)
+    
+    # Y-axis: format with K for thousands
+    ax.yaxis.set_major_formatter(mticker.FuncFormatter(
+        lambda x, p: f'{x:,.0f}' if x < 1000 else f'{x/1000:,.1f}K'))
+    
+    ax.set_ylabel('Cumulative Dry Equivalent LBS', fontsize=13)
     ax.set_xlabel('Week of Year', fontsize=13)
-    ax.set_title('2026 vs 2025 — Weekly Production Comparison', fontsize=18, fontweight='bold', color='#2d5016')
-    ax.legend(loc='best', fontsize=11)
-    ax.grid(axis='y', linewidth=0.5, color='#e0e0e0', zorder=1)
+    ax.set_title('Year-to-Date Cumulative Production — 2026 vs 2025', fontsize=16, fontweight='bold', color='#2d5016')
+    ax.legend(loc='upper left', fontsize=11, framealpha=0.9)
+    ax.grid(axis='y', linewidth=0.5, color='#e0e0e0', zorder=0)
+    ax.grid(axis='x', linewidth=0.3, color='#eee', zorder=0)
     ax.set_axisbelow(True)
+    
+    # Start y at 0
+    ax.set_ylim(bottom=0)
     
     plt.tight_layout()
     buf = io.BytesIO()
@@ -502,7 +609,7 @@ def generate_html(results, today=None):
     pct_width = int(100 / max(num_rooms, 1))
     room_cells = ""
     for rm, rd in last['room_breakdown'].items():
-        conv_color = "#28a745" if rd['conversion'] >= 10 else "#ffc107"
+        conv_color = "#2ECC71" if rd['conversion'] > 10 else "#ffc107" if rd['conversion'] >= 9 else "#E74C3C"
         room_cells += f"""<td style="width:{pct_width}%;vertical-align:top;padding:0 6px">
         <div style="background:#e8f5e9;padding:14px;border-radius:8px;border-left:4px solid #2d5016">
           <div style="font-size:16px;font-weight:bold;color:#2d5016;margin-bottom:8px">Room {rm}</div>
@@ -583,12 +690,17 @@ def generate_html(results, today=None):
     rows += table_row("Goal Lbs", [r['goal'] for r in results], tot_goal, GOAL_LBS)
     rows += table_row("Delta", [r['delta'] for r in results], tot_delta, avg6_delta)
     
-    # YTD summary
-    if tot_delta >= 0:
-        ytd_status = f"{tot_delta:.2f} lbs Above Goal"
+    # YTD summary — calculate true cumulative YTD from all 2026 weeks (wk 0 through current)
+    ytd_2026 = calculate_year_weekly(today.year, today)
+    ytd_actual = sum(r['dry_equiv'] for r in ytd_2026)
+    max_wk = max(r['week_num'] for r in ytd_2026) if ytd_2026 else 0
+    ytd_goal = get_cumulative_goal(max_wk)
+    ytd_delta = ytd_actual - ytd_goal
+    if ytd_delta >= 0:
+        ytd_status = f"{ytd_delta:.2f} lbs Above Goal"
         ytd_color = "#28a745"
     else:
-        ytd_status = f"{abs(tot_delta):.2f} lbs Below Goal"
+        ytd_status = f"{abs(ytd_delta):.2f} lbs Below Goal"
         ytd_color = "#dc3545"
     
     week_label = f"{last['monday'].strftime('%-m/%-d/%Y')} - {last['sunday'].strftime('%-m/%-d/%Y')}"
@@ -652,7 +764,7 @@ def generate_html(results, today=None):
   <div style="padding:20px;background:#f0f7e6;border-top:1px solid #ddd">
     <h3 style="margin:0 0 8px;font-size:14px;color:#2d5016">2026 Year-to-Date Production</h3>
     <p style="margin:4px 0;font-size:14px;color:#333">
-      Goal Weight: {tot_goal:,.2f} lbs &nbsp;|&nbsp; Actual Weight: {tot_dry:,.2f} lbs
+      Goal Weight: {ytd_goal:,.2f} lbs &nbsp;|&nbsp; Actual Weight: {ytd_actual:,.2f} lbs
     </p>
     <p style="margin:4px 0;font-size:16px;font-weight:bold;color:{ytd_color}">{ytd_status}</p>
     <p style="margin:8px 0 0;font-size:12px;color:#666">Target Conversion Rate: ≥10% | Weekly Goal: {GOAL_LBS:.0f} lbs</p>
@@ -710,4 +822,4 @@ def send_report(to_email, today=None):
 
 if __name__ == "__main__":
     to = sys.argv[1] if len(sys.argv) > 1 else 'aaron.zimmerman@bonsaicultivation.com'
-    send_report(to, today=datetime(2026, 2, 9))
+    send_report(to)
