@@ -1,0 +1,10 @@
+{
+  "environment": "sandbox",
+  "base_url": "https://sandbox-api-co.metrc.com",
+  "integrator_api_key": "HSNoX5ZdHwB9BofwerMLfbiV5QBsLsReygH2SsQDA0nELoXJ",
+  "user_api_key": "puT4lHV39x0H0U6TMvPd3F2xYL9Rr0rOt3vehZ-MZegRMYJ1",
+  "key_name": "Bonsai API",
+  "deployment": "Colorado Sandbox",
+  "expiration": "2028-02-11",
+  "notes": "Generated via METRC Connect dashboard. Old user key may be outdated."
+}

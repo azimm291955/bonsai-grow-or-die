@@ -235,14 +235,17 @@ See `memory/2026-02-09.md` for full details.
 
 #### METRC Integration (Sub-project)
 - **Goal:** Pull seed-to-sale compliance data directly from co.metrc.com API
-- **Status:** ⏳ Pending - Need vendor/integrator API access
-- **Current Keys:**
-  - Integrator API Key: `HSNoX5ZdHwB9BofwerMLfbiV5QBsLsReygH2SsQDA0nELoXJ`
-  - User API Key: `iWMvKvlNkeOcWX0UIgQGurkjx-F8EtfKx3G3EI8qd-BJrzaD`
-- **Authentication Issue:** METRC API requires BOTH keys (integrator + user) to work together
+- **Status:** ⏳ Aaron passed TPV Test (100%, 2026-02-11) — certificate sent to METRC, awaiting API access grant
+- **Portal:** connect.metrc.com (METRC Connect — new integrator portal)
+- **Current Key (Feb 11, 2026):** "Bonsai API" on Colorado Sandbox
+  - Key: `puT4lHV39x0H0U6TMvPd3F2xYL9Rr0rOt3vehZ-MZegRMYJ1` (expires Feb 2028)
+- **Old Keys (deprecated):**
+  - Integrator: `HSNoX5ZdHwB9BofwerMLfbiV5QBsLsReygH2SsQDA0nELoXJ`
+  - User: `iWMvKvlNkeOcWX0UIgQGurkjx-F8EtfKx3G3EI8qd-BJrzaD`
+- **Blocker:** Active Facilities = 0 in Connect dashboard. Need to link facility/license from main METRC (co.metrc.com) Admin → API Access
 - **Next Steps:**
-  1. Verify both keys are valid (may need to register as vendor/integrator with METRC)
-  2. Test authentication with facilities endpoint
+  1. Log into co.metrc.com and link Bonsai Cultivation license to integrator
+  2. Once facility linked, test API with new Bearer token
   3. Once connected, build data sync for:
      - Harvests (harvest tracking, yields)
      - Packages (inventory, weights, lab tests)

@@ -121,14 +121,18 @@ def calculate_all_weeks(today=None):
     TR_MOLD = 3
     TR_DATE = 5
     
-    # GWBP lookup by METRC tag
+    # GWBP and strain lookup by METRC tag
+    HS_STRAIN = hs_h.index('Strain')
     gwbp_by_tag = {}
+    strain_by_tag = {}
     for row in hs_d:
         if len(row) > HS_METRC and row[HS_METRC]:
             tag = row[HS_METRC].strip()
             if len(row) > HS_GWBP and row[HS_GWBP]:
                 try: gwbp_by_tag[tag] = float(row[HS_GWBP])
                 except: pass
+            if len(row) > HS_STRAIN and row[HS_STRAIN]:
+                strain_by_tag[tag] = row[HS_STRAIN].strip()
     
     results = []
     
@@ -137,6 +141,7 @@ def calculate_all_weeks(today=None):
         buds_g = 0; plants_trimmed = 0; sick_count = 0; rooms = set()
         trimmed_gwbp_g = 0; trimmed_weight_g = 0
         room_data = {}  # room -> {plants, weight_g, gwbp_g}
+        strain_data = {}  # strain -> {plants, total_g}
         
         for row in tt_d:
             if len(row) <= TT_DATE or not row[TT_DATE]: continue
@@ -165,6 +170,12 @@ def calculate_all_weeks(today=None):
                 if tag in gwbp_by_tag:
                     trimmed_gwbp_g += gwbp_by_tag[tag]
                     room_data[room]['gwbp_g'] += gwbp_by_tag[tag]
+                if tag in strain_by_tag:
+                    strain = strain_by_tag[tag]
+                    if strain not in strain_data:
+                        strain_data[strain] = {'plants': 0, 'total_g': 0}
+                    strain_data[strain]['plants'] += 1
+                    strain_data[strain]['total_g'] += w
         
         # --- Trim tab ---
         smalls_g = 0; trim_g = 0; mold_g = 0
@@ -214,6 +225,17 @@ def calculate_all_weeks(today=None):
                 'conversion': rm_conv,
             }
         
+        # Strain rankings (min 3 plants to qualify)
+        strain_ranked = []
+        for s, sd in strain_data.items():
+            if sd['plants'] >= 3:
+                strain_ranked.append({
+                    'strain': s,
+                    'plants': sd['plants'],
+                    'gpp': sd['total_g'] / sd['plants'],
+                })
+        strain_ranked.sort(key=lambda x: x['gpp'], reverse=True)
+        
         results.append({
             'monday': monday, 'sunday': sunday,
             'buds': buds_lbs, 'smalls': smalls_lbs, 'trim': trim_lbs,
@@ -223,6 +245,7 @@ def calculate_all_weeks(today=None):
             'gpp': gpp, 'conversion': conv, 'gwbp': gwbp_lbs,
             'rooms': sorted(rooms), 'room_breakdown': room_breakdown,
             'dry_equiv': dry_equiv, 'goal': week_goal, 'delta': delta,
+            'strain_ranked': strain_ranked,
         })
     
     return results
@@ -703,6 +726,51 @@ def generate_html(results, today=None):
         ytd_status = f"{abs(ytd_delta):.2f} lbs Below Goal"
         ytd_color = "#dc3545"
     
+    # Strain Spotlight section for last week
+    strain_spotlight_html = ""
+    sr = last.get('strain_ranked', [])
+    if sr:
+        top3 = sr[:3]
+        bot3 = sr[-3:] if len(sr) > 3 else []
+        # Avoid overlap if fewer than 6 strains
+        bot3 = [s for s in bot3 if s not in top3]
+        
+        spotlight_cells = ""
+        # Top performers
+        medals = ['🥇', '🥈', '🥉']
+        for i, s in enumerate(top3):
+            spotlight_cells += f"""<td style="padding:8px;vertical-align:top">
+              <div style="background:#e8f5e9;padding:12px;border-radius:8px;border-left:4px solid #2ECC71;text-align:center">
+                <div style="font-size:20px">{medals[i]}</div>
+                <div style="font-size:15px;font-weight:bold;color:#2d5016">{s['strain']}</div>
+                <div style="font-size:13px;color:#333"><strong>{s['gpp']:.1f}</strong> g/plant</div>
+                <div style="font-size:11px;color:#666">{s['plants']} plants</div>
+              </div>
+            </td>"""
+        
+        # Separator
+        if bot3:
+            spotlight_cells += f"""<td style="padding:8px;vertical-align:middle;text-align:center;width:40px">
+              <div style="font-size:12px;color:#999">···</div>
+            </td>"""
+            for s in bot3:
+                spotlight_cells += f"""<td style="padding:8px;vertical-align:top">
+                  <div style="background:#fef3f0;padding:12px;border-radius:8px;border-left:4px solid #E74C3C;text-align:center">
+                    <div style="font-size:15px;font-weight:bold;color:#c0392b">{s['strain']}</div>
+                    <div style="font-size:13px;color:#333"><strong>{s['gpp']:.1f}</strong> g/plant</div>
+                    <div style="font-size:11px;color:#666">{s['plants']} plants</div>
+                  </div>
+                </td>"""
+        
+        num_strains = len(sr)
+        strain_spotlight_html = f"""
+  <div style="padding:16px 20px;background:#fafff5;border-bottom:1px solid #ddd">
+    <h3 style="margin:0 0 12px;font-size:14px;color:#2d5016;font-weight:bold">🌿 Strain Spotlight — Last Week ({num_strains} strains, min 3 plants)</h3>
+    <table style="width:100%;border:none;border-collapse:separate;border-spacing:0">
+      <tr>{spotlight_cells}</tr>
+    </table>
+  </div>"""
+    
     week_label = f"{last['monday'].strftime('%-m/%-d/%Y')} - {last['sunday'].strftime('%-m/%-d/%Y')}"
     generated = today.strftime("%A, %B %-d, %Y")
     
@@ -736,6 +804,8 @@ def generate_html(results, today=None):
       <tr>{room_cells}</tr>
     </table>
   </div>
+  
+  {strain_spotlight_html}
   
   <div style="padding:0 20px 20px;overflow-x:auto">
     <table style="width:100%;border-collapse:collapse;font-size:12px">
