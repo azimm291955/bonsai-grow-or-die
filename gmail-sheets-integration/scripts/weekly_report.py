@@ -225,10 +225,10 @@ def calculate_all_weeks(today=None):
                 'conversion': rm_conv,
             }
         
-        # Strain rankings (min 3 plants to qualify)
+        # Strain rankings (min 5 plants to qualify)
         strain_ranked = []
         for s, sd in strain_data.items():
-            if sd['plants'] >= 3:
+            if sd['plants'] >= 5:
                 strain_ranked.append({
                     'strain': s,
                     'plants': sd['plants'],
@@ -765,7 +765,7 @@ def generate_html(results, today=None):
         num_strains = len(sr)
         strain_spotlight_html = f"""
   <div style="padding:16px 20px;background:#fafff5;border-bottom:1px solid #ddd">
-    <h3 style="margin:0 0 12px;font-size:14px;color:#2d5016;font-weight:bold">🌿 Strain Spotlight — Last Week ({num_strains} strains, min 3 plants)</h3>
+    <h3 style="margin:0 0 12px;font-size:14px;color:#2d5016;font-weight:bold">🌿 Strain Spotlight — Last Week ({num_strains} strains, min 5 plants)</h3>
     <table style="width:100%;border:none;border-collapse:separate;border-spacing:0">
       <tr>{spotlight_cells}</tr>
     </table>
