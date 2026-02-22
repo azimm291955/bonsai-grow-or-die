@@ -110,6 +110,7 @@ def calculate_all_weeks(today=None):
     TT_SICK = 5
     TT_DATE = tt_h.index('Trim Date')
     TT_ROOM = tt_h.index('Room')
+    TT_TRIM_INIT = tt_h.index('Trim Initials')
     
     HS_DATE = hs_h.index('Date')
     HS_METRC = hs_h.index('METRC Tag #')
@@ -142,6 +143,7 @@ def calculate_all_weeks(today=None):
         trimmed_gwbp_g = 0; trimmed_weight_g = 0
         room_data = {}  # room -> {plants, weight_g, gwbp_g}
         strain_data = {}  # strain -> {plants, total_g}
+        trimmer_data = {}  # initials -> {plants, total_g}
         
         for row in tt_d:
             if len(row) <= TT_DATE or not row[TT_DATE]: continue
@@ -164,6 +166,14 @@ def calculate_all_weeks(today=None):
                 room_data[room] = {'plants': 0, 'weight_g': 0, 'gwbp_g': 0}
             room_data[room]['plants'] += 1
             room_data[room]['weight_g'] += w
+            
+            # Trimmer tracking
+            trim_init = row[TT_TRIM_INIT].strip() if len(row) > TT_TRIM_INIT and row[TT_TRIM_INIT] else None
+            if trim_init:
+                if trim_init not in trimmer_data:
+                    trimmer_data[trim_init] = {'plants': 0, 'total_g': 0}
+                trimmer_data[trim_init]['plants'] += 1
+                trimmer_data[trim_init]['total_g'] += w
             
             if len(row) > TT_METRC and row[TT_METRC]:
                 tag = row[TT_METRC].strip()
@@ -236,6 +246,21 @@ def calculate_all_weeks(today=None):
                 })
         strain_ranked.sort(key=lambda x: x['gpp'], reverse=True)
         
+        # Trimmer rankings
+        trimmer_ranked = []
+        for t, td in trimmer_data.items():
+            trimmer_ranked.append({
+                'initials': t,
+                'plants': td['plants'],
+                'total_lbs': td['total_g'] / 453.0,
+                'gpp': td['total_g'] / td['plants'] if td['plants'] > 0 else 0,
+            })
+        # Sort by total plants (volume)
+        trimmer_by_volume = sorted(trimmer_ranked, key=lambda x: x['plants'], reverse=True)
+        # Sort by g/plant (quality, min 10 plants)
+        trimmer_by_quality = sorted([t for t in trimmer_ranked if t['plants'] >= 10],
+                                     key=lambda x: x['gpp'], reverse=True)
+        
         results.append({
             'monday': monday, 'sunday': sunday,
             'buds': buds_lbs, 'smalls': smalls_lbs, 'trim': trim_lbs,
@@ -246,6 +271,8 @@ def calculate_all_weeks(today=None):
             'rooms': sorted(rooms), 'room_breakdown': room_breakdown,
             'dry_equiv': dry_equiv, 'goal': week_goal, 'delta': delta,
             'strain_ranked': strain_ranked,
+            'trimmer_by_volume': trimmer_by_volume,
+            'trimmer_by_quality': trimmer_by_quality,
         })
     
     return results
@@ -771,6 +798,69 @@ def generate_html(results, today=None):
     </table>
   </div>"""
     
+    # Trimmer Leaderboard section for last week
+    trimmer_leaderboard_html = ""
+    vol = last.get('trimmer_by_volume', [])
+    qual = last.get('trimmer_by_quality', [])
+    if vol:
+        num_trimmers = len(vol)
+        total_plants = sum(t['plants'] for t in vol)
+        
+        # Volume leaders (top 5)
+        vol_rows = ""
+        vol_medals = ['🥇', '🥈', '🥉', '4', '5']
+        for i, t in enumerate(vol[:5]):
+            rank = vol_medals[i] if i < 3 else f"<span style='color:#999'>{vol_medals[i]}</span>"
+            pct = (t['plants'] / total_plants * 100) if total_plants > 0 else 0
+            bar_width = int(pct * 2.5)  # scale for visual
+            vol_rows += f"""<tr>
+              <td style="padding:6px 8px;font-size:14px;text-align:center;width:30px">{rank}</td>
+              <td style="padding:6px 8px;font-size:14px;font-weight:bold;color:#2d5016">{t['initials']}</td>
+              <td style="padding:6px 8px;font-size:13px;text-align:right"><strong>{t['plants']}</strong> plants</td>
+              <td style="padding:6px 8px;font-size:13px;text-align:right">{t['total_lbs']:.1f} lbs</td>
+              <td style="padding:6px 8px;width:120px">
+                <div style="background:#e8f5e9;border-radius:4px;height:16px;width:100%">
+                  <div style="background:#2ECC71;border-radius:4px;height:16px;width:{min(bar_width, 100)}%"></div>
+                </div>
+              </td>
+            </tr>"""
+        
+        # Quality leaders (top 5, min 10 plants)
+        qual_rows = ""
+        if qual:
+            qual_medals = ['🥇', '🥈', '🥉', '4', '5']
+            for i, t in enumerate(qual[:5]):
+                rank = qual_medals[i] if i < 3 else f"<span style='color:#999'>{qual_medals[i]}</span>"
+                gpp_color = "#2ECC71" if t['gpp'] >= 180 else "#f39c12" if t['gpp'] >= 150 else "#E74C3C"
+                qual_rows += f"""<tr>
+                  <td style="padding:6px 8px;font-size:14px;text-align:center;width:30px">{rank}</td>
+                  <td style="padding:6px 8px;font-size:14px;font-weight:bold;color:#2d5016">{t['initials']}</td>
+                  <td style="padding:6px 8px;font-size:13px;text-align:right;color:{gpp_color};font-weight:bold">{t['gpp']:.1f} g/plant</td>
+                  <td style="padding:6px 8px;font-size:13px;text-align:right">{t['plants']} plants</td>
+                  <td style="padding:6px 8px;font-size:13px;text-align:right">{t['total_lbs']:.1f} lbs</td>
+                </tr>"""
+        
+        trimmer_leaderboard_html = f"""
+  <div style="padding:16px 20px;background:#fafff5;border-bottom:1px solid #ddd">
+    <h3 style="margin:0 0 12px;font-size:14px;color:#2d5016;font-weight:bold">✂️ Trimmer Leaderboard — Last Week ({num_trimmers} trimmers, {total_plants} plants)</h3>
+    <table style="width:100%;border:none;border-collapse:separate;border-spacing:0">
+      <tr>
+        <td style="width:50%;vertical-align:top;padding-right:12px">
+          <div style="background:#e8f5e9;padding:12px;border-radius:8px">
+            <div style="font-size:13px;font-weight:bold;color:#2d5016;margin-bottom:8px">📦 Volume Leaders</div>
+            <table style="width:100%;border-collapse:collapse">{vol_rows}</table>
+          </div>
+        </td>
+        <td style="width:50%;vertical-align:top;padding-left:12px">
+          <div style="background:#fff8e1;padding:12px;border-radius:8px">
+            <div style="font-size:13px;font-weight:bold;color:#7b6b00;margin-bottom:8px">⭐ Quality Leaders <span style="font-weight:normal;font-size:11px;color:#999">(min 10 plants)</span></div>
+            <table style="width:100%;border-collapse:collapse">{qual_rows}</table>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </div>"""
+
     week_label = f"{last['monday'].strftime('%-m/%-d/%Y')} - {last['sunday'].strftime('%-m/%-d/%Y')}"
     generated = today.strftime("%A, %B %-d, %Y")
     
@@ -806,6 +896,8 @@ def generate_html(results, today=None):
   </div>
   
   {strain_spotlight_html}
+  
+  {trimmer_leaderboard_html}
   
   <div style="padding:0 20px 20px;overflow-x:auto">
     <table style="width:100%;border-collapse:collapse;font-size:12px">
