@@ -12,8 +12,8 @@ import json
 from datetime import datetime
 
 # Gmail credentials
-GMAIL_USER = "bonsaiburner420bot@gmail.com"
-GMAIL_PASSWORD = "tiak hlhy fvzw btmp"
+GMAIL_USER = "bot@bonsaicultivation.com"
+GMAIL_PASSWORD = "kzsz gxfa rjdk rcll"
 
 def load_data():
     """Load weekly production data"""

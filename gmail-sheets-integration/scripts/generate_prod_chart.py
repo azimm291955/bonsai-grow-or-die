@@ -149,8 +149,8 @@ def send_email(to_email, subject, body, attachment_path):
     from email.mime.image import MIMEImage
     
     # Gmail credentials
-    gmail_user = 'bonsaiburner420bot@gmail.com'
-    gmail_password = 'tiak hlhy fvzw btmp'  # App password
+    gmail_user = 'bot@bonsaicultivation.com'
+    gmail_password = 'kzsz gxfa rjdk rcll'  # App password
     
     # Create message
     msg = MIMEMultipart()

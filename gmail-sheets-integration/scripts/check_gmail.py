@@ -8,8 +8,8 @@ from pathlib import Path
 import sys
 
 # Credentials
-EMAIL = "bonsaiburner420bot@gmail.com"
-PASSWORD = "tiak hlhy fvzw btmp"  # App password
+EMAIL = "bot@bonsaicultivation.com"
+PASSWORD = "kzsz gxfa rjdk rcll"  # App password
 
 def check_inbox(limit=5):
     """Check recent emails"""

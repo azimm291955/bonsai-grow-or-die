@@ -143,8 +143,8 @@ def create_chart(mondays, dry_equiv_values, output_path):
 def send_email(to_email, subject, body, attachment_path):
     """Send email with attachment using Gmail"""
     # Gmail credentials
-    gmail_user = 'bonsaiburner420bot@gmail.com'
-    gmail_password = 'tiak hlhy fvzw btmp'  # App password
+    gmail_user = 'bot@bonsaicultivation.com'
+    gmail_password = 'kzsz gxfa rjdk rcll'  # App password
     
     # Create message
     msg = MIMEMultipart()

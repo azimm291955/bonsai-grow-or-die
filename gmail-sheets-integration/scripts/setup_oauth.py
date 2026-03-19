@@ -38,7 +38,7 @@ def setup_oauth():
     print("="*70)
     print("\n1. Open this URL in your browser:")
     print(f"\n{auth_url}\n")
-    print("2. Log in as: bonsaiburner420bot@gmail.com")
+    print("2. Log in as: bot@bonsaicultivation.com")
     print("3. Grant permission to read Google Sheets")
     print("4. After approval, you'll be redirected to a URL like:")
     print("   http://localhost/?code=4/0A...")

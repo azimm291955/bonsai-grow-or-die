@@ -6,8 +6,8 @@ import email
 from email.header import decode_header
 
 # Credentials
-EMAIL = "bonsaiburner420bot@gmail.com"
-PASSWORD = "tiak hlhy fvzw btmp"
+EMAIL = "bot@bonsaicultivation.com"
+PASSWORD = "kzsz gxfa rjdk rcll"
 
 def read_email():
     """Read prod chart email"""

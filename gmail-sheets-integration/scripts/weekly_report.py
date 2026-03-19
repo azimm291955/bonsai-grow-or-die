@@ -141,6 +141,7 @@ def calculate_all_weeks(today=None):
         # --- Trimmer Tracker ---
         buds_g = 0; plants_trimmed = 0; sick_count = 0; rooms = set()
         trimmed_gwbp_g = 0; trimmed_weight_g = 0
+        missing_weight_count = 0; missing_weight_rows = []
         room_data = {}  # room -> {plants, weight_g, gwbp_g}
         strain_data = {}  # strain -> {plants, total_g}
         trimmer_data = {}  # initials -> {plants, total_g}
@@ -156,6 +157,14 @@ def calculate_all_weeks(today=None):
                 continue
             
             w = safe_float(row, TT_WEIGHT)
+            if w == 0:
+                missing_weight_count += 1
+                missing_weight_rows.append({
+                    'date': d, 'room': str(row[TT_ROOM]).strip() if len(row) > TT_ROOM and row[TT_ROOM] else '?',
+                    'tag': row[TT_METRC].strip() if len(row) > TT_METRC and row[TT_METRC] else '',
+                    'trimmer': row[TT_TRIM_INIT].strip() if len(row) > TT_TRIM_INIT and row[TT_TRIM_INIT] else '?',
+                })
+                continue
             buds_g += w
             plants_trimmed += 1
             trimmed_weight_g += w
@@ -268,6 +277,9 @@ def calculate_all_weeks(today=None):
             'plants_harvested': plants_harvested, 'frozen_plants': frozen_plants,
             'plants_trimmed': plants_trimmed, 'sick': sick_count,
             'gpp': gpp, 'conversion': conv, 'gwbp': gwbp_lbs,
+            'trimmed_gwbp_lbs': trimmed_gwbp_g / 453.0,
+            'missing_weight_count': missing_weight_count,
+            'missing_weight_rows': missing_weight_rows,
             'rooms': sorted(rooms), 'room_breakdown': room_breakdown,
             'dry_equiv': dry_equiv, 'goal': week_goal, 'delta': delta,
             'strain_ranked': strain_ranked,
@@ -609,10 +621,10 @@ def generate_html(results, today=None):
     tot_trimmed = sum(r['plants_trimmed'] for r in results)
     tot_sick = sum(r['sick'] for r in results)
     tot_gpp = (tot_buds * 453.0) / tot_trimmed if tot_trimmed > 0 else 0  # back to grams for g/plant
-    # Conversion: total buds grams / total GWBP grams (both from sums)
+    # Conversion: total buds / total trimmed GWBP (must use trimmed_gwbp_lbs, not harvest-date gwbp)
     tot_buds_g = sum(r['buds'] for r in results) * 453.0
-    tot_gwbp_g = sum(r['gwbp'] for r in results) * 453.0
-    tot_conv = (tot_buds_g / tot_gwbp_g * 100) if tot_gwbp_g > 0 else 0
+    tot_trimmed_gwbp_g = sum(r['trimmed_gwbp_lbs'] for r in results) * 453.0
+    tot_conv = (tot_buds_g / tot_trimmed_gwbp_g * 100) if tot_trimmed_gwbp_g > 0 else 0
     tot_gwbp = sum(r['gwbp'] for r in results)
     tot_dry = sum(r['dry_equiv'] for r in results)
     tot_goal = sum(r['goal'] for r in results)
@@ -671,7 +683,7 @@ def generate_html(results, today=None):
     
     # Table rows with alternating row colors
     row_index = [0]  # mutable counter
-    def table_row(label, values, tot_val, avg_val, is_pct=False, is_int=False, is_rooms=False):
+    def table_row(label, values, tot_val, avg_val, is_pct=False, is_int=False, is_rooms=False, cell_color_fn=None):
         bg = "#f0f7e6" if row_index[0] % 2 == 0 else "#ffffff"
         row_index[0] += 1
         
@@ -679,38 +691,63 @@ def generate_html(results, today=None):
         for v in values:
             if is_rooms:
                 cell = v
+                cell_bg = bg
             elif is_pct:
                 cell = f"{v:.2f}%"
+                cell_bg = cell_color_fn(v) if cell_color_fn else bg
             elif is_int:
                 cell = f"{v:,}"
+                cell_bg = cell_color_fn(v) if cell_color_fn else bg
             else:
                 cell = f"{v:,.2f}"
-            cells += f'<td style="padding:8px;text-align:right;background:{bg};border-bottom:1px solid #e0e0e0;font-size:12px">{cell}</td>'
+                cell_bg = cell_color_fn(v) if cell_color_fn else bg
+            text_color = f"color:{cell_color_fn(v)};font-weight:bold" if cell_color_fn and not is_rooms else ""
+            cells += f'<td style="padding:8px;text-align:right;background:{bg};border-bottom:1px solid #e0e0e0;font-size:12px;{text_color}">{cell}</td>'
         
         # 6-Wk Total
         tot_bg = "#e8f0dc" if bg == "#f0f7e6" else "#e9ecef"
         if is_rooms:
             tot_cell = "-"
+            tot_text = ""
         elif is_pct:
             tot_cell = f"{tot_val:.2f}%"
+            tot_text = f"color:{cell_color_fn(tot_val)};font-weight:bold" if cell_color_fn else "font-weight:bold"
         elif is_int:
             tot_cell = f"{tot_val:,}"
+            tot_text = f"color:{cell_color_fn(tot_val)};font-weight:bold" if cell_color_fn else "font-weight:bold"
         else:
             tot_cell = f"{tot_val:,.2f}"
-        cells += f'<td style="padding:8px;text-align:right;background:{tot_bg};font-weight:bold;border-bottom:1px solid #e0e0e0;font-size:12px">{tot_cell}</td>'
+            tot_text = f"color:{cell_color_fn(tot_val)};font-weight:bold" if cell_color_fn else "font-weight:bold"
+        cells += f'<td style="padding:8px;text-align:right;background:{tot_bg};border-bottom:1px solid #e0e0e0;font-size:12px;{tot_text}">{tot_cell}</td>'
         
         # 6-Wk Avg
         if is_rooms:
             avg_cell = "-"
+            avg_text = ""
         elif is_pct:
             avg_cell = f"{avg_val:.2f}%"
+            avg_text = f"color:{cell_color_fn(avg_val)};font-weight:bold" if cell_color_fn else ""
         elif is_int:
             avg_cell = f"{avg_val:,.0f}"
+            avg_text = f"color:{cell_color_fn(avg_val)};font-weight:bold" if cell_color_fn else ""
         else:
             avg_cell = f"{avg_val:,.2f}"
-        cells += f'<td style="padding:8px;text-align:right;background:{tot_bg};border-bottom:1px solid #e0e0e0;font-size:12px">{avg_cell}</td>'
+            avg_text = f"color:{cell_color_fn(avg_val)};font-weight:bold" if cell_color_fn else ""
+        cells += f'<td style="padding:8px;text-align:right;background:{tot_bg};border-bottom:1px solid #e0e0e0;font-size:12px;{avg_text}">{avg_cell}</td>'
         
         return f"<tr>{cells}</tr>"
+    
+    def conv_color(v):
+        """Conversion rate: <9% red, 9–10% yellow, >=10% green."""
+        if v < 9:   return "#E74C3C"
+        elif v < 10: return "#ffc107"
+        else:        return "#2ECC71"
+    
+    def delta_color(v):
+        """Delta: positive green, negative red, zero neutral."""
+        if v > 0:   return "#2ECC71"
+        elif v < 0: return "#E74C3C"
+        else:        return "#f0f7e6"
     
     # Date headers
     date_headers = ""
@@ -726,19 +763,16 @@ def generate_html(results, today=None):
     rows += table_row("Buds", [r['buds'] for r in results], tot_buds, avg6_buds)
     rows += table_row("Smalls", [r['smalls'] for r in results], tot_smalls, avg6_smalls)
     rows += table_row("Trim", [r['trim'] for r in results], tot_trim, avg6_trim)
-    rows += table_row("Mold / B-Tier", [r['mold'] for r in results], tot_mold, avg6_mold)
     rows += table_row("Frozen LBS", [r['frozen'] for r in results], tot_frozen, avg6_frozen)
     rows += table_row("Plants Harvested", [r['plants_harvested'] for r in results], tot_harvested, avg6_harvested, is_int=True)
     rows += table_row("Frozen Plants", [r['frozen_plants'] for r in results], tot_frozen_plants, avg6_frozen_plants, is_int=True)
     rows += table_row("Plants Trimmed", [r['plants_trimmed'] for r in results], tot_trimmed, avg6_trimmed, is_int=True)
-    rows += table_row("Sick Plants", [r['sick'] for r in results], tot_sick, avg6_sick, is_int=True)
     rows += table_row("Grams Per Plant", [r['gpp'] for r in results], tot_gpp, avg6_gpp)
-    rows += table_row("Conversion Rate", [r['conversion'] for r in results], tot_conv, avg6_conv, is_pct=True)
-    rows += table_row("GWBP LBS", [r['gwbp'] for r in results], tot_gwbp, avg6_gwbp)
+    rows += table_row("Conversion Rate", [r['conversion'] for r in results], tot_conv, avg6_conv, is_pct=True, cell_color_fn=conv_color)
+    rows += table_row("GWBP Avg", [r['gwbp'] for r in results], avg6_gwbp, avg6_gwbp)
     rows += table_row("Room Trimmed", room_strs, "-", "-", is_rooms=True)
     rows += table_row("Dry Equivalent Lbs", [r['dry_equiv'] for r in results], tot_dry, avg6_dry)
-    rows += table_row("Goal Lbs", [r['goal'] for r in results], tot_goal, GOAL_LBS)
-    rows += table_row("Delta", [r['delta'] for r in results], tot_delta, avg6_delta)
+    rows += table_row("Delta", [r['delta'] for r in results], tot_delta, avg6_delta, cell_color_fn=delta_color)
     
     # YTD summary — calculate true cumulative YTD from all 2026 weeks (wk 0 through current)
     ytd_2026 = calculate_year_weekly(today.year, today)
@@ -959,7 +993,7 @@ def send_report(to_email, today=None):
     chart2_png = render_chart2(results)
     
     msg = MIMEMultipart('related')
-    msg['From'] = 'bonsaiburner420bot@gmail.com'
+    msg['From'] = 'bot@bonsaicultivation.com'
     msg['To'] = to_email
     msg['Subject'] = subject
     msg.attach(MIMEText(html, 'html'))
@@ -976,7 +1010,7 @@ def send_report(to_email, today=None):
     
     print(f"Sending to {to_email}...")
     with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-        server.login('bonsaiburner420bot@gmail.com', 'tiak hlhy fvzw btmp')
+        server.login('bot@bonsaicultivation.com', 'kzsz gxfa rjdk rcll')
         server.sendmail(msg['From'], to_email, msg.as_string())
     
     print(f"✅ Sent: {subject}")

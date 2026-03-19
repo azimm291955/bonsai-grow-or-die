@@ -31,21 +31,24 @@ os.environ['CONVEX_HTTP_URL'] = 'https://compassionate-stork-327.convex.site'
 logger = MissionControlLogger()
 
 # Google Sheets imports
-from google.oauth2.credentials import Credentials
+from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 
 # Spreadsheet ID
 FLOWER_PROJECTIONS_ID = '1UDyIj0Ko5rvBLs-lFSBpl77Y2cUdRrn-goE2h8w4xJw'
 
-def load_token():
-    """Load OAuth token"""
-    token_path = Path(__file__).parent.parent.parent / '.credentials' / 'sheets-token.pickle'
-    with open(token_path, 'rb') as f:
-        return pickle.load(f)
+def load_credentials():
+    """Load service account credentials"""
+    creds_path = Path(__file__).parent.parent.parent / '.credentials' / 'service-account.json'
+    credentials = Credentials.from_service_account_file(
+        creds_path,
+        scopes=['https://www.googleapis.com/auth/spreadsheets.readonly']
+    )
+    return credentials
 
 def read_sheet_range(spreadsheet_id, range_name):
     """Read a range from Google Sheets"""
-    creds = load_token()
+    creds = load_credentials()
     service = build('sheets', 'v4', credentials=creds)
     
     result = service.spreadsheets().values().get(
@@ -275,8 +278,8 @@ def create_chart(mondays, dry_equiv_values, output_path):
 
 def send_email(to_email, subject, body, attachment_path):
     """Send email with attachment using Gmail"""
-    gmail_user = 'bonsaiburner420bot@gmail.com'
-    gmail_password = 'tiak hlhy fvzw btmp'
+    gmail_user = 'bot@bonsaicultivation.com'
+    gmail_password = 'kzsz gxfa rjdk rcll'
     
     msg = MIMEMultipart()
     msg['From'] = gmail_user

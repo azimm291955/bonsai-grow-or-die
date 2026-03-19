@@ -17,13 +17,14 @@ CREDS_DIR = Path(__file__).parent.parent.parent / '.credentials'
 # Spreadsheet IDs
 TRIMMER_TRACKER_ID = '1_8z9bwpcrJR0Ev6N0o8YVvQ0lDDClfn_8bKN52mLxRM'
 HARVEST_SHEET_ID = '1421hIJaj69XnZ16rIQ7S7cL-1P0sXEYe1UZiw5e7Ntw'
+FLOWER_PROJECTIONS_ID = '1UDyIj0Ko5rvBLs-lFSBpl77Y2cUdRrn-goE2h8w4xJw'  # has 2026_Trimmer_Tracker tab
 
 # Thresholds
 WEIGHT_UPPER_GRAMS = 500  # Flag healthy plants over this
 STDDEV_MULTIPLIER = 4     # Flag outliers beyond 4 std devs
 
 # Email config
-FROM_EMAIL = 'bonsaiburner420bot@gmail.com'
+FROM_EMAIL = 'bot@bonsaicultivation.com'
 TO_EMAILS = ['aaron.zimmerman@bonsaicultivation.com', 'bonsaialyssa@gmail.com']
 
 def load_sheets_service():
@@ -75,6 +76,7 @@ def safe_get(row, idx):
 def check_trimmer_tracker(service):
     """Check 2026_Flower_Weights tab in Trimmer_Tracker spreadsheet."""
     issues = []
+    cutoff = datetime.now() - timedelta(weeks=6)
     rows = read_tab(service, TRIMMER_TRACKER_ID, '2026_Flower_Weights')
     if not rows:
         return [('CRITICAL', 'Trimmer Tracker', 'Could not read 2026_Flower_Weights tab')]
@@ -111,6 +113,11 @@ def check_trimmer_tracker(service):
 
         # Skip completely empty rows
         if not tag and weight is None and not batch:
+            continue
+
+        # Skip rows outside the 6-week window
+        trim_date_parsed = parse_date(trim_date)
+        if trim_date_parsed and trim_date_parsed < cutoff:
             continue
 
         # 1. Range validation: healthy plants > 500g
@@ -211,6 +218,7 @@ def check_trimmer_tracker(service):
 def check_harvest_sheet(service):
     """Check Harvest_Weight_2026 tab in Harvest_Sheet spreadsheet."""
     issues = []
+    cutoff = datetime.now() - timedelta(weeks=6)
     rows = read_tab(service, HARVEST_SHEET_ID, 'Harvest_Weight_2026')
     if not rows:
         return [('CRITICAL', 'Harvest Sheet', 'Could not read Harvest_Weight_2026 tab')]
@@ -245,6 +253,11 @@ def check_harvest_sheet(service):
 
         # Skip empty rows
         if not tag and gwbp is None and not strain:
+            continue
+
+        # Skip rows outside the 6-week window
+        date_parsed = parse_date(date_val)
+        if date_parsed and date_parsed < cutoff:
             continue
 
         # Negative weights (GWBP only)
@@ -343,7 +356,90 @@ def check_batch_mismatches(service):
     return issues
 
 
-def format_html_report(all_issues):
+def check_missing_weights(service):
+    """Find plants in the last 14 days with blank/zero weight in 2026_Trimmer_Tracker.
+    These are excluded from plant count and g/plant averages in the weekly report.
+    Returns a list of dicts: {date, room, tag, trimmer, row_num}
+    """
+    missing = []
+    cutoff = datetime.now() - timedelta(days=14)
+    rows = read_tab(service, FLOWER_PROJECTIONS_ID, '2026_Trimmer_Tracker', 'A:K')
+    if not rows:
+        return missing
+
+    headers = [h.strip() for h in rows[0]]
+    i_date    = col_index(headers, 'Trim Date')
+    i_weight  = col_index(headers, 'Weight')
+    i_sick    = col_index(headers, "Sick ('Y' if yes)", 'Sick')
+    i_room    = col_index(headers, 'Room')
+    i_tag     = col_index(headers, 'METRC Tag #', 'METRC Tag')
+    i_trimmer = col_index(headers, 'Trim Initials')
+
+    for row_num, row in enumerate(rows[1:], start=2):
+        date_str = safe_get(row, i_date)
+        if not date_str:
+            continue
+        d = parse_date(date_str)
+        if not d or d < cutoff:
+            continue
+
+        # Skip sick plants
+        sick_val = safe_get(row, i_sick).strip().upper()
+        if sick_val in ('Y', 'YES'):
+            continue
+
+        weight = safe_float(safe_get(row, i_weight))
+        if weight is None or weight == 0:
+            missing.append({
+                'row_num': row_num,
+                'date': d,
+                'room': safe_get(row, i_room) or '?',
+                'tag': safe_get(row, i_tag) or '',
+                'trimmer': safe_get(row, i_trimmer) or '?',
+            })
+
+    return missing
+
+
+def format_missing_weights_section(missing):
+    """Render an HTML section for missing weight entries."""
+    if not missing:
+        return ''
+
+    rows_html = ''
+    for m in missing:
+        trimmer_display = m['trimmer'] if m['trimmer'] != '?' else '<span style="color:#999">—</span>'
+        tag_display = m['tag'] if m['tag'] else '<span style="color:#999">—</span>'
+        rows_html += f"""<tr>
+            <td style="padding:6px 10px;border:1px solid #ffe082;font-size:12px">{m['date'].strftime('%-m/%-d/%Y')}</td>
+            <td style="padding:6px 10px;border:1px solid #ffe082;font-size:12px">Room {m['room']}</td>
+            <td style="padding:6px 10px;border:1px solid #ffe082;font-size:12px;font-family:monospace">{tag_display}</td>
+            <td style="padding:6px 10px;border:1px solid #ffe082;font-size:12px;font-weight:bold">{trimmer_display}</td>
+        </tr>"""
+
+    return f"""
+    <div style="margin-bottom:20px;border:2px solid #ffc107;border-radius:6px;overflow:hidden">
+        <div style="background:#ffc107;padding:10px 16px">
+            <strong style="font-size:14px;color:#333">⚠️ Missing Plant Weights — {len(missing)} plant(s) in last 14 days</strong>
+            <span style="font-size:12px;color:#555;margin-left:10px">These entries have no weight recorded and are excluded from plant count &amp; g/plant averages.</span>
+        </div>
+        <div style="padding:12px 16px;background:#fffde7">
+            <table style="border-collapse:collapse;width:100%">
+                <thead>
+                    <tr style="background:#fff8e1">
+                        <th style="padding:6px 10px;border:1px solid #ffe082;font-size:12px;text-align:left">Date</th>
+                        <th style="padding:6px 10px;border:1px solid #ffe082;font-size:12px;text-align:left">Room</th>
+                        <th style="padding:6px 10px;border:1px solid #ffe082;font-size:12px;text-align:left">METRC Tag</th>
+                        <th style="padding:6px 10px;border:1px solid #ffe082;font-size:12px;text-align:left">Trimmer</th>
+                    </tr>
+                </thead>
+                <tbody>{rows_html}</tbody>
+            </table>
+        </div>
+    </div>"""
+
+
+def format_html_report(all_issues, missing_weights=None):
     """Generate HTML email from issues."""
     now = datetime.utcnow() - timedelta(hours=7)  # MST
     date_str = now.strftime('%A, %B %d, %Y')
@@ -375,8 +471,11 @@ def format_html_report(all_issues):
         </div>
     """
 
+    if missing_weights:
+        html += format_missing_weights_section(missing_weights)
+
     if not all_issues:
-        html += '<div style="text-align: center; padding: 40px; color: #28a745;"><h2>✅ All Clear!</h2><p>No issues found in today\'s data.</p></div>'
+        html += '<div style="text-align: center; padding: 40px; color: #28a745;"><h2>✅ All Clear!</h2><p>No data quality issues found in today\'s checks.</p></div>'
     else:
         for severity, color, emoji, items in [
             ('CRITICAL', '#dc3545', '🚨', critical),
@@ -403,14 +502,19 @@ def format_html_report(all_issues):
     return html
 
 
-def send_report(html, issue_count, dry_run=False):
+def send_report(html, issue_count, missing_weight_count=0, dry_run=False):
     """Send the error check email."""
     now = datetime.utcnow() - timedelta(hours=7)
     subject = f"🔍 Bonsai Error Check — {now.strftime('%m/%d/%Y')}"
-    if issue_count == 0:
-        subject += " ✅ All Clear"
+    flags = []
+    if issue_count > 0:
+        flags.append(f"{issue_count} issue{'s' if issue_count != 1 else ''}")
+    if missing_weight_count > 0:
+        flags.append(f"{missing_weight_count} missing weight{'s' if missing_weight_count != 1 else ''}")
+    if flags:
+        subject += " — " + ", ".join(flags)
     else:
-        subject += f" — {issue_count} issue{'s' if issue_count != 1 else ''} found"
+        subject += " ✅ All Clear"
 
     msg = MIMEMultipart('related')
     msg['Subject'] = subject
@@ -451,26 +555,30 @@ def main():
     mismatch_issues = check_batch_mismatches(service)
     print(f"  → {len(mismatch_issues)} issues found")
 
+    print("Checking for missing plant weights (2026_Trimmer_Tracker, last 14 days)...")
+    missing_weights = check_missing_weights(service)
+    print(f"  → {len(missing_weights)} plants with missing weight")
+
     all_issues = issues + harvest_issues + mismatch_issues
 
     # Sort: CRITICAL first, then WARNING, then INFO
     severity_order = {'CRITICAL': 0, 'WARNING': 1, 'INFO': 2}
     all_issues.sort(key=lambda x: severity_order.get(x[0], 99))
 
-    print(f"\nTotal: {len(all_issues)} issues")
+    print(f"\nTotal: {len(all_issues)} data issues, {len(missing_weights)} missing weights")
     for severity, source, detail in all_issues:
         icon = {'CRITICAL': '🚨', 'WARNING': '⚠️', 'INFO': 'ℹ️'}.get(severity, '?')
         print(f"  {icon} [{source}] {detail}")
 
-    html = format_html_report(all_issues)
+    html = format_html_report(all_issues, missing_weights=missing_weights)
 
     if send_email:
-        send_report(html, len(all_issues))
+        send_report(html, len(all_issues), missing_weight_count=len(missing_weights))
     elif dry_run:
-        send_report(html, len(all_issues), dry_run=True)
+        send_report(html, len(all_issues), missing_weight_count=len(missing_weights), dry_run=True)
     else:
         # Default: print summary and save preview
-        send_report(html, len(all_issues), dry_run=True)
+        send_report(html, len(all_issues), missing_weight_count=len(missing_weights), dry_run=True)
 
 
 if __name__ == '__main__':

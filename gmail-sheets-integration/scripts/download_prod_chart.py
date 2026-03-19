@@ -8,8 +8,8 @@ from pathlib import Path
 import sys
 
 # Credentials
-EMAIL = "bonsaiburner420bot@gmail.com"
-PASSWORD = "tiak hlhy fvzw btmp"
+EMAIL = "bot@bonsaicultivation.com"
+PASSWORD = "kzsz gxfa rjdk rcll"
 
 def download_attachment():
     """Download prod chart from Gmail"""
