@@ -355,12 +355,15 @@ export const useGameStore = create<GameStore>()(
       // ── Flip to Flower ──
       flipToFlower: (vegIndex, flowerIndex) => {
         const { state: s, ui } = get();
-        if (!s) return;
+        if (!s) { console.warn("FLIP: no state"); return; }
         const veg = s.rooms[vegIndex];
         const flower = s.rooms[flowerIndex];
-        if (!veg || !flower) return;
-        if (veg.status !== "ready_to_flip") return;
-        if (!flower.unlocked || flower.type !== "flower" || flower.status !== "empty") return;
+        if (!veg || !flower) { console.warn("FLIP: no veg/flower room", vegIndex, flowerIndex); return; }
+        if (veg.status !== "ready_to_flip") { console.warn("FLIP: veg not ready_to_flip, status=", veg.status); return; }
+        if (!flower.unlocked) { console.warn("FLIP: flower not unlocked"); return; }
+        if (flower.type !== "flower") { console.warn("FLIP: flower type=", flower.type); return; }
+        if (flower.status !== "empty") { console.warn("FLIP: flower not empty, status=", flower.status); return; }
+        console.log("FLIP: all guards passed, executing flip", vegIndex, "->", flowerIndex);
 
         const rawVegQuality = getRotQuality(veg.rotDays, getRotSpeedMultiplierForRoom(s.upgrades, vegIndex));
         const vegBonus = getVegQualityBonus(s.upgrades, vegIndex);
