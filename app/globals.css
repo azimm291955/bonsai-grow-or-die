@@ -7,6 +7,7 @@
   --color-bonsai-purple: #CE93D8;
   --color-bonsai-amber: #FFB74D;
   --color-bonsai-red: #ef5350;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
 }
 
 * {

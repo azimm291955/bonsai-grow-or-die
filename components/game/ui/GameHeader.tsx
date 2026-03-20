@@ -94,49 +94,58 @@ export default function GameHeader() {
         {/* ── LEFT 2/3: Metrics ── */}
         <div className="flex-[2] min-w-0 pr-3 flex flex-col justify-between" style={{ borderRight: "1px solid rgba(255,255,255,0.06)" }}>
 
-          {/* Row 1: Cash (fixed width) | AMR + Burn stacked */}
-          <div className="flex items-center gap-0">
+          {/* Row 1: Cash (fixed width) | RWY + AMR + Burn stacked */}
+          <div className="flex items-start gap-0">
             {/* Cash: fixed-width zone */}
-            <div className="w-[105px] shrink-0">
+            <div className="w-[105px] shrink-0 pt-0.5">
               <div
                 className="font-extrabold text-[28px] tracking-tight leading-none"
                 style={{
                   color: cashColor,
                   textShadow: `0 0 30px ${cash > 0 ? "rgba(139,195,74,0.15)" : "rgba(239,83,80,0.25)"}`,
-                  fontVariantNumeric: "tabular-nums",
+                  fontFamily: "var(--font-mono)",
                 }}
               >
                 {formatCash(cash)}
               </div>
             </div>
 
-            {/* AMR + Burn stacked */}
-            <div className="flex-1 flex flex-col gap-0.5 pl-2" style={{ borderLeft: "1px solid rgba(255,255,255,0.05)" }}>
+            {/* RWY + AMR + Burn stacked — all aligned */}
+            <div className="flex-1 flex flex-col gap-px pl-2" style={{ borderLeft: "1px solid rgba(255,255,255,0.05)" }}>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[8px] text-[#999] font-bold tracking-widest w-[32px]">RWY</span>
+                <span
+                  className="text-[14px] font-extrabold"
+                  style={{ color: runwayColor, fontFamily: "var(--font-mono)" }}
+                >
+                  {monthsRunway !== null ? `${monthsRunway}mo` : "∞"}
+                </span>
+              </div>
               <button
                 onClick={() => setShowAMRInfo(true)}
                 className="flex items-center gap-1.5 cursor-pointer bg-transparent border-none p-0"
               >
-                <span className="text-[8px] text-[#999] font-bold tracking-widest w-[30px]">AMR</span>
-                <span className="text-[14px] font-bold text-[#FFB74D]" style={{ fontVariantNumeric: "tabular-nums" }}>
+                <span className="text-[8px] text-[#999] font-bold tracking-widest w-[32px]">AMR</span>
+                <span className="text-[14px] font-bold text-[#FFB74D]" style={{ fontFamily: "var(--font-mono)" }}>
                   ${currentAMR}
                 </span>
                 <span className="text-[9px] text-[#777]">ⓘ</span>
               </button>
               <div className="flex items-center gap-1.5">
-                <span className="text-[8px] text-[#999] font-bold tracking-widest w-[30px]">BURN</span>
-                <span className="text-[14px] font-bold text-[#ef5350]" style={{ fontVariantNumeric: "tabular-nums" }}>
+                <span className="text-[8px] text-[#999] font-bold tracking-widest w-[32px]">BURN</span>
+                <span className="text-[14px] font-bold text-[#ef5350]" style={{ fontFamily: "var(--font-mono)" }}>
                   {formatCash(grossBurn)}<span className="text-[9px] text-[#777] font-normal">/mo</span>
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Row 2: Name · Date | Runway + VC */}
-          <div className="flex items-center justify-between mt-1.5">
+          {/* Row 2: Name · Date | Runway (big) + VC */}
+          <div className="flex items-center justify-between mt-1">
             <div className="flex items-center gap-1.5">
               <span className="text-[#aaa] text-[11px] font-bold">{playerName}</span>
               <span className="text-[#555] text-[9px]">·</span>
-              <span className="text-[#777] text-[9px]">{formatDate(gd)}</span>
+              <span className="text-[#888] text-[11px] font-medium">{formatDate(gd)}</span>
             </div>
             <div className="flex items-center gap-2">
               {vcTaken && (
@@ -145,17 +154,14 @@ export default function GameHeader() {
                   style={{ background: "rgba(239,83,80,0.08)", border: "1px solid rgba(239,83,80,0.15)" }}
                 >
                   <span className="text-[8px] text-[#ef5350] font-bold tracking-wide">VC</span>
-                  <span className="text-[11px] font-bold text-[#ef5350]">-15%</span>
+                  <span className="text-[11px] font-bold text-[#ef5350]" style={{ fontFamily: "var(--font-mono)" }}>-15%</span>
                 </div>
               )}
-              <div className="flex items-center gap-1">
-                <span className="text-[8px] text-[#999] font-bold tracking-widest">RWY</span>
-                <span
-                  className="text-[18px] font-extrabold leading-none"
-                  style={{ color: runwayColor, fontVariantNumeric: "tabular-nums" }}
-                >
-                  {monthsRunway !== null ? `${monthsRunway}mo` : "∞"}
-                </span>
+              <div
+                className="text-[24px] font-extrabold leading-none"
+                style={{ color: runwayColor, fontFamily: "var(--font-mono)" }}
+              >
+                {monthsRunway !== null ? `${monthsRunway}mo` : "∞"}
               </div>
             </div>
           </div>

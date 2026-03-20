@@ -99,7 +99,7 @@ export default function PnLTab() {
       <span style={{
         fontSize: bold ? 14 : 12, fontWeight: bold ? 800 : 500,
         color: color || (typeof amount === "number" ? (amount > 0 ? "#8BC34A" : amount < 0 ? "#ef5350" : "#666") : "#ccc"),
-        fontVariantNumeric: "tabular-nums",
+        fontFamily: "var(--font-mono)",
       }}>
         {typeof amount === "string" ? amount : formatCash(amount)}
       </span>
@@ -201,13 +201,13 @@ export default function PnLTab() {
                             {selectedData.monthlyRows.map((row, i) => (
                               <tr key={i} style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
                                 <td style={{ padding: "3px 0", color: "#888" }}>{MONTH_NAMES[row.month - 1]}</td>
-                                <td style={{ textAlign: "right", padding: "3px 4px", color: "#8BC34A" }}>
+                                <td style={{ textAlign: "right", padding: "3px 4px", color: "#8BC34A", fontFamily: "var(--font-mono)" }}>
                                   {formatCash((row.harvestRevenue || 0) + (row.preroll || 0))}
                                 </td>
-                                <td style={{ textAlign: "right", padding: "3px 4px", color: "#ef5350" }}>
+                                <td style={{ textAlign: "right", padding: "3px 4px", color: "#ef5350", fontFamily: "var(--font-mono)" }}>
                                   {formatCash(-row.overhead)}
                                 </td>
-                                <td style={{ textAlign: "right", padding: "3px 0", color: row.net >= 0 ? "#8BC34A" : "#ef5350" }}>
+                                <td style={{ textAlign: "right", padding: "3px 0", color: row.net >= 0 ? "#8BC34A" : "#ef5350", fontFamily: "var(--font-mono)" }}>
                                   {formatCash(row.net)}
                                 </td>
                               </tr>
@@ -246,39 +246,39 @@ export default function PnLTab() {
             <div style={{ fontSize: 10, color: "#FFB74D", fontWeight: 700, letterSpacing: 2, marginBottom: 12 }}>LIFETIME TOTALS</div>
             <div style={{ marginBottom: 4 }}>
               <div style={{ fontSize: 10, color: "#666" }}>Total Revenue</div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: "#8BC34A", marginTop: 2 }}>{formatCash(cumulative.revenue)}</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "#8BC34A", marginTop: 2, fontFamily: "var(--font-mono)" }}>{formatCash(cumulative.revenue)}</div>
             </div>
             <div style={{ display: "flex", gap: 12, marginBottom: 8 }}>
               <div>
                 <div style={{ fontSize: 9, color: "#555" }}>Wholesale</div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "#8BC34A" }}>{formatCash(cumulative.harvestRevenue)}</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "#8BC34A", fontFamily: "var(--font-mono)" }}>{formatCash(cumulative.harvestRevenue)}</div>
               </div>
               {cumulative.preroll > 0 && (
                 <div>
                   <div style={{ fontSize: 9, color: "#555" }}>Pre-Roll</div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: "#CE93D8" }}>{formatCash(cumulative.preroll)}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "#CE93D8", fontFamily: "var(--font-mono)" }}>{formatCash(cumulative.preroll)}</div>
                 </div>
               )}
             </div>
             <div style={{ marginBottom: 8 }}>
               <div style={{ fontSize: 10, color: "#666" }}>Total Overhead Paid</div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: "#ef5350", marginTop: 2 }}>{formatCash(-cumulative.overhead)}</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: "#ef5350", marginTop: 2, fontFamily: "var(--font-mono)" }}>{formatCash(-cumulative.overhead)}</div>
             </div>
             <div style={{ marginBottom: 8, borderTop: "1px solid rgba(255,183,77,0.1)", paddingTop: 8 }}>
               <div style={{ fontSize: 10, color: "#666" }}>Net Position</div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: cumulative.net >= 0 ? "#8BC34A" : "#ef5350", marginTop: 2 }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: cumulative.net >= 0 ? "#8BC34A" : "#ef5350", marginTop: 2, fontFamily: "var(--font-mono)" }}>
                 {formatCash(cumulative.net)}
               </div>
             </div>
             <div style={{ marginBottom: 8 }}>
               <div style={{ fontSize: 10, color: "#666" }}>Lbs Produced</div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: "#CE93D8", marginTop: 2 }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: "#CE93D8", marginTop: 2, fontFamily: "var(--font-mono)" }}>
                 {(cumulative.lbsProduced).toLocaleString()} lbs
               </div>
             </div>
             <div>
               <div style={{ fontSize: 10, color: "#666" }}>Cash on Hand</div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: "#FFB74D", marginTop: 2 }}>{formatCash(state.cash)}</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "#FFB74D", marginTop: 2, fontFamily: "var(--font-mono)" }}>{formatCash(state.cash)}</div>
             </div>
           </div>
 
@@ -294,12 +294,12 @@ export default function PnLTab() {
             ].map(({ label, value }) => (
               <div key={label} style={{ display: "flex", justifyContent: "space-between", padding: "2px 0" }}>
                 <span style={{ fontSize: 11, color: "#666" }}>{label}</span>
-                <span style={{ fontSize: 11, color: "#888", fontVariantNumeric: "tabular-nums" }}>{formatCash(value)}</span>
+                <span style={{ fontSize: 11, color: "#888", fontFamily: "var(--font-mono)" }}>{formatCash(value)}</span>
               </div>
             ))}
             <div style={{ borderTop: "1px solid rgba(239,83,80,0.2)", marginTop: 6, paddingTop: 6, display: "flex", justifyContent: "space-between" }}>
               <span style={{ fontSize: 12, color: "#ccc", fontWeight: 700 }}>Total / Room</span>
-              <span style={{ fontSize: 13, color: "#ef5350", fontWeight: 800, fontVariantNumeric: "tabular-nums" }}>{formatCash(overhead.total)}</span>
+              <span style={{ fontSize: 13, color: "#ef5350", fontWeight: 800, fontFamily: "var(--font-mono)" }}>{formatCash(overhead.total)}</span>
             </div>
           </div>
         </div>

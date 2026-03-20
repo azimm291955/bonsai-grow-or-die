@@ -234,17 +234,20 @@ export default function RoomCard({ room, roomIndex }: RoomCardProps) {
     3: { border: "rgba(255,193,7,0.80)", bg: "rgba(255,193,7,0.16)", glow: "rgba(255,193,7,0.35)" },
   };
   const genColor = geneticsColors[geneticsTier] || null;
+  const isActionRequired = room.status === "ready_to_flip" || room.status === "ready_to_harvest";
   let borderColor = genColor ? genColor.border : "rgba(255,255,255,0.06)";
-  const cardBg = genColor
-    ? `radial-gradient(ellipse at 50% 80%, ${genColor.glow}, ${genColor.bg} 60%, rgba(255,255,255,0.02) 100%)`
-    : "rgba(255,255,255,0.02)";
+  const cardBg = genColor && isActionRequired
+    ? `radial-gradient(ellipse at 50% 80%, ${genColor.glow}, ${genColor.bg} 60%, #1a1a1a 100%)`
+    : genColor
+      ? `radial-gradient(ellipse at 50% 80%, ${genColor.bg}, #1a1a1a 70%)`
+      : "#1a1a1a";
 
   let glowAnim = "";
   let statusLabel: { text: string; color: string } | null = null;
 
   if (room.status === "growing") {
-    if (!genColor) borderColor = isVeg ? "rgba(139,195,74,0.2)" : "rgba(206,147,216,0.2)";
-    glowAnim = isVeg ? "glow-green 3s ease-in-out infinite" : "glow-purple 3s ease-in-out infinite";
+    if (!genColor) borderColor = isVeg ? "rgba(139,195,74,0.12)" : "rgba(206,147,216,0.12)";
+    // No glow animation for growing — let the progress bar do the talking
   } else if (room.status === "ready_to_flip") {
     if (!genColor) borderColor = isRotting ? `rgba(239,83,80,${0.2 + (1 - roomRotQuality) * 0.4})` : "rgba(255,183,77,0.4)";
     glowAnim = "action-pulse 2s ease-in-out infinite";
@@ -269,7 +272,7 @@ export default function RoomCard({ room, roomIndex }: RoomCardProps) {
       >
         <div className="text-[9px] text-[#333] font-semibold tracking-widest mb-2">ROOM {i + 1}</div>
         <div className="text-[22px] mb-2 opacity-30">🔒</div>
-        <div className="text-sm text-[#555] font-bold">{formatCash(ROOM_COSTS[i])}</div>
+        <div className="text-sm text-[#555] font-bold" style={{ fontFamily: "var(--font-mono)" }}>{formatCash(ROOM_COSTS[i])}</div>
         <div className="text-[9px] text-bonsai-red mt-0.5">+overhead/mo</div>
         <div className="text-[9px] text-[#333] mt-0.5">tap to unlock</div>
       </button>
@@ -300,7 +303,7 @@ export default function RoomCard({ room, roomIndex }: RoomCardProps) {
         background: cardBg,
         border: `${genColor ? 2 : 1}px solid ${borderColor}`,
         animation: glowAnim || undefined,
-        boxShadow: genColor ? `0 0 28px ${genColor.glow}, inset 0 0 20px ${genColor.glow}` : undefined,
+        boxShadow: genColor && isActionRequired ? `0 0 28px ${genColor.glow}, inset 0 0 20px ${genColor.glow}` : genColor ? `inset 0 0 12px ${genColor.bg}` : undefined,
       }}
       data-tutorial={i === 0 ? "room-1" : i === 1 ? "room-2" : undefined}
       aria-label={`Room ${i + 1} — ${room.type ?? "empty"} — ${room.status}`}
