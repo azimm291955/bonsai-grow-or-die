@@ -333,6 +333,32 @@ export default function PnLTab() {
           </div>
         </div>
       )}
+      {/* ── HARVEST LOG ── */}
+      {state.harvestLog && state.harvestLog.length > 0 && (
+        <div style={{ background: "rgba(255,255,255,0.02)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)", padding: "12px 14px", marginTop: 12 }}>
+          <div style={{ fontSize: 10, color: "#555", fontWeight: 700, letterSpacing: 2, marginBottom: 10 }}>
+            HARVEST RECEIPTS ({state.harvestLog.length})
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {[...state.harvestLog].reverse().map((entry, i) => (
+              <div key={i} style={{
+                display: "flex", alignItems: "flex-start", gap: 10,
+                padding: "8px 10px",
+                background: "rgba(139,195,74,0.04)",
+                border: "1px solid rgba(139,195,74,0.1)",
+                borderRadius: 8,
+              }}>
+                <div style={{ fontSize: 9, color: "#8BC34A", fontWeight: 700, letterSpacing: 1, whiteSpace: "nowrap", paddingTop: 1, minWidth: 52, fontFamily: "var(--font-mono)" }}>
+                  {entry.gameDateLabel}
+                </div>
+                <div style={{ fontSize: 10, color: "#888", lineHeight: 1.55, flex: 1 }}>
+                  {entry.message}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

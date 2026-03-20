@@ -84,12 +84,7 @@ export default function FacilityTab() {
         ))}
       </div>
 
-      {/* Notification toasts */}
-      {notifications.filter(n => n.type === "harvest").slice(-2).map((n, i) => (
-        <div key={i} className="bg-bonsai-green/10 border border-bonsai-green/20 rounded-[10px] px-3.5 py-2.5 mt-2 text-xs text-bonsai-green font-medium" style={{ animation: "toast-in 0.3s ease-out" }}>
-          💰 {n.message}
-        </div>
-      ))}
+      {/* Rot warning toasts — actionable, stay on Grow tab */}
       {notifications.filter(n => n.type === "rot_warning").slice(-2).map((n, i) => (
         <div key={`rot-${i}`} className="rounded-[10px] px-3.5 py-2.5 mt-2 text-xs text-bonsai-amber font-medium" style={{ background: "linear-gradient(135deg,rgba(255,183,77,0.12),rgba(239,83,80,0.06))", border: "1px solid rgba(255,183,77,0.25)", animation: "toast-in 0.3s ease-out" }}>
           {n.message}

@@ -85,7 +85,14 @@ export default function RoomDetailModal() {
             <h2 className="m-0 text-2xl font-extrabold tracking-tight">
               Room {selectedRoom + 1}
             </h2>
-            <span className={`text-xs font-bold tracking-widest ${isVeg ? "text-bonsai-green" : "text-bonsai-purple"}`}>
+            <span
+              className={`text-xs font-bold tracking-widest ${isVeg ? "text-bonsai-green" : "text-bonsai-purple"}`}
+              style={{
+                textShadow: isVeg
+                  ? "0 0 8px rgba(139,195,74,0.8), 0 0 20px rgba(139,195,74,0.4)"
+                  : "0 0 8px rgba(206,147,216,0.8), 0 0 20px rgba(206,147,216,0.4)",
+              }}
+            >
               {isVeg ? "VEGETATIVE" : "FLOWER"}
             </span>
           </div>
@@ -111,7 +118,13 @@ export default function RoomDetailModal() {
                   {isVeg ? "VEG CYCLE" : "FLOWER CYCLE"} · {Math.floor(room.daysGrown)}/{targetDays} DAYS
                 </div>
                 <div className="font-extrabold text-[36px] leading-none tracking-tight"
-                  style={{ fontFamily: "var(--font-mono)", color: isVeg ? "#8BC34A" : "#CE93D8" }}>
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    color: isVeg ? "#8BC34A" : "#CE93D8",
+                    textShadow: isVeg
+                      ? "0 0 12px rgba(139,195,74,0.7), 0 0 30px rgba(139,195,74,0.3)"
+                      : "0 0 12px rgba(206,147,216,0.7), 0 0 30px rgba(206,147,216,0.3)",
+                  }}>
                   {paused ? "PAUSED" : effectiveSpeed > 0 ? formatCountdown(realMsRemaining) : "—"}
                 </div>
                 <div className="text-[10px] text-[#555] mt-1">at {gameSpeed}× speed</div>
@@ -141,11 +154,25 @@ export default function RoomDetailModal() {
                 <div className="text-[9px] text-[#666] font-bold tracking-widest mb-2">
                   {room.status === "ready_to_harvest" ? "HARVEST READY" : "READY TO FLIP"}
                 </div>
-                <div className="font-extrabold text-[42px] leading-none tracking-tight"
-                  style={{ fontFamily: "var(--font-mono)", color: qualityColor }}>
+                {/* Victory number — emissive neon glow */}
+                <div
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    color: qualityColor,
+                    fontSize: 56,
+                    fontWeight: 900,
+                    lineHeight: 1,
+                    letterSpacing: "-0.02em",
+                    textShadow: rotQuality > 0.7
+                      ? "0 0 16px rgba(139,195,74,0.9), 0 0 40px rgba(139,195,74,0.5), 0 0 80px rgba(139,195,74,0.2)"
+                      : rotQuality > 0.4
+                        ? "0 0 16px rgba(255,183,77,0.9), 0 0 40px rgba(255,183,77,0.5), 0 0 80px rgba(255,183,77,0.2)"
+                        : "0 0 16px rgba(239,83,80,0.9), 0 0 40px rgba(239,83,80,0.5), 0 0 80px rgba(239,83,80,0.2)",
+                  }}
+                >
                   {Math.round(rotQuality * 100)}%
                 </div>
-                <div className="text-[10px] text-[#666] mt-1">crop quality</div>
+                <div className="text-[10px] text-[#555] mt-2">crop quality</div>
               </div>
               <div className="w-full h-2.5 bg-[#2a2a2a] rounded-full overflow-hidden">
                 <div
@@ -176,12 +203,31 @@ export default function RoomDetailModal() {
           className="px-4 flex flex-col"
           style={{ flex: 1, marginTop: 14, paddingBottom: 22, gap: 8 }}
         >
+          <style>{`
+            @keyframes modal-pulse-amber {
+              0%, 100% { box-shadow: 0 0 0 0 rgba(255,183,77,0), inset 0 1px 0 rgba(255,220,100,0.25); }
+              50%       { box-shadow: 0 0 0 6px rgba(255,183,77,0.18), inset 0 1px 0 rgba(255,220,100,0.25); }
+            }
+            @keyframes modal-pulse-green {
+              0%, 100% { box-shadow: 0 0 0 0 rgba(139,195,74,0), inset 0 1px 0 rgba(180,240,100,0.25); }
+              50%       { box-shadow: 0 0 0 6px rgba(139,195,74,0.18), inset 0 1px 0 rgba(180,240,100,0.25); }
+            }
+          `}</style>
+
           {/* Primary action */}
           {room.status === "empty" && isVeg && (
             <button
               onClick={() => { startGrowing(selectedRoom); handleClose(); }}
-              className="w-full bg-bonsai-green/20 border border-bonsai-green/40 rounded-xl text-bonsai-green font-bold text-[15px] cursor-pointer hover:bg-bonsai-green/30 transition-colors"
-              style={{ flex: 2 }}
+              style={{
+                flex: 2,
+                width: "100%", border: "none", borderRadius: "0.75rem",
+                background: "linear-gradient(180deg, rgba(160,220,80,0.22) 0%, rgba(100,160,40,0.18) 100%)",
+                borderTop: "1px solid rgba(180,240,100,0.3)",
+                boxShadow: "inset 0 1px 0 rgba(180,240,100,0.2)",
+                color: "#8BC34A", fontWeight: 700, fontSize: 15, cursor: "pointer",
+                animation: "modal-pulse-green 2.2s ease-in-out infinite",
+                transition: "filter 0.15s",
+              }}
             >
               🌱 Start Growing
             </button>
@@ -190,8 +236,16 @@ export default function RoomDetailModal() {
             targetFlower ? (
               <button
                 onClick={() => { flipToFlower(selectedRoom, targetFlower.index); handleClose(); }}
-                className="w-full bg-bonsai-amber/20 border border-bonsai-amber/40 rounded-xl text-bonsai-amber font-bold text-[15px] cursor-pointer hover:bg-bonsai-amber/30 transition-colors"
-                style={{ flex: 2 }}
+                style={{
+                  flex: 2,
+                  width: "100%", border: "none", borderRadius: "0.75rem",
+                  background: "linear-gradient(180deg, rgba(255,200,80,0.25) 0%, rgba(180,120,20,0.22) 100%)",
+                  borderTop: "1px solid rgba(255,220,100,0.35)",
+                  boxShadow: "inset 0 1px 0 rgba(255,220,100,0.25)",
+                  color: "#FFB74D", fontWeight: 700, fontSize: 15, cursor: "pointer",
+                  animation: "modal-pulse-amber 2.2s ease-in-out infinite",
+                  transition: "filter 0.15s",
+                }}
               >
                 ⚡ Flip to Room {targetFlower.index + 1}
               </button>
@@ -207,25 +261,37 @@ export default function RoomDetailModal() {
           {room.status === "ready_to_harvest" && (
             <button
               onClick={() => { harvest(selectedRoom); handleClose(); }}
-              className="w-full bg-bonsai-green/20 border border-bonsai-green/40 rounded-xl text-bonsai-green font-bold text-[15px] cursor-pointer hover:bg-bonsai-green/30 transition-colors"
-              style={{ flex: 2 }}
+              style={{
+                flex: 2,
+                width: "100%", border: "none", borderRadius: "0.75rem",
+                background: "linear-gradient(180deg, rgba(160,220,80,0.22) 0%, rgba(100,160,40,0.18) 100%)",
+                borderTop: "1px solid rgba(180,240,100,0.3)",
+                boxShadow: "inset 0 1px 0 rgba(180,240,100,0.2)",
+                color: "#8BC34A", fontWeight: 700, fontSize: 15, cursor: "pointer",
+                animation: "modal-pulse-green 2.2s ease-in-out infinite",
+                transition: "filter 0.15s",
+              }}
             >
               🌿 Harvest Room
             </button>
           )}
 
-          {/* Destroy — 66% the height of primary (flex: 1.32) */}
+          {/* Destroy — 66% the height of primary, subtle red trash icon */}
           {canDestroy && !confirmDestroy && (
             <button
               onClick={() => setConfirmDestroy(true)}
-              className="w-full rounded-xl text-[#4a4a4a] text-[12px] cursor-pointer transition-colors hover:text-bonsai-red/60 hover:border-bonsai-red/25"
               style={{
                 flex: 1.32,
-                background: "transparent",
-                border: "1px solid rgba(255,255,255,0.07)",
+                width: "100%", borderRadius: "0.75rem",
+                background: "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%)",
+                border: "1px solid rgba(255,255,255,0.09)",
+                borderTop: "1px solid rgba(255,255,255,0.12)",
+                color: "#777",
+                fontSize: 12, cursor: "pointer",
+                transition: "color 0.2s, border-color 0.2s",
               }}
             >
-              🗑️ Destroy Crop
+              <span style={{ color: "rgba(239,83,80,0.6)", marginRight: 6 }}>🗑️</span>Destroy Crop
             </button>
           )}
           {canDestroy && confirmDestroy && (
@@ -253,11 +319,20 @@ export default function RoomDetailModal() {
             </div>
           )}
 
-          {/* Close — same weight as primary */}
+          {/* Close — beveled, clearly readable */}
           <button
             onClick={handleClose}
-            className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl text-[#555] text-sm font-medium cursor-pointer hover:bg-white/[0.05] transition-colors"
-            style={{ flex: 2 }}
+            style={{
+              flex: 2,
+              width: "100%", borderRadius: "0.75rem",
+              background: "linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)",
+              border: "1px solid rgba(255,255,255,0.09)",
+              borderTop: "1px solid rgba(255,255,255,0.14)",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.07)",
+              color: "#999",
+              fontSize: 14, fontWeight: 500, cursor: "pointer",
+              transition: "color 0.15s, background 0.15s",
+            }}
           >
             Close
           </button>

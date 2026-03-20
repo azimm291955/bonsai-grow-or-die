@@ -233,6 +233,7 @@ function migrateSavedState(saved: GameState): GameState {
   if (saved.totalPrerollRevenue === undefined) saved.totalPrerollRevenue = 0;
   if (saved.totalSpentOnRooms === undefined) saved.totalSpentOnRooms = 0;
   if (saved.vcTriggered === undefined) saved.vcTriggered = false;
+  if (!saved.harvestLog) saved.harvestLog = [];
   return saved;
 }
 
@@ -497,9 +498,20 @@ export const useGameStore = create<GameStore>()(
         const rotPenaltyMsg = softenedRotQ < 1.0 ? ` (${Math.round(softenedRotQ * 100)}% quality)` : "";
         const prerollMsg = effectivePreroll > 0 ? ` + ${formatCash(effectivePreroll)} pre-roll` : "";
         const exciseMsg = ` | ${formatCash(effectiveExcise)} excise paid`;
+        const harvestMessage = `Harvested ${lbs} lbs @ ${formatCash(salePrice)}/lb = ${formatCash(effectiveWholesale)} wholesale${prerollMsg}${rotPenaltyMsg}${exciseMsg}`;
         ns.notifications.push({
           type: "harvest",
-          message: `Harvested ${lbs} lbs @ ${formatCash(salePrice)}/lb = ${formatCash(effectiveWholesale)} wholesale${prerollMsg}${rotPenaltyMsg}${exciseMsg}`,
+          message: harvestMessage,
+        });
+
+        // Persistent harvest log — survives refresh
+        const MONTH_NAMES_STORE = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+        const harvestGd = msToGameDate(totalGameDays * MS_PER_GAME_DAY);
+        if (!ns.harvestLog) ns.harvestLog = [];
+        ns.harvestLog.push({
+          message: harvestMessage,
+          gameDateLabel: `${MONTH_NAMES_STORE[harvestGd.month - 1]} ${harvestGd.year}`,
+          ts: Date.now(),
         });
 
         if (!ns.roomsHarvested) ns.roomsHarvested = {};

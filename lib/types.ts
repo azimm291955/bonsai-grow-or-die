@@ -46,6 +46,12 @@ export interface GameNotification {
   id?: string;
 }
 
+export interface HarvestLogEntry {
+  message: string;
+  gameDateLabel: string; // e.g. "Feb 2016"
+  ts: number;           // real epoch ms for ordering
+}
+
 export interface GameState {
   playerName: string;
   cash: number;
@@ -81,6 +87,7 @@ export interface GameState {
   totalWholesaleRevenue: number;
   totalPrerollRevenue: number;
   totalSpentOnRooms: number;
+  harvestLog: HarvestLogEntry[];
   _achRedMonth?: boolean;
   _achCropDeath?: boolean;
 }
