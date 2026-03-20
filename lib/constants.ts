@@ -123,7 +123,7 @@ export const FLOWER_DAYS = 64;
 export const GAME_DAYS_PER_MONTH = 30;
 // 2 hrs = 30 game days → 240000ms/day = 4 min/day
 export const MS_PER_GAME_DAY = (2 * 60 * 60 * 1000) / GAME_DAYS_PER_MONTH;
-export const STARTING_CASH = 750000;
+export const STARTING_CASH = 765000;
 export const GAME_START_DATE = { year: 2015, month: 12, day: 30 };
 export const WIN_DATE = { year: 2026, month: 4, day: 20 };
 

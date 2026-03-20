@@ -651,14 +651,14 @@ export const useGameStore = create<GameStore>()(
           // AMR Q1 2016 = $1880. 420 lbs × $1880 = $789,600 gross.
           // Broker 8% = $63,168. Excise 15% = $118,440 (IMMEDIATE at harvest).
           // Net payout = $789,600 - $63,168 - $118,440 = $607,992.
-          // Target $750K post-harvest → pre-harvest cash = $750K - $607,992 = $142,008.
-          ns.cash = 142008;
+          // Target $765K post-harvest → pre-harvest cash = $765K - $607,992 = $157,008.
+          ns.cash = 157008;
           ns.totalRevenue = 0;
           ns.totalCosts = 250000; // room2 purchase only; overhead baked into cash
           ns.totalWholesaleRevenue = 0;
           ns.totalLbsProduced = 0;
-          ns.peakCash = 750000;
-          ns.lowestCash = 142008;
+          ns.peakCash = 765000;
+          ns.lowestCash = 157008;
           ns.totalSpentOnRooms = 250000;
           // Room 1: veg done, waiting for player to flip
           ns.rooms[0].status = "ready_to_flip";
@@ -679,8 +679,8 @@ export const useGameStore = create<GameStore>()(
           ns.roomsHarvested = {};
           // Seed the P&L ledger with the warp months
           ns.monthlyPnL = [
-            { year: 2015, month: 12, overhead: 168000, preroll: 0, harvestRevenue: 0, net: -168000, cash: 314208 },
-            { year: 2016, month: 1,  overhead: 172200, preroll: 0, harvestRevenue: 0, net: -172200, cash: 142008 },
+            { year: 2015, month: 12, overhead: 168000, preroll: 0, harvestRevenue: 0, net: -168000, cash: 329208 },
+            { year: 2016, month: 1,  overhead: 172200, preroll: 0, harvestRevenue: 0, net: -172200, cash: 157008 },
           ];
         }
         set({ state: ns });
