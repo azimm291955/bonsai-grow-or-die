@@ -71,12 +71,12 @@ export default function RoomDetailModal() {
       className="fixed inset-0 bg-black/85 z-[100] flex items-end justify-center"
       onClick={e => { if (e.target === e.currentTarget) handleClose(); }}
     >
-      <div className="bg-[#1a1a1a] rounded-t-2xl w-full max-w-[480px] min-h-[50vh] max-h-[80vh] overflow-y-auto flex flex-col"
+      <div className="bg-[#1a1a1a] rounded-t-2xl w-full max-w-[480px] min-h-[50vh] max-h-[80vh] overflow-y-auto flex flex-col relative"
         style={{ borderTop: `2px solid ${isVeg ? "rgba(139,195,74,0.3)" : "rgba(206,147,216,0.3)"}` }}>
 
         {/* Header */}
         <div className="px-5 pt-5 pb-3 flex justify-between items-start">
-          <div>
+          <div className="flex-1 text-center">
             <h2 className="m-0 text-2xl font-extrabold tracking-tight">
               Room {selectedRoom + 1}
             </h2>
@@ -84,7 +84,7 @@ export default function RoomDetailModal() {
               {isVeg ? "VEGETATIVE" : "FLOWER"}
             </span>
           </div>
-          <button onClick={handleClose} className="bg-white/[0.05] border border-white/[0.08] text-[#888] text-lg w-8 h-8 rounded-lg cursor-pointer flex items-center justify-center hover:bg-white/[0.08] transition-colors">×</button>
+          <button onClick={handleClose} className="absolute right-5 top-5 bg-white/[0.05] border border-white/[0.08] text-[#888] text-lg w-8 h-8 rounded-lg cursor-pointer flex items-center justify-center hover:bg-white/[0.08] transition-colors">×</button>
         </div>
 
         {/* Timer / Status Section */}
@@ -171,8 +171,8 @@ export default function RoomDetailModal() {
           )}
         </div>
 
-        {/* Actions */}
-        <div className="px-5 pb-5 flex flex-col gap-2 mt-auto">
+        {/* Actions — fills remaining space */}
+        <div className="px-5 pb-5 flex flex-col gap-3 mt-auto pt-6">
           {room.status === "empty" && isVeg && (
             <button
               onClick={() => { startGrowing(selectedRoom); handleClose(); }}
@@ -204,11 +204,12 @@ export default function RoomDetailModal() {
             </button>
           )}
 
-          {/* Destroy Crop — smaller */}
+          {/* Destroy Crop — 66% height of other buttons */}
           {canDestroy && !confirmDestroy && (
             <button
               onClick={() => setConfirmDestroy(true)}
-              className="w-full py-2 bg-transparent border border-white/[0.06] rounded-xl text-[#555] text-[11px] cursor-pointer hover:border-bonsai-red/30 hover:text-bonsai-red/70 transition-colors"
+              className="w-full rounded-xl text-[#555] text-[11px] cursor-pointer hover:border-bonsai-red/30 hover:text-bonsai-red/70 transition-colors"
+              style={{ paddingTop: 10, paddingBottom: 10, background: "transparent", border: "1px solid rgba(255,255,255,0.06)" }}
             >
               🗑️ Destroy Crop
             </button>
@@ -235,7 +236,7 @@ export default function RoomDetailModal() {
             </div>
           )}
 
-          {/* Close — same size as action buttons */}
+          {/* Close — same size as primary action buttons */}
           <button
             onClick={handleClose}
             className="w-full py-4 bg-white/[0.03] border border-white/[0.06] rounded-xl text-[#666] text-sm font-medium cursor-pointer hover:bg-white/[0.05] transition-colors"

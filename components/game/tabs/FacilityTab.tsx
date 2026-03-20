@@ -78,7 +78,7 @@ export default function FacilityTab() {
       )}
 
       {/* Room grid */}
-      <div className="grid gap-2.5" style={{ gridTemplateColumns: "repeat(2, 1fr)" }}>
+      <div data-tutorial="room-grid" className="grid gap-2.5" style={{ gridTemplateColumns: "repeat(2, 1fr)" }}>
         {rooms.map((room, i) => (
           <RoomCard key={i} room={room} roomIndex={i} />
         ))}

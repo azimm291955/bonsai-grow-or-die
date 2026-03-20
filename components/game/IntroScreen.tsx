@@ -71,7 +71,7 @@ export default function IntroScreen() {
           WELCOME TO BONSAI
         </div>
         <h2 style={{ color: "#fff", fontSize: 22, margin: "0 0 16px", fontWeight: 700 }}>
-          How Cannabis Grows
+          The Cultivation Cycle
         </h2>
 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, margin: "20px 0", flexWrap: "wrap" }}>

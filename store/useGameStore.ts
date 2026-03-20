@@ -809,8 +809,8 @@ export const useGameStore = create<GameStore>()(
               const monthNet = -totalOverhead;
               draft.monthlyPnL.push({ year: pYear, month: pMonth, overhead: totalOverhead, preroll: 0, harvestRevenue: 0, net: monthNet, cash: draft.cash });
               if (monthNet < 0) {
-                // Only trigger Red Month achievement after the tutorial period (Mar 2016+)
-                if (pYear > 2016 || (pYear === 2016 && pMonth >= 3)) draft._achRedMonth = true;
+                // Only trigger Red Month achievement after the tutorial period (Apr 2016+)
+                if (pYear > 2016 || (pYear === 2016 && pMonth >= 4)) draft._achRedMonth = true;
                 draft.consecutiveProfitMonths = 0;
               }
               else { draft.consecutiveProfitMonths = (draft.consecutiveProfitMonths || 0) + 1; }

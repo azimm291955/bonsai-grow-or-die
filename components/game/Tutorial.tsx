@@ -5,6 +5,7 @@ import { useGameStore } from "@/store/useGameStore";
 
 // ── Steps ──
 type Step =
+  | "facility_overview" // light-bar scan over room grid + tooltip explaining layout
   | "buy_room2"       // spotlight Room 2 (locked), hint to tap & buy
   | "flip_veg"        // spotlight Room 1 (ready_to_flip), hint to tap & flip
   | "time_warp"       // full-screen narrative card (64 days pass)
@@ -14,6 +15,7 @@ type Step =
   | "speed_hint";     // highlight speed controls
 
 const STEPS: Step[] = [
+  "facility_overview",
   "buy_room2",
   "flip_veg",
   "time_warp",
@@ -31,6 +33,162 @@ function getRect(selector: string): Rect | null {
   if (!el) return null;
   const r = el.getBoundingClientRect();
   return { top: r.top, left: r.left, width: r.width, height: r.height };
+}
+
+// ── Facility Overview Step ──
+function FacilityOverview({ onNext }: { onNext: () => void }) {
+  const [gridRect, setGridRect] = useState<Rect | null>(null);
+  const [scanProgress, setScanProgress] = useState(0); // 0→1
+  const [scanDone, setScanDone] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const rafRef = useRef<number | null>(null);
+
+  const SCAN_DURATION = 2400; // ms
+
+  // Track grid rect
+  useEffect(() => {
+    const tick = () => {
+      const r = getRect("room-grid");
+      setGridRect(r);
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+  }, []);
+
+  // Run scan animation
+  useEffect(() => {
+    if (!gridRect) return;
+    const startTime = Date.now();
+    let frame: number;
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const p = Math.min(elapsed / SCAN_DURATION, 1);
+      setScanProgress(p);
+      if (p < 1) {
+        frame = requestAnimationFrame(animate);
+      } else {
+        setScanDone(true);
+      }
+    };
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [!!gridRect]);
+
+  // Fade in tooltip after scan
+  useEffect(() => {
+    if (!scanDone) return;
+    const t = setTimeout(() => setVisible(true), 120);
+    return () => clearTimeout(t);
+  }, [scanDone]);
+
+  if (!gridRect) return null;
+
+  const barHeight = 4;
+  const barY = gridRect.top + scanProgress * gridRect.height;
+
+  return (
+    <>
+      {/* Semi-dark backdrop */}
+      <div style={{
+        position: "fixed", inset: 0, zIndex: 300,
+        background: "rgba(0,0,0,0.75)",
+        pointerEvents: scanDone ? "auto" : "none",
+        transition: "background 0.4s",
+      }} />
+
+      {/* Light bar */}
+      {!scanDone && (
+        <div style={{
+          position: "fixed",
+          left: gridRect.left - 4,
+          top: barY - barHeight / 2,
+          width: gridRect.width + 8,
+          height: barHeight,
+          borderRadius: barHeight / 2,
+          background: "linear-gradient(90deg, transparent 0%, rgba(139,195,74,0.5) 20%, rgba(200,255,150,0.8) 50%, rgba(139,195,74,0.5) 80%, transparent 100%)",
+          boxShadow: "0 0 20px rgba(139,195,74,0.6), 0 0 60px rgba(139,195,74,0.2)",
+          zIndex: 302,
+          pointerEvents: "none",
+          transition: "opacity 0.15s",
+          opacity: scanProgress > 0.98 ? 0 : 1,
+        }} />
+      )}
+
+      {/* Highlight glow that trails the scan bar — illuminates room borders */}
+      {!scanDone && (
+        <div style={{
+          position: "fixed",
+          left: gridRect.left - 8,
+          top: barY - 40,
+          width: gridRect.width + 16,
+          height: 80,
+          borderRadius: 12,
+          background: "radial-gradient(ellipse at 50% 50%, rgba(139,195,74,0.12) 0%, transparent 70%)",
+          zIndex: 301,
+          pointerEvents: "none",
+        }} />
+      )}
+
+      {/* Tooltip — appears after scan completes */}
+      {scanDone && (
+        <div style={{
+          position: "fixed",
+          left: 16,
+          right: 16,
+          top: Math.max(gridRect.top - 8, 80),
+          maxWidth: 420,
+          margin: "0 auto",
+          zIndex: 400,
+          opacity: visible ? 1 : 0,
+          transform: visible ? "translateY(0)" : "translateY(10px)",
+          transition: "opacity 0.35s, transform 0.35s",
+        }}>
+          <div style={{
+            background: "#141414",
+            border: "1px solid rgba(139,195,74,0.25)",
+            borderRadius: 14,
+            padding: "20px 20px 16px",
+            boxShadow: "0 8px 50px rgba(0,0,0,0.7), 0 0 0 1px rgba(139,195,74,0.1)",
+          }}>
+            <div style={{ fontSize: 10, letterSpacing: 3, color: "#8BC34A", fontWeight: 700, marginBottom: 10 }}>
+              YOUR FACILITY
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", lineHeight: 1.5, marginBottom: 10 }}>
+              9 rooms. 1 unlocked.
+            </div>
+            <div style={{ fontSize: 12, color: "#999", lineHeight: 1.75, marginBottom: 10 }}>
+              Your grow has <span style={{ color: "#fff", fontWeight: 600 }}>9 total rooms</span> available.
+              Right now, <span style={{ color: "#8BC34A", fontWeight: 600 }}>Room 1</span> is your only active room — set up as a <span style={{ color: "#8BC34A", fontWeight: 600 }}>Veg</span> room.
+            </div>
+            <div style={{ fontSize: 12, color: "#999", lineHeight: 1.75, marginBottom: 10 }}>
+              For peak efficiency, aim for a <span style={{ color: "#CE93D8", fontWeight: 600 }}>2:1 ratio</span> of Flower rooms to Veg rooms. Flower takes twice as long (64 days vs 32), so two flower rooms keep pace with one veg room.
+            </div>
+            <div style={{
+              fontSize: 12, color: "#999", lineHeight: 1.75, marginBottom: 14,
+              background: "rgba(139,195,74,0.06)", border: "1px solid rgba(139,195,74,0.15)",
+              borderRadius: 8, padding: "10px 12px",
+            }}>
+              <span style={{ color: "#8BC34A", fontWeight: 600 }}>Room 1 is fully grown</span> — notice the full green progress bar. Those plants are ready to move to a flower room.
+            </div>
+            <button
+              onClick={onNext}
+              style={{
+                width: "100%", padding: "13px 0",
+                background: "rgba(139,195,74,0.12)",
+                border: "1px solid rgba(139,195,74,0.4)",
+                borderRadius: 8, color: "#8BC34A",
+                fontWeight: 700, fontSize: 13, cursor: "pointer", letterSpacing: 1.5,
+              }}
+            >
+              NEXT →
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
 }
 
 export default function Tutorial() {
@@ -126,6 +284,10 @@ export default function Tutorial() {
   const PAD = 8;
 
   // ── Handlers ──
+  const handleFacilityNext = () => {
+    setStepIdx(STEPS.indexOf("buy_room2"));
+  };
+
   const handlePnL = () => {
     setActiveTab("pnl");
     setStepIdx(STEPS.indexOf("upgrades_tab"));
@@ -143,11 +305,36 @@ export default function Tutorial() {
   };
 
   // ── Tooltip position ──
+  // For narrow targets (tabs), center a wide tooltip below; for room cards, match the target width
   function tooltipStyle(r: Rect): React.CSSProperties {
     const PAD_OUTER = 16;
     const winH = window.innerHeight;
+    const winW = window.innerWidth;
     const spaceBelow = winH - (r.top + r.height + PAD);
-    const onTop = spaceBelow < 160;
+    const onTop = spaceBelow < 200;
+    const isNarrowTarget = step === "pnl_tab" || step === "upgrades_tab" || step === "speed_hint";
+
+    if (isNarrowTarget) {
+      // Wide centered tooltip for narrow tab targets
+      const tooltipW = Math.min(380, winW - PAD_OUTER * 2);
+      const targetCenter = r.left + r.width / 2;
+      let left = targetCenter - tooltipW / 2;
+      // Clamp to viewport edges
+      left = Math.max(PAD_OUTER, Math.min(left, winW - tooltipW - PAD_OUTER));
+      return {
+        position: "fixed",
+        left,
+        width: tooltipW,
+        ...(onTop
+          ? { bottom: winH - r.top + PAD + 8 }
+          : { top: r.top + r.height + PAD + 12 }),
+        zIndex: 500,
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(6px)",
+        transition: "opacity 0.25s, transform 0.25s",
+      };
+    }
+
     return {
       position: "fixed",
       left: Math.max(PAD_OUTER, r.left - PAD),
@@ -155,7 +342,7 @@ export default function Tutorial() {
       ...(onTop
         ? { bottom: winH - r.top + PAD + 8 }
         : { top: r.top + r.height + PAD + 12 }),
-      zIndex: 400,
+      zIndex: 500,
       opacity: visible ? 1 : 0,
       transform: visible ? "translateY(0)" : "translateY(6px)",
       transition: "opacity 0.25s, transform 0.25s",
@@ -173,12 +360,17 @@ export default function Tutorial() {
         @keyframes tut-blink { 0%,100%{opacity:0.4} 50%{opacity:1} }
       `}</style>
 
+      {/* ── FACILITY OVERVIEW STEP ── */}
+      {step === "facility_overview" && (
+        <FacilityOverview onNext={handleFacilityNext} />
+      )}
+
       {/* ── SPOTLIGHT STEPS ── */}
       {isSpotlight && rect && !modalOpen && (
         <>
           {/* Dark mask with hole */}
           <svg
-            style={{ position: "fixed", inset: 0, width: "100%", height: "100%", zIndex: 300, pointerEvents: "none", opacity: visible ? 1 : 0, transition: "opacity 0.3s" }}
+            style={{ position: "fixed", inset: 0, width: "100%", height: "100%", zIndex: 400, pointerEvents: "none", opacity: visible ? 1 : 0, transition: "opacity 0.3s" }}
           >
             <defs>
               <mask id="tut-mask">
@@ -198,7 +390,7 @@ export default function Tutorial() {
             position: "fixed",
             top: rect.top - PAD, left: rect.left - PAD,
             width: rect.width + PAD * 2, height: rect.height + PAD * 2,
-            borderRadius: 16, zIndex: 301, pointerEvents: "none",
+            borderRadius: 16, zIndex: 401, pointerEvents: "none",
             animation: step === "buy_room2"
               ? "tut-pulse-purple 1.8s ease-in-out infinite"
               : step === "flip_veg"
@@ -230,7 +422,7 @@ export default function Tutorial() {
               </TutTooltip>
             )}
             {step === "upgrades_tab" && (
-              <TutTooltip color="#8BC34A" line="The market will crash. Your costs won't." sub="Upgrades increase yield and cut overhead. This is how you survive the compression.">
+              <TutTooltip color="#8BC34A" line="Power Up Your Operation." sub="The Upgrades tab is where you scale. From automated watering systems to high-intensity LED arrays, every purchase here increases your yield or reduces your manual labor.">
                 <button onClick={handleStartClock} style={{ width: "100%", padding: "12px 0", marginTop: 12, background: "rgba(139,195,74,0.12)", border: "1px solid rgba(139,195,74,0.4)", borderRadius: 8, color: "#8BC34A", fontWeight: 700, fontSize: 12, cursor: "pointer", letterSpacing: 1.5 }}>
                   START THE CLOCK →
                 </button>
