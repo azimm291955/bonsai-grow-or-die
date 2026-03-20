@@ -52,21 +52,73 @@ function AMRInfoModal() {
 
   if (!showAMRInfo || !state) return null;
 
-  // Compute current AMR inline (simple enough to not need a separate component)
   const gd = getGameDateFromState(state.gameStartRealMs, state.bonusGameDays);
   const currentAMR = getAMR(gd.year, getQuarter(gd.month));
 
   return (
     <div className="fixed inset-0 bg-black/85 z-[200] flex items-center justify-center" onClick={() => setShowAMRInfo(false)}>
-      <div className="bg-[#1a1a1a] border border-bonsai-amber/20 rounded-2xl p-6 max-w-sm mx-4" onClick={e => e.stopPropagation()}>
-        <div className="text-base font-extrabold text-bonsai-amber mb-2 tracking-widest">AVERAGE MARKET RATE (AMR)</div>
+      <div className="bg-[#1a1a1a] border border-bonsai-green/20 rounded-2xl p-6 max-w-sm mx-4" onClick={e => e.stopPropagation()}>
+        <div className="text-base font-extrabold text-bonsai-green mb-2 tracking-widest">AVERAGE MARKET RATE (AMR)</div>
         <p className="text-xs text-[#888] leading-relaxed mb-4">
           The AMR is the wholesale price per pound your broker pays. It tracks real Colorado cannabis market data from 2015–2026.
           Prices peaked in 2017 (~$1,400/lb), crashed by 2019, and have continued to compress.
           Upgrades can raise your effective sell price above the AMR.
         </p>
-        <div className="text-sm font-bold text-bonsai-amber mb-3">Current: ${currentAMR}/lb</div>
+        <div className="text-sm font-bold text-bonsai-green mb-3" style={{ fontFamily: "var(--font-mono)" }}>Current: ${currentAMR}/lb</div>
+        <a href="https://tax.colorado.gov/average-market-rate" target="_blank" rel="noopener noreferrer" className="text-[10px] text-[#666] hover:text-bonsai-green transition-colors block mb-3" style={{ textDecoration: "underline", textUnderlineOffset: 2 }}>
+          Source: Colorado Dept. of Revenue — Average Market Rate
+        </a>
         <button onClick={() => setShowAMRInfo(false)} className="w-full py-2 bg-white/[0.05] border border-white/[0.08] rounded-lg text-[#666] text-sm cursor-pointer">Got it</button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Runway Info Modal ───
+function RunwayInfoModal() {
+  const showRunwayInfo = useGameStore((s) => s.ui.showRunwayInfo);
+  const setShowRunwayInfo = useGameStore((s) => s.setShowRunwayInfo);
+
+  if (!showRunwayInfo) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/85 z-[200] flex items-center justify-center" onClick={() => setShowRunwayInfo(false)}>
+      <div className="bg-[#1a1a1a] border border-bonsai-amber/20 rounded-2xl p-6 max-w-sm mx-4" onClick={e => e.stopPropagation()}>
+        <div className="text-base font-extrabold text-bonsai-amber mb-2 tracking-widest">RUNWAY</div>
+        <p className="text-xs text-[#888] leading-relaxed mb-4">
+          The estimated number of months until the company runs out of cash, based on your current monthly burn rate.
+          Runway does not account for future harvests — it assumes pure overhead spend. A longer runway gives you more room to
+          time your harvests and upgrades without running dry.
+        </p>
+        <div className="text-xs text-[#666] leading-relaxed mb-4">
+          <strong className="text-[#aaa]">Formula:</strong> Cash on Hand ÷ Monthly Burn = Months of Runway
+        </div>
+        <button onClick={() => setShowRunwayInfo(false)} className="w-full py-2 bg-white/[0.05] border border-white/[0.08] rounded-lg text-[#666] text-sm cursor-pointer">Got it</button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Burn Info Modal ───
+function BurnInfoModal() {
+  const showBurnInfo = useGameStore((s) => s.ui.showBurnInfo);
+  const setShowBurnInfo = useGameStore((s) => s.setShowBurnInfo);
+
+  if (!showBurnInfo) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/85 z-[200] flex items-center justify-center" onClick={() => setShowBurnInfo(false)}>
+      <div className="bg-[#1a1a1a] border border-bonsai-red/20 rounded-2xl p-6 max-w-sm mx-4" onClick={e => e.stopPropagation()}>
+        <div className="text-base font-extrabold text-bonsai-red mb-2 tracking-widest">MONTHLY BURN</div>
+        <p className="text-xs text-[#888] leading-relaxed mb-4">
+          The total amount of cash the company spends each month to operate. This includes rent, electricity, labor,
+          nutrients & CO₂, and licensing fees for every unlocked room — whether or not that room has an active crop.
+        </p>
+        <div className="text-xs text-[#666] leading-relaxed mb-4">
+          <strong className="text-[#aaa]">Tip:</strong> Upgrades to irrigation, environmental controls, and operations
+          can reduce per-room overhead. Empty rooms still cost ~15% of their full electricity and labor.
+        </div>
+        <button onClick={() => setShowBurnInfo(false)} className="w-full py-2 bg-white/[0.05] border border-white/[0.08] rounded-lg text-[#666] text-sm cursor-pointer">Got it</button>
       </div>
     </div>
   );
@@ -168,6 +220,8 @@ function MainGameUI() {
       <AchievementToast />
       <RoomDetailModal />
       <AMRInfoModal />
+      <RunwayInfoModal />
+      <BurnInfoModal />
       <Tutorial />
     </div>
     </div>

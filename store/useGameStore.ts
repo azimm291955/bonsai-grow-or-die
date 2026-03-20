@@ -30,6 +30,8 @@ interface UIState {
   showRoomBuy: number | null;
   showResetConfirm: boolean;
   showAMRInfo: boolean;
+  showRunwayInfo: boolean;
+  showBurnInfo: boolean;
   gameSpeed: number;
   paused: boolean;
   showAchievement: string | null;
@@ -57,6 +59,8 @@ interface GameStore {
   setShowRoomBuy: (i: number | null) => void;
   setShowResetConfirm: (v: boolean) => void;
   setShowAMRInfo: (v: boolean) => void;
+  setShowRunwayInfo: (v: boolean) => void;
+  setShowBurnInfo: (v: boolean) => void;
   setGameSpeed: (s: number) => void;
   setPaused: (p: boolean) => void;
   setShowAchievement: (id: string | null) => void;
@@ -98,6 +102,8 @@ const DEFAULT_UI: UIState = {
   showRoomBuy: null,
   showResetConfirm: false,
   showAMRInfo: false,
+  showRunwayInfo: false,
+  showBurnInfo: false,
   gameSpeed: 1,
   paused: false,
   showAchievement: null,
@@ -259,6 +265,8 @@ export const useGameStore = create<GameStore>()(
       setShowRoomBuy: (i) => set((store) => ({ ui: { ...store.ui, showRoomBuy: i } })),
       setShowResetConfirm: (v) => set((store) => ({ ui: { ...store.ui, showResetConfirm: v } })),
       setShowAMRInfo: (v) => set((store) => ({ ui: { ...store.ui, showAMRInfo: v } })),
+      setShowRunwayInfo: (v) => set((store) => ({ ui: { ...store.ui, showRunwayInfo: v } })),
+      setShowBurnInfo: (v) => set((store) => ({ ui: { ...store.ui, showBurnInfo: v } })),
       setGameSpeed: (s) => set((store) => ({ ui: { ...store.ui, gameSpeed: s } })),
       setPaused: (p) => set((store) => ({ ui: { ...store.ui, paused: p } })),
       setShowAchievement: (id) => set((store) => ({ ui: { ...store.ui, showAchievement: id } })),

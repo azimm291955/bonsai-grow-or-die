@@ -74,6 +74,8 @@ export default function GameHeader() {
     }))
   );
   const setShowAMRInfo = useGameStore((s) => s.setShowAMRInfo);
+  const setShowRunwayInfo = useGameStore((s) => s.setShowRunwayInfo);
+  const setShowBurnInfo = useGameStore((s) => s.setShowBurnInfo);
 
   if (!playerName || !rooms.length) return null;
 
@@ -88,88 +90,104 @@ export default function GameHeader() {
   const runwayColor = monthsRunway === null ? "#888" : monthsRunway < 6 ? "#ef5350" : monthsRunway < 12 ? "#FFB74D" : "#8BC34A";
 
   return (
-    <div className="px-3 pt-2 pb-2" style={{ borderBottom: "1px solid rgba(139,195,74,0.08)" }}>
-      <div className="flex gap-0">
+    <div className="px-2.5 pt-2 pb-2" style={{ borderBottom: "1px solid rgba(139,195,74,0.08)" }}>
+      <div className="flex justify-between items-stretch">
 
-        {/* ── LEFT 2/3: Metrics ── */}
-        <div className="flex-[2] min-w-0 pr-3 flex flex-col justify-between" style={{ borderRight: "1px solid rgba(255,255,255,0.06)" }}>
-
-          {/* Row 1: Cash (fixed width) | RWY + AMR + Burn stacked */}
-          <div className="flex items-start gap-0">
-            {/* Cash: fixed-width zone */}
-            <div className="w-[105px] shrink-0 pt-0.5">
-              <div
-                className="font-extrabold text-[28px] tracking-tight leading-none"
-                style={{
-                  color: cashColor,
-                  textShadow: `0 0 30px ${cash > 0 ? "rgba(139,195,74,0.15)" : "rgba(239,83,80,0.25)"}`,
-                  fontFamily: "var(--font-mono)",
-                }}
-              >
-                {formatCash(cash)}
-              </div>
-            </div>
-
-            {/* RWY + AMR + Burn stacked — all aligned */}
-            <div className="flex-1 flex flex-col gap-px pl-2" style={{ borderLeft: "1px solid rgba(255,255,255,0.05)" }}>
-              <div className="flex items-center gap-1.5">
-                <span className="text-[8px] text-[#999] font-bold tracking-widest w-[32px]">RWY</span>
-                <span
-                  className="text-[14px] font-extrabold"
-                  style={{ color: runwayColor, fontFamily: "var(--font-mono)" }}
-                >
-                  {monthsRunway !== null ? `${monthsRunway}mo` : "∞"}
-                </span>
-              </div>
-              <button
-                onClick={() => setShowAMRInfo(true)}
-                className="flex items-center gap-1.5 cursor-pointer bg-transparent border-none p-0"
-              >
-                <span className="text-[8px] text-[#999] font-bold tracking-widest w-[32px]">AMR</span>
-                <span className="text-[14px] font-bold text-[#FFB74D]" style={{ fontFamily: "var(--font-mono)" }}>
-                  ${currentAMR}
-                </span>
-                <span className="text-[9px] text-[#777]">ⓘ</span>
-              </button>
-              <div className="flex items-center gap-1.5">
-                <span className="text-[8px] text-[#999] font-bold tracking-widest w-[32px]">BURN</span>
-                <span className="text-[14px] font-bold text-[#ef5350]" style={{ fontFamily: "var(--font-mono)" }}>
-                  {formatCash(grossBurn)}<span className="text-[9px] text-[#777] font-normal">/mo</span>
-                </span>
-              </div>
-            </div>
+        {/* ── SECTION 1 (1/3): Hero Cash + Name/Date ── */}
+        <div
+          className="flex-1 min-w-0 pr-2 relative overflow-hidden flex flex-col justify-center rounded-lg"
+          style={{
+            background: vcTaken ? "rgba(239,83,80,0.06)" : "transparent",
+          }}
+        >
+          {/* Watermark: BONSAI default, VULTURE CAPITAL if VC taken */}
+          <div
+            className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: vcTaken ? 16 : 28,
+              fontWeight: 900,
+              letterSpacing: vcTaken ? 4 : 3,
+              color: vcTaken ? "#ef5350" : cashColor,
+              opacity: vcTaken ? 0.10 : 0.06,
+              whiteSpace: "nowrap",
+              lineHeight: 1,
+            }}
+          >
+            {vcTaken ? "VULTURE CAPITAL" : "BONSAI"}
           </div>
 
-          {/* Row 2: Name · Date | Runway (big) + VC */}
-          <div className="flex items-center justify-between mt-1">
-            <div className="flex items-center gap-1.5">
-              <span className="text-[#aaa] text-[11px] font-bold">{playerName}</span>
-              <span className="text-[#555] text-[9px]">·</span>
-              <span className="text-[#888] text-[11px] font-medium">{formatDate(gd)}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              {vcTaken && (
-                <div
-                  className="flex items-center gap-1 px-1.5 py-0.5 rounded"
-                  style={{ background: "rgba(239,83,80,0.08)", border: "1px solid rgba(239,83,80,0.15)" }}
-                >
-                  <span className="text-[8px] text-[#ef5350] font-bold tracking-wide">VC</span>
-                  <span className="text-[11px] font-bold text-[#ef5350]" style={{ fontFamily: "var(--font-mono)" }}>-15%</span>
-                </div>
-              )}
-              <div
-                className="text-[24px] font-extrabold leading-none"
-                style={{ color: runwayColor, fontFamily: "var(--font-mono)" }}
-              >
-                {monthsRunway !== null ? `${monthsRunway}mo` : "∞"}
-              </div>
-            </div>
+          {/* Cash number */}
+          <div
+            className="relative z-10"
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontWeight: 800,
+              fontSize: 44,
+              lineHeight: 1,
+              letterSpacing: -2,
+              color: cashColor,
+              textShadow: `0 0 40px ${cash > 0 ? "rgba(139,195,74,0.2)" : "rgba(239,83,80,0.3)"}`,
+            }}
+          >
+            {formatCash(cash)}
           </div>
 
+          {/* Name · Date — tight footer row */}
+          <div className="relative z-10 flex justify-between items-center mt-1 gap-2">
+            <span className="text-[#aaa] text-[10px] font-bold truncate min-w-0">{playerName}</span>
+            <span className="text-[#ccc] text-[10px] font-medium shrink-0" style={{ fontFamily: "var(--font-mono)" }}>{formatDate(gd)}</span>
+          </div>
         </div>
 
-        {/* ── RIGHT 1/3: Timer ── */}
-        <div className="flex-[1] pl-3">
+        {/* ── SECTION 2 (1/3): RUNWAY / AMR / BURN — data table ── */}
+        <div
+          className="flex-1 flex flex-col justify-between px-3 py-1.5 mx-1 rounded-lg self-stretch"
+          style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.04)" }}
+        >
+          <div className="flex justify-between items-center">
+            <button
+              onClick={() => setShowRunwayInfo(true)}
+              className="flex items-center gap-0.5 cursor-pointer bg-transparent border-none p-0"
+            >
+              <span className="text-[9px] text-[#888] font-bold tracking-widest">RUNWAY</span>
+              <span className="text-[8px] text-[#666]">ⓘ</span>
+            </button>
+            <span
+              className="text-[17px] font-extrabold"
+              style={{ color: runwayColor, fontFamily: "var(--font-mono)" }}
+            >
+              {monthsRunway !== null ? `${monthsRunway}mo` : "∞"}
+            </span>
+          </div>
+          <div className="flex justify-between items-center">
+            <button
+              onClick={() => setShowAMRInfo(true)}
+              className="flex items-center gap-0.5 cursor-pointer bg-transparent border-none p-0"
+            >
+              <span className="text-[9px] text-[#888] font-bold tracking-widest">AMR</span>
+              <span className="text-[8px] text-[#666]">ⓘ</span>
+            </button>
+            <span className="text-[17px] font-bold" style={{ fontFamily: "var(--font-mono)", color: "#8BC34A" }}>
+              ${currentAMR}
+            </span>
+          </div>
+          <div className="flex justify-between items-center">
+            <button
+              onClick={() => setShowBurnInfo(true)}
+              className="flex items-center gap-0.5 cursor-pointer bg-transparent border-none p-0"
+            >
+              <span className="text-[9px] text-[#888] font-bold tracking-widest">BURN</span>
+              <span className="text-[8px] text-[#666]">ⓘ</span>
+            </button>
+            <span className="text-[17px] font-bold" style={{ fontFamily: "var(--font-mono)", color: "#ef5350" }}>
+              {formatCash(grossBurn)}<span className="text-[10px] text-[#666] font-normal">/mo</span>
+            </span>
+          </div>
+        </div>
+
+        {/* ── SECTION 3 (1/3): Timer ── */}
+        <div className="flex-1 pl-2">
           <SpeedControls />
         </div>
 
