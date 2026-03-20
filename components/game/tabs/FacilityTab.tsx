@@ -100,11 +100,6 @@ export default function FacilityTab() {
           {n.message}
         </div>
       ))}
-      {notifications.filter(n => n.type === "excise_paid").slice(-1).map((n, i) => (
-        <div key={`tax-${i}`} className="rounded-[10px] px-3.5 py-2.5 mt-2 text-xs text-bonsai-amber font-medium" style={{ background: "linear-gradient(135deg,rgba(255,183,77,0.08),rgba(255,152,0,0.04))", border: "1px solid rgba(255,183,77,0.2)", animation: "toast-in 0.3s ease-out" }}>
-          {n.message}
-        </div>
-      ))}
 
     </div>
   );

@@ -73,14 +73,14 @@ export default function PnLTab() {
   const refFlower = state.rooms.find(r => r.unlocked && r.type === "flower");
   const yieldLbs = refFlower ? Math.round(BASE_YIELD_PER_HARVEST * getYieldMultiplierForRoom(state.upgrades, refFlower.index)) : BASE_YIELD_PER_HARVEST;
   const sellPrice = refFlower ? Math.round(getAMR(gd.year, getQuarter(gd.month)) * getPriceMultiplierForRoom(state.upgrades, refFlower.index)) : Math.round(getAMR(gd.year, getQuarter(gd.month)));
-  // Net instant payout: gross - broker (excise deferred). Pre-roll from trim is added.
+  // Net instant payout: gross - broker - excise. Pre-roll from trim is added.
   const grossPerHarvest = yieldLbs * sellPrice;
   const brokerPerHarvest = Math.round(grossPerHarvest * BROKER_FEE_RATE);
   const excisePerHarvest = Math.round(grossPerHarvest * EXCISE_TAX_RATE);
   const trimLbs = Math.round(yieldLbs * 0.33);
   const prerollPrice = refFlower ? getPrerollPriceForRoom(state.upgrades, refFlower.index) : 0;
   const prerollPerHarvest = trimLbs * prerollPrice;
-  const wholesaleNet = Math.round((grossPerHarvest - brokerPerHarvest) * (1 - state.vcRevenuePenalty));
+  const wholesaleNet = Math.round((grossPerHarvest - brokerPerHarvest - excisePerHarvest) * (1 - state.vcRevenuePenalty));
   const prerollNet = Math.round(prerollPerHarvest * (1 - state.vcRevenuePenalty));
   const netPerHarvest = wholesaleNet + prerollNet;
 
@@ -229,13 +229,11 @@ export default function PnLTab() {
             <div style={{ fontSize: 10, color: "#FFB74D", fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>PER HARVEST PROJECTION</div>
             <LedgerRow label={`Wholesale (${yieldLbs} lbs × $${sellPrice}/lb)`} amount={grossPerHarvest} indent />
             <LedgerRow label={`Broker Fee (${Math.round(BROKER_FEE_RATE * 100)}%)`} amount={-brokerPerHarvest} indent />
+            <LedgerRow label={`Excise Tax (${Math.round(EXCISE_TAX_RATE * 100)}%)`} amount={-excisePerHarvest} indent />
             {prerollNet > 0 && <LedgerRow label={`Pre-Roll (${trimLbs} lbs trim × $${prerollPrice})`} amount={prerollNet} indent color="#CE93D8" />}
-            {state.vcRevenuePenalty > 0 && <LedgerRow label="VC Penalty (−15%)" amount={-Math.round((grossPerHarvest - brokerPerHarvest + prerollPerHarvest) * state.vcRevenuePenalty)} indent color="#ef5350" />}
+            {state.vcRevenuePenalty > 0 && <LedgerRow label="VC Penalty (−15%)" amount={-Math.round((grossPerHarvest - brokerPerHarvest - excisePerHarvest + prerollPerHarvest) * state.vcRevenuePenalty)} indent color="#ef5350" />}
             <div style={{ borderTop: "1px solid rgba(255,183,77,0.2)", marginTop: 6, paddingTop: 6 }}>
-              <LedgerRow label="Net Instant Payout" amount={netPerHarvest} bold color="#FFB74D" />
-            </div>
-            <div style={{ marginTop: 6, fontSize: 9, color: "#ef5350", fontStyle: "italic" }}>
-              ⚠ Excise tax of {formatCash(excisePerHarvest)} (15%) due next month on the 20th
+              <LedgerRow label="Net Payout" amount={netPerHarvest} bold color="#FFB74D" />
             </div>
           </div>
         </div>

@@ -41,15 +41,9 @@ export interface MonthlyPnLEntry {
 }
 
 export interface GameNotification {
-  type: "vc_trigger" | "event" | "rot_warning" | "rot_destroyed" | "harvest" | "excise_paid";
+  type: "vc_trigger" | "event" | "rot_warning" | "rot_destroyed" | "harvest";
   message?: string;
   id?: string;
-}
-
-export interface ExciseLiability {
-  amount: number;
-  dueYear: number;
-  dueMonth: number;
 }
 
 export interface GameState {
@@ -87,7 +81,6 @@ export interface GameState {
   totalWholesaleRevenue: number;
   totalPrerollRevenue: number;
   totalSpentOnRooms: number;
-  exciseLiabilities: ExciseLiability[];
   _achRedMonth?: boolean;
   _achCropDeath?: boolean;
 }

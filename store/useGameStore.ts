@@ -233,7 +233,6 @@ function migrateSavedState(saved: GameState): GameState {
   if (saved.totalPrerollRevenue === undefined) saved.totalPrerollRevenue = 0;
   if (saved.totalSpentOnRooms === undefined) saved.totalSpentOnRooms = 0;
   if (saved.vcTriggered === undefined) saved.vcTriggered = false;
-  if (!saved.exciseLiabilities) saved.exciseLiabilities = [];
   return saved;
 }
 
@@ -431,9 +430,10 @@ export const useGameStore = create<GameStore>()(
         const grossRevenue = lbs * salePrice;
         const excise = grossRevenue * EXCISE_TAX_RATE;
         const broker = grossRevenue * BROKER_FEE_RATE;
-        // Excise is DEFERRED — broker is instant
-        const netRevenue = grossRevenue - broker;
+        // Excise + broker both deducted immediately at harvest
+        const netRevenue = grossRevenue - broker - excise;
         const effectiveWholesale = netRevenue * (1 - ns.vcRevenuePenalty);
+        const effectiveExcise = excise * (1 - ns.vcRevenuePenalty);
 
         // Pre-roll revenue from trim (instant payout)
         const trimLbs = Math.round(lbs * 0.33);
@@ -445,16 +445,10 @@ export const useGameStore = create<GameStore>()(
 
         ns.cash += totalEffectiveRevenue;
         ns.totalRevenue += totalEffectiveRevenue;
+        ns.totalCosts += effectiveExcise;
         ns.totalLbsProduced = (ns.totalLbsProduced || 0) + lbs;
         ns.totalWholesaleRevenue = (ns.totalWholesaleRevenue || 0) + effectiveWholesale;
         ns.totalPrerollRevenue = (ns.totalPrerollRevenue || 0) + effectivePreroll;
-
-        // Defer excise tax to next month (the "cash trap")
-        const effectiveExcise = excise * (1 - ns.vcRevenuePenalty);
-        const dueMonth = gd.month === 12 ? 1 : gd.month + 1;
-        const dueYear = gd.month === 12 ? gd.year + 1 : gd.year;
-        if (!ns.exciseLiabilities) ns.exciseLiabilities = [];
-        ns.exciseLiabilities.push({ amount: effectiveExcise, dueYear, dueMonth });
 
         if (ns.cash > (ns.peakCash || 0)) ns.peakCash = ns.cash;
         if (ns.cash < (ns.lowestCash ?? ns.cash)) ns.lowestCash = ns.cash;
@@ -502,7 +496,7 @@ export const useGameStore = create<GameStore>()(
 
         const rotPenaltyMsg = softenedRotQ < 1.0 ? ` (${Math.round(softenedRotQ * 100)}% quality)` : "";
         const prerollMsg = effectivePreroll > 0 ? ` + ${formatCash(effectivePreroll)} pre-roll` : "";
-        const exciseMsg = ` | ${formatCash(effectiveExcise)} excise due ${dueMonth}/${dueYear}`;
+        const exciseMsg = ` | ${formatCash(effectiveExcise)} excise paid`;
         ns.notifications.push({
           type: "harvest",
           message: `Harvested ${lbs} lbs @ ${formatCash(salePrice)}/lb = ${formatCash(effectiveWholesale)} wholesale${prerollMsg}${rotPenaltyMsg}${exciseMsg}`,
@@ -655,18 +649,17 @@ export const useGameStore = create<GameStore>()(
           ns.bonusGameDays = 0;
           ns.lastProcessedMonth = 14; // Feb 2016 billed in warp narrative; first real charge = Mar 2016
           // AMR Q1 2016 = $1880. 420 lbs × $1880 = $789,600 gross.
-          // Broker 8% = $63,168 (instant). Excise 15% = $118,440 (DEFERRED to next month).
-          // Net instant payout = $789,600 - $63,168 = $726,432.
-          // Target $750K post-harvest → pre-harvest cash = $750K - $726,432 = $23,568.
-          ns.cash = 23568;
+          // Broker 8% = $63,168. Excise 15% = $118,440 (IMMEDIATE at harvest).
+          // Net payout = $789,600 - $63,168 - $118,440 = $607,992.
+          // Target $750K post-harvest → pre-harvest cash = $750K - $607,992 = $142,008.
+          ns.cash = 142008;
           ns.totalRevenue = 0;
           ns.totalCosts = 250000; // room2 purchase only; overhead baked into cash
           ns.totalWholesaleRevenue = 0;
           ns.totalLbsProduced = 0;
           ns.peakCash = 750000;
-          ns.lowestCash = 23568;
+          ns.lowestCash = 142008;
           ns.totalSpentOnRooms = 250000;
-          ns.exciseLiabilities = []; // player's first harvest will create the first liability
           // Room 1: veg done, waiting for player to flip
           ns.rooms[0].status = "ready_to_flip";
           ns.rooms[0].type = "veg";
@@ -686,8 +679,8 @@ export const useGameStore = create<GameStore>()(
           ns.roomsHarvested = {};
           // Seed the P&L ledger with the warp months
           ns.monthlyPnL = [
-            { year: 2015, month: 12, overhead: 168000, preroll: 0, harvestRevenue: 0, net: -168000, cash: 332000 },
-            { year: 2016, month: 1,  overhead: 172200, preroll: 0, harvestRevenue: 0, net: -172200, cash: 23568 },
+            { year: 2015, month: 12, overhead: 168000, preroll: 0, harvestRevenue: 0, net: -168000, cash: 314208 },
+            { year: 2016, month: 1,  overhead: 172200, preroll: 0, harvestRevenue: 0, net: -172200, cash: 142008 },
           ];
         }
         set({ state: ns });
@@ -825,32 +818,6 @@ export const useGameStore = create<GameStore>()(
             draft.lastProcessedMonth = currentMonth;
           }
 
-          // Excise tax collection — on or after the 20th of each month
-          if (!draft.exciseLiabilities) draft.exciseLiabilities = [];
-          if (gd.day >= 20 && draft.exciseLiabilities.length > 0) {
-            const due = draft.exciseLiabilities.filter(l =>
-              l.dueYear < gd.year || (l.dueYear === gd.year && l.dueMonth <= gd.month)
-            );
-            if (due.length > 0) {
-              let totalExcise = 0;
-              for (const l of due) totalExcise += l.amount;
-              draft.cash -= totalExcise;
-              draft.totalCosts += totalExcise;
-              if (draft.cash < (draft.lowestCash ?? draft.cash)) draft.lowestCash = draft.cash;
-              draft.notifications.push({ type: "excise_paid" as const, message: `🏛️ Excise tax paid: ${formatCash(totalExcise)}` });
-              // Update current month P&L
-              if (draft.monthlyPnL.length > 0) {
-                const lastPnL = draft.monthlyPnL[draft.monthlyPnL.length - 1];
-                lastPnL.overhead += totalExcise;
-                lastPnL.net -= totalExcise;
-                lastPnL.cash = draft.cash;
-              }
-              draft.exciseLiabilities = draft.exciseLiabilities.filter(l =>
-                !(l.dueYear < gd.year || (l.dueYear === gd.year && l.dueMonth <= gd.month))
-              );
-            }
-          }
-
           // Narrative events
           const quarter = getQuarter(gd.month);
           for (const ec of [{ year: 2018, quarter: 0, id: "amr_2018_crash" }, { year: 2020, quarter: 0, id: "covid_2020" }, { year: 2022, quarter: 0, id: "amr_2022_cliff" }]) {
@@ -871,7 +838,7 @@ export const useGameStore = create<GameStore>()(
 
           // Prune stale display-only notifications (keep last 4 of each type)
           const MAX_DISPLAY_NOTIFS = 4;
-          const displayTypes = ["harvest", "rot_warning", "rot_destroyed", "excise_paid"] as const;
+          const displayTypes = ["harvest", "rot_warning", "rot_destroyed"] as const;
           for (const dtype of displayTypes) {
             const matching = draft.notifications.filter(n => n.type === dtype);
             if (matching.length > MAX_DISPLAY_NOTIFS) {

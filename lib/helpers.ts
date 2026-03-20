@@ -301,7 +301,6 @@ export function createInitialState(playerName: string): GameState {
     totalWholesaleRevenue: 0,
     totalPrerollRevenue: 0,
     totalSpentOnRooms: 0,
-    exciseLiabilities: [],
   };
 }
 
