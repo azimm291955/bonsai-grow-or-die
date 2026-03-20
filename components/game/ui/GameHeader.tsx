@@ -91,7 +91,7 @@ export default function GameHeader() {
 
   return (
     <div className="px-2.5 pt-2 pb-2" style={{ borderBottom: "1px solid rgba(139,195,74,0.08)" }}>
-      <div className="flex justify-between items-stretch">
+      <div className="flex items-stretch gap-5">
 
         {/* ── SECTION 1 (1/3): Hero Cash + Name/Date ── */}
         <div
@@ -142,7 +142,7 @@ export default function GameHeader() {
 
         {/* ── SECTION 2 (1/3): RUNWAY / AMR / BURN — data table ── */}
         <div
-          className="flex-1 flex flex-col justify-between px-3 py-1.5 mx-3 rounded-lg self-stretch"
+          className="flex-1 flex flex-col justify-between px-5 py-1.5 rounded-lg self-stretch"
           style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.04)" }}
         >
           <div className="flex justify-between items-center">
