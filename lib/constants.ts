@@ -24,7 +24,7 @@ export const WAGE_TABLE: Record<number, number> = {
   2022: 53900, 2023: 56000, 2024: 62200, 2025: 62200, 2026: 62200,
 };
 
-export const ROOM_COSTS = [0, 250000, 350000, 450000, 600000, 750000, 900000, 1000000, 1100000];
+export const ROOM_COSTS = [0, 250000, 150000, 450000, 600000, 750000, 900000, 1000000, 1100000];
 
 export interface UpgradeTierDef {
   cost: number;
