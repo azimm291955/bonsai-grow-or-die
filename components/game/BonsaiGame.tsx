@@ -31,6 +31,7 @@ import ResetConfirmModal from "./modals/ResetConfirmModal";
 import AchievementToast from "./modals/AchievementToast";
 import RoomDetailModal from "./modals/RoomDetailModal";
 import Tutorial from "./Tutorial";
+import SpeedHint from "./SpeedHint";
 import IntroScreen from "./IntroScreen";
 
 // ─── Keyframes ───
@@ -203,8 +204,39 @@ function MainGameUI() {
         </div>
       </div>
 
+      {/* ═══ RAINBOW FOOTER ═══ */}
+      <div style={{
+        position: "fixed",
+        bottom: 0,
+        left: "50%",
+        transform: "translateX(-50%)",
+        width: "100%",
+        maxWidth: 480,
+        height: 44,
+        zIndex: 500,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.85) 30%, #000 100%)",
+        pointerEvents: "none",
+      }}>
+        <img
+          src="/Bonsai_Rainbow.png"
+          alt="Bonsai Cultivation"
+          style={{
+            height: 36,
+            width: "auto",
+            maxWidth: "85%",
+            objectFit: "contain",
+            display: "block",
+            userSelect: "none",
+          }}
+          draggable={false}
+        />
+      </div>
+
       {/* ═══ CONTENT ═══ */}
-      <div className="px-3 pb-20 pt-3">
+      <div className="px-3 pb-24 pt-3">
         {activeTab === "facility" && <FacilityTab />}
         {activeTab === "pnl" && <PnLTab />}
         {activeTab === "upgrades" && <UpgradesPanel />}
@@ -223,6 +255,7 @@ function MainGameUI() {
       <RunwayInfoModal />
       <BurnInfoModal />
       <Tutorial />
+      <SpeedHint />
     </div>
     </div>
   );

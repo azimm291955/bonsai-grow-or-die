@@ -71,11 +71,16 @@ export default function RoomDetailModal() {
       className="fixed inset-0 bg-black/85 z-[100] flex items-end justify-center"
       onClick={e => { if (e.target === e.currentTarget) handleClose(); }}
     >
-      <div className="bg-[#1a1a1a] rounded-t-2xl w-full max-w-[480px] min-h-[50vh] max-h-[80vh] overflow-y-auto flex flex-col relative"
-        style={{ borderTop: `2px solid ${isVeg ? "rgba(139,195,74,0.3)" : "rgba(206,147,216,0.3)"}` }}>
-
+      <div
+        className="bg-[#1a1a1a] rounded-t-2xl w-full max-w-[480px] flex flex-col relative"
+        style={{
+          borderTop: `2px solid ${isVeg ? "rgba(139,195,74,0.3)" : "rgba(206,147,216,0.3)"}`,
+          minHeight: "62vh",
+          maxHeight: "88vh",
+        }}
+      >
         {/* Header */}
-        <div className="px-5 pt-5 pb-3 flex justify-between items-start">
+        <div className="px-5 pt-5 pb-3 flex justify-between items-start flex-shrink-0">
           <div className="flex-1 text-center">
             <h2 className="m-0 text-2xl font-extrabold tracking-tight">
               Room {selectedRoom + 1}
@@ -87,21 +92,20 @@ export default function RoomDetailModal() {
           <button onClick={handleClose} className="absolute right-5 top-5 bg-white/[0.05] border border-white/[0.08] text-[#888] text-lg w-8 h-8 rounded-lg cursor-pointer flex items-center justify-center hover:bg-white/[0.08] transition-colors">×</button>
         </div>
 
-        {/* Timer / Status Section */}
-        <div className="px-5 pb-4 flex-1">
+        {/* Status section — fixed size, never grows */}
+        <div className="px-5 pb-2 flex-shrink-0">
 
           {/* EMPTY */}
           {room.status === "empty" && (
-            <div className="text-center py-8">
+            <div className="text-center py-6">
               <div className="text-4xl mb-3 opacity-30">~</div>
               <div className="text-[#555] text-sm">No active crop</div>
             </div>
           )}
 
-          {/* GROWING — countdown timer */}
+          {/* GROWING */}
           {room.status === "growing" && (
             <div>
-              {/* Big countdown */}
               <div className="text-center py-4">
                 <div className="text-[9px] text-[#666] font-bold tracking-widest mb-2">
                   {isVeg ? "VEG CYCLE" : "FLOWER CYCLE"} · {Math.floor(room.daysGrown)}/{targetDays} DAYS
@@ -112,8 +116,6 @@ export default function RoomDetailModal() {
                 </div>
                 <div className="text-[10px] text-[#555] mt-1">at {gameSpeed}× speed</div>
               </div>
-
-              {/* Progress bar */}
               <div className="w-full h-2 bg-[#2a2a2a] rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-1000"
@@ -132,7 +134,7 @@ export default function RoomDetailModal() {
             </div>
           )}
 
-          {/* READY TO FLIP / HARVEST — quality display */}
+          {/* READY TO FLIP / HARVEST */}
           {(room.status === "ready_to_flip" || room.status === "ready_to_harvest") && (
             <div>
               <div className="text-center py-4">
@@ -145,8 +147,6 @@ export default function RoomDetailModal() {
                 </div>
                 <div className="text-[10px] text-[#666] mt-1">crop quality</div>
               </div>
-
-              {/* Quality bar */}
               <div className="w-full h-2.5 bg-[#2a2a2a] rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-500"
@@ -171,12 +171,17 @@ export default function RoomDetailModal() {
           )}
         </div>
 
-        {/* Actions — fills remaining space */}
-        <div className="px-5 pb-5 flex flex-col gap-3 mt-auto pt-6">
+        {/* Button group — flex-grow fills everything below the status section */}
+        <div
+          className="px-4 flex flex-col"
+          style={{ flex: 1, marginTop: 14, paddingBottom: 22, gap: 8 }}
+        >
+          {/* Primary action */}
           {room.status === "empty" && isVeg && (
             <button
               onClick={() => { startGrowing(selectedRoom); handleClose(); }}
-              className="w-full py-4 bg-bonsai-green/20 border border-bonsai-green/40 rounded-xl text-bonsai-green font-bold text-base cursor-pointer hover:bg-bonsai-green/30 transition-colors"
+              className="w-full bg-bonsai-green/20 border border-bonsai-green/40 rounded-xl text-bonsai-green font-bold text-[15px] cursor-pointer hover:bg-bonsai-green/30 transition-colors"
+              style={{ flex: 2 }}
             >
               🌱 Start Growing
             </button>
@@ -185,12 +190,16 @@ export default function RoomDetailModal() {
             targetFlower ? (
               <button
                 onClick={() => { flipToFlower(selectedRoom, targetFlower.index); handleClose(); }}
-                className="w-full py-4 bg-bonsai-amber/20 border border-bonsai-amber/40 rounded-xl text-bonsai-amber font-bold text-base cursor-pointer hover:bg-bonsai-amber/30 transition-colors"
+                className="w-full bg-bonsai-amber/20 border border-bonsai-amber/40 rounded-xl text-bonsai-amber font-bold text-[15px] cursor-pointer hover:bg-bonsai-amber/30 transition-colors"
+                style={{ flex: 2 }}
               >
                 ⚡ Flip to Room {targetFlower.index + 1}
               </button>
             ) : (
-              <div className="w-full py-4 bg-white/[0.03] border border-white/[0.06] rounded-xl text-[#555] text-sm text-center">
+              <div
+                className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl text-[#555] text-sm flex items-center justify-center"
+                style={{ flex: 2 }}
+              >
                 No empty flower room available
               </div>
             )
@@ -198,37 +207,45 @@ export default function RoomDetailModal() {
           {room.status === "ready_to_harvest" && (
             <button
               onClick={() => { harvest(selectedRoom); handleClose(); }}
-              className="w-full py-4 bg-bonsai-green/20 border border-bonsai-green/40 rounded-xl text-bonsai-green font-bold text-base cursor-pointer hover:bg-bonsai-green/30 transition-colors"
+              className="w-full bg-bonsai-green/20 border border-bonsai-green/40 rounded-xl text-bonsai-green font-bold text-[15px] cursor-pointer hover:bg-bonsai-green/30 transition-colors"
+              style={{ flex: 2 }}
             >
               🌿 Harvest Room
             </button>
           )}
 
-          {/* Destroy Crop — 66% height of other buttons */}
+          {/* Destroy — 66% the height of primary (flex: 1.32) */}
           {canDestroy && !confirmDestroy && (
             <button
               onClick={() => setConfirmDestroy(true)}
-              className="w-full rounded-xl text-[#555] text-[11px] cursor-pointer hover:border-bonsai-red/30 hover:text-bonsai-red/70 transition-colors"
-              style={{ paddingTop: 10, paddingBottom: 10, background: "transparent", border: "1px solid rgba(255,255,255,0.06)" }}
+              className="w-full rounded-xl text-[#4a4a4a] text-[12px] cursor-pointer transition-colors hover:text-bonsai-red/60 hover:border-bonsai-red/25"
+              style={{
+                flex: 1.32,
+                background: "transparent",
+                border: "1px solid rgba(255,255,255,0.07)",
+              }}
             >
               🗑️ Destroy Crop
             </button>
           )}
           {canDestroy && confirmDestroy && (
-            <div className="bg-bonsai-red/[0.06] border border-bonsai-red/20 rounded-xl p-3">
-              <p className="text-[11px] text-bonsai-red/80 mb-2 text-center">
+            <div
+              className="bg-bonsai-red/[0.06] border border-bonsai-red/20 rounded-xl p-4 flex flex-col justify-center"
+              style={{ flex: 1.32 }}
+            >
+              <p className="text-[11px] text-bonsai-red/80 mb-3 text-center">
                 This will destroy the current crop. This cannot be undone.
               </p>
               <div className="flex gap-2">
                 <button
                   onClick={() => setConfirmDestroy(false)}
-                  className="flex-1 py-2 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[#888] text-xs cursor-pointer"
+                  className="flex-1 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[#888] text-xs cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => { destroyCrop(selectedRoom); setConfirmDestroy(false); }}
-                  className="flex-1 py-2 bg-bonsai-red/15 border border-bonsai-red/30 rounded-lg text-bonsai-red font-bold text-xs cursor-pointer hover:bg-bonsai-red/25 transition-colors"
+                  className="flex-1 py-2.5 bg-bonsai-red/15 border border-bonsai-red/30 rounded-lg text-bonsai-red font-bold text-xs cursor-pointer hover:bg-bonsai-red/25 transition-colors"
                 >
                   Confirm Destroy
                 </button>
@@ -236,10 +253,11 @@ export default function RoomDetailModal() {
             </div>
           )}
 
-          {/* Close — same size as primary action buttons */}
+          {/* Close — same weight as primary */}
           <button
             onClick={handleClose}
-            className="w-full py-4 bg-white/[0.03] border border-white/[0.06] rounded-xl text-[#666] text-sm font-medium cursor-pointer hover:bg-white/[0.05] transition-colors"
+            className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl text-[#555] text-sm font-medium cursor-pointer hover:bg-white/[0.05] transition-colors"
+            style={{ flex: 2 }}
           >
             Close
           </button>

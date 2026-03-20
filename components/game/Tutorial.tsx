@@ -6,13 +6,11 @@ import { useGameStore } from "@/store/useGameStore";
 // ── Steps ──
 type Step =
   | "facility_overview" // light-bar scan over room grid + tooltip explaining layout
-  | "buy_room2"       // spotlight Room 2 (locked), hint to tap & buy
-  | "flip_veg"        // spotlight Room 1 (ready_to_flip), hint to tap & flip
-  | "time_warp"       // full-screen narrative card (64 days pass)
-  | "pnl_tab"         // spotlight P&L tab
-  | "upgrades_tab"    // spotlight Upgrades tab + START THE CLOCK
-  | "waiting"         // invisible — waiting for first harvest achievement to close
-  | "speed_hint";     // highlight speed controls
+  | "buy_room2"         // spotlight Room 2 (locked), hint to tap & buy
+  | "flip_veg"          // spotlight Room 1 (ready_to_flip), hint to tap & flip
+  | "time_warp"         // full-screen narrative card (64 days pass)
+  | "pnl_tab"           // spotlight P&L tab
+  | "upgrades_tab";     // spotlight Upgrades tab + START THE CLOCK
 
 const STEPS: Step[] = [
   "facility_overview",
@@ -21,8 +19,6 @@ const STEPS: Step[] = [
   "time_warp",
   "pnl_tab",
   "upgrades_tab",
-  "waiting",
-  "speed_hint",
 ];
 
 // ── Spotlight rect ──
@@ -85,20 +81,21 @@ function FacilityOverview({ onNext }: { onNext: () => void }) {
 
   if (!gridRect) return null;
 
-  const barHeight = 4;
+  const barHeight = 6;
   const barY = gridRect.top + scanProgress * gridRect.height;
 
   return (
     <>
-      {/* Semi-dark backdrop */}
-      <div style={{
-        position: "fixed", inset: 0, zIndex: 300,
-        background: "rgba(0,0,0,0.75)",
-        pointerEvents: scanDone ? "auto" : "none",
-        transition: "background 0.4s",
-      }} />
+      {/* Backdrop — only shown AFTER scan completes, so the light bar scans against raw content */}
+      {scanDone && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 300,
+          background: "rgba(0,0,0,0.80)",
+          pointerEvents: "auto",
+        }} />
+      )}
 
-      {/* Light bar */}
+      {/* Light bar — no overlay above it, scans the live room grid */}
       {!scanDone && (
         <div style={{
           position: "fixed",
@@ -107,26 +104,26 @@ function FacilityOverview({ onNext }: { onNext: () => void }) {
           width: gridRect.width + 8,
           height: barHeight,
           borderRadius: barHeight / 2,
-          background: "linear-gradient(90deg, transparent 0%, rgba(139,195,74,0.5) 20%, rgba(200,255,150,0.8) 50%, rgba(139,195,74,0.5) 80%, transparent 100%)",
-          boxShadow: "0 0 20px rgba(139,195,74,0.6), 0 0 60px rgba(139,195,74,0.2)",
-          zIndex: 302,
+          background: "linear-gradient(90deg, transparent 0%, rgba(139,195,74,0.7) 15%, rgba(210,255,160,1) 45%, #ffffff 50%, rgba(210,255,160,1) 55%, rgba(139,195,74,0.7) 85%, transparent 100%)",
+          boxShadow: "0 0 8px 2px rgba(200,255,150,0.9), 0 0 24px 6px rgba(139,195,74,0.7), 0 0 60px 16px rgba(139,195,74,0.35)",
+          zIndex: 310,
           pointerEvents: "none",
-          transition: "opacity 0.15s",
-          opacity: scanProgress > 0.98 ? 0 : 1,
+          opacity: scanProgress > 0.97 ? 0 : 1,
+          transition: "opacity 0.2s",
         }} />
       )}
 
-      {/* Highlight glow that trails the scan bar — illuminates room borders */}
+      {/* Wide glow halo trailing the bar */}
       {!scanDone && (
         <div style={{
           position: "fixed",
           left: gridRect.left - 8,
-          top: barY - 40,
+          top: barY - 60,
           width: gridRect.width + 16,
-          height: 80,
+          height: 120,
           borderRadius: 12,
-          background: "radial-gradient(ellipse at 50% 50%, rgba(139,195,74,0.12) 0%, transparent 70%)",
-          zIndex: 301,
+          background: "radial-gradient(ellipse at 50% 50%, rgba(139,195,74,0.22) 0%, rgba(139,195,74,0.06) 55%, transparent 75%)",
+          zIndex: 309,
           pointerEvents: "none",
         }} />
       )}
@@ -195,7 +192,6 @@ export default function Tutorial() {
   const state            = useGameStore((s) => s.state);
   const advanceTutorial  = useGameStore((s) => s.advanceTutorial);
   const setActiveTab     = useGameStore((s) => s.setActiveTab);
-  const showAchievement  = useGameStore((s) => s.ui.showAchievement);
   const showRoomBuy      = useGameStore((s) => s.ui.showRoomBuy);
   const selectedRoom     = useGameStore((s) => s.ui.selectedRoom);
 
@@ -208,22 +204,8 @@ export default function Tutorial() {
   const [done, setDone]         = useState(false);
   const rafRef = useRef<number | null>(null);
 
-  // Track when first_harvest achievement toast closes (for speed hint)
-  const prevAchRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    if (prevAchRef.current === "first_harvest" && showAchievement !== "first_harvest") {
-      // Achievement toast just closed — show speed hint
-      const step = STEPS[stepIdx];
-      if (step === "waiting") {
-        setStepIdx(STEPS.indexOf("speed_hint"));
-      }
-    }
-    prevAchRef.current = showAchievement ?? null;
-  }, [showAchievement, stepIdx]);
-
   const step = STEPS[stepIdx];
-  const isSpotlight = step === "buy_room2" || step === "flip_veg" || step === "pnl_tab" || step === "upgrades_tab" || step === "speed_hint";
+  const isSpotlight = step === "buy_room2" || step === "flip_veg" || step === "pnl_tab" || step === "upgrades_tab";
 
   const getSelector = (s: Step): string => {
     switch (s) {
@@ -231,7 +213,6 @@ export default function Tutorial() {
       case "flip_veg": return "room-1";
       case "pnl_tab": return "tab-pnl";
       case "upgrades_tab": return "tab-upgrades";
-      case "speed_hint": return "speed-controls";
       default: return "";
     }
   };
@@ -278,9 +259,6 @@ export default function Tutorial() {
   // Tutorial already completed — don't re-run on refresh
   if (state.tutorialStep >= 5) return null;
 
-  // "waiting" step: invisible, just waiting for achievement toast to close
-  if (step === "waiting") return null;
-
   const PAD = 8;
 
   // ── Handlers ──
@@ -296,12 +274,7 @@ export default function Tutorial() {
   const handleStartClock = () => {
     setActiveTab("facility");
     advanceTutorial(5);
-    // Move to "waiting" step — invisible, waiting for first harvest achievement
-    setStepIdx(STEPS.indexOf("waiting"));
-  };
-
-  const handleDismissSpeedHint = () => {
-    setDone(true); // unmount tutorial permanently
+    setDone(true);
   };
 
   // ── Tooltip position ──
@@ -312,7 +285,7 @@ export default function Tutorial() {
     const winW = window.innerWidth;
     const spaceBelow = winH - (r.top + r.height + PAD);
     const onTop = spaceBelow < 200;
-    const isNarrowTarget = step === "pnl_tab" || step === "upgrades_tab" || step === "speed_hint";
+    const isNarrowTarget = step === "pnl_tab" || step === "upgrades_tab";
 
     if (isNarrowTarget) {
       // Wide centered tooltip for narrow tab targets
@@ -429,13 +402,6 @@ export default function Tutorial() {
                 <div style={{ marginTop: 8, textAlign: "center", fontSize: 10, color: "#555", lineHeight: 1.5 }}>
                   Feb 29, 2016. The next 10 years begin now.
                 </div>
-              </TutTooltip>
-            )}
-            {step === "speed_hint" && (
-              <TutTooltip color="#8BC34A" line="Control the clock." sub="Speed up time to 32× or 64× to fast-forward through grow cycles. Pause anytime to plan your next move.">
-                <button onClick={handleDismissSpeedHint} style={{ width: "100%", padding: "12px 0", marginTop: 12, background: "rgba(139,195,74,0.12)", border: "1px solid rgba(139,195,74,0.4)", borderRadius: 8, color: "#8BC34A", fontWeight: 700, fontSize: 12, cursor: "pointer", letterSpacing: 1.5 }}>
-                  GOT IT
-                </button>
               </TutTooltip>
             )}
           </div>
