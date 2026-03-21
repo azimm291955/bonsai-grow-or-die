@@ -72,8 +72,8 @@ export const UPGRADE_TRACKS: Record<string, UpgradeTrackDef> = {
     name: "Environmental", icon: "🌡️",
     tiers: [
       { cost: 90000, nutrientMod: -0.20, co2Mod: -0.20, name: "Basic HVAC", copy: "Control the climate. Control the crop." },
-      { cost: 220000, nutrientMod: -0.40, co2Mod: -0.40, name: "Climate Monitoring", copy: "Data-driven grows don't die." },
-      { cost: 460000, nutrientMod: -0.66, co2Mod: -0.66, name: "Argus Full Control", copy: "Argus sees everything. So do you." },
+      { cost: 220000, nutrientMod: -0.40, co2Mod: -0.40, yieldMod: 0.042, name: "Climate Monitoring", copy: "Data-driven grows don't die." },
+      { cost: 460000, nutrientMod: -0.66, co2Mod: -0.66, yieldMod: 0.071, name: "Argus Full Control", copy: "Argus sees everything. So do you." },
     ],
   },
   genetics: {

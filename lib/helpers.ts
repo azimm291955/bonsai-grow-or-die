@@ -43,6 +43,8 @@ export function getYieldMultiplierForRoom(upgrades: Upgrades, roomIndex: number)
   if (lt > 0) mult += UPGRADE_TRACKS.lighting.tiers[lt - 1].yieldMod ?? 0;
   const gt = getRoomUpgradeTier(upgrades, "genetics", roomIndex);
   if (gt > 0) mult += UPGRADE_TRACKS.genetics.tiers[gt - 1].yieldMod ?? 0;
+  const et = getRoomUpgradeTier(upgrades, "environmental", roomIndex);
+  if (et > 0) mult += UPGRADE_TRACKS.environmental.tiers[et - 1].yieldMod ?? 0;
   return mult;
 }
 
