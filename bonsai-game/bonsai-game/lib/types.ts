@@ -41,9 +41,15 @@ export interface MonthlyPnLEntry {
 }
 
 export interface GameNotification {
-  type: "vc_trigger" | "event" | "rot_warning" | "rot_destroyed" | "harvest";
+  type: "vc_trigger" | "event" | "rot_warning" | "rot_destroyed" | "harvest" | "excise_paid";
   message?: string;
   id?: string;
+}
+
+export interface ExciseLiability {
+  amount: number;
+  dueYear: number;
+  dueMonth: number;
 }
 
 export interface GameState {
@@ -55,6 +61,7 @@ export interface GameState {
   upgrades: Upgrades;
   gameStartRealMs: number;
   lastTickRealMs: number;
+  pausedAtMs: number | null;
   vcTaken: boolean;
   vcTriggered: boolean;
   vcRevenuePenalty: number;
@@ -81,6 +88,7 @@ export interface GameState {
   totalWholesaleRevenue: number;
   totalPrerollRevenue: number;
   totalSpentOnRooms: number;
+  exciseLiabilities: ExciseLiability[];
   _achRedMonth?: boolean;
   _achCropDeath?: boolean;
 }

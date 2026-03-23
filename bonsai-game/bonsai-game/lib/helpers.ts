@@ -80,8 +80,8 @@ export function getPriceMultiplierForRoom(upgrades: Upgrades, roomIndex: number)
   return mult;
 }
 
-export function getMonthlyOverheadForRoom(year: number, upgrades: Upgrades, roomIndex: number): OverheadBreakdown {
-  let rent = BASE_OVERHEAD.rent;
+export function getMonthlyOverheadForRoom(year: number, upgrades: Upgrades, roomIndex: number, roomStatus?: string): OverheadBreakdown {
+  const rent = BASE_OVERHEAD.rent;
   let electricity = BASE_OVERHEAD.electricity;
   let labor = getLaborCost(year);
   let nutrients = BASE_OVERHEAD.nutrients_co2_packaging;
@@ -95,6 +95,21 @@ export function getMonthlyOverheadForRoom(year: number, upgrades: Upgrades, room
   if (et > 0) {
     const tier = UPGRADE_TRACKS.environmental.tiers[et - 1];
     nutrients *= (1 + ((tier.nutrientMod ?? 0) + (tier.co2Mod ?? 0)) / 2);
+  }
+
+  // Empty room trickle: full rent + license, 15% electricity/labor, 0 nutrients
+  if (roomStatus === "empty") {
+    electricity = Math.round(electricity * 0.15);
+    labor = Math.round(labor * 0.15);
+    nutrients = 0;
+    return {
+      rent,
+      electricity,
+      labor,
+      nutrients,
+      license,
+      total: Math.round(rent + electricity + labor + nutrients + license),
+    };
   }
 
   return {
@@ -122,7 +137,7 @@ export function getAverageOverheadPerRoom(year: number, upgrades: Upgrades, room
   }
   const totals = { rent: 0, electricity: 0, labor: 0, nutrients: 0, license: 0, total: 0 };
   for (const r of activeRooms) {
-    const oh = getMonthlyOverheadForRoom(year, upgrades, r.index);
+    const oh = getMonthlyOverheadForRoom(year, upgrades, r.index, r.status);
     totals.rent += oh.rent;
     totals.electricity += oh.electricity;
     totals.labor += oh.labor;
@@ -141,20 +156,10 @@ export function getAverageOverheadPerRoom(year: number, upgrades: Upgrades, room
   };
 }
 
-export function getPrerollRevenueForRoom(upgrades: Upgrades, roomIndex: number): number {
+export function getPrerollPriceForRoom(upgrades: Upgrades, roomIndex: number): number {
   const pt = getRoomUpgradeTier(upgrades, "preroll", roomIndex);
   if (pt === 0) return 0;
-  return UPGRADE_TRACKS.preroll.tiers[pt - 1].monthlyRevenue ?? 0;
-}
-
-export function getTotalPrerollRevenue(upgrades: Upgrades, rooms: Room[]): number {
-  let total = 0;
-  for (const r of rooms) {
-    if (r.unlocked && r.type === "flower") {
-      total += getPrerollRevenueForRoom(upgrades, r.index);
-    }
-  }
-  return total;
+  return UPGRADE_TRACKS.preroll.tiers[pt - 1].prerollPricePerLb ?? 0;
 }
 
 export function getRotSpeedMultiplierForRoom(upgrades: Upgrades, roomIndex: number): number {
@@ -296,6 +301,8 @@ export function createInitialState(playerName: string): GameState {
     totalWholesaleRevenue: 0,
     totalPrerollRevenue: 0,
     totalSpentOnRooms: 0,
+    exciseLiabilities: [],
+    pausedAtMs: null,
   };
 }
 
@@ -318,9 +325,5 @@ export function getCurrentGameDate(gameStartRealMs: number, bonusGameDays: numbe
   return msToGameDate(totalGameDays * MS_PER_GAME_DAY);
 }
 
-/** Compute current game date from state fields - use this everywhere instead of msToGameDate(lastTickRealMs) */
-export function getGameDateFromState(gameStartRealMs: number, bonusGameDays: number): GameDate {
-  const totalRealMs = Date.now() - gameStartRealMs;
-  const totalGameDays = (totalRealMs / MS_PER_GAME_DAY) + (bonusGameDays || 0);
-  return msToGameDate(totalGameDays * MS_PER_GAME_DAY);
-}
+/** @deprecated Use getCurrentGameDate instead */
+export const getGameDateFromState = getCurrentGameDate;

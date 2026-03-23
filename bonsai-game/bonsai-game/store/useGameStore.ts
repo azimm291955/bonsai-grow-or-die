@@ -11,7 +11,7 @@ import {
 import {
   createInitialState, migrateUpgrades, msToGameDate, getQuarter,
   getAMR, getVegDaysForRoom, getFlowerDaysForRoom, getMonthlyOverheadForRoom,
-  getTotalPrerollRevenue, hasAutoFlipForRoom, getRotSpeedMultiplierForRoom,
+  getPrerollPriceForRoom, hasAutoFlipForRoom, getRotSpeedMultiplierForRoom,
   getRotQuality, getYieldMultiplierForRoom, getPriceMultiplierForRoom,
   getVegQualityBonus, getRoomUpgradeTier, getUpgradeCostForRoom, formatCash,
 } from "@/lib/helpers";
@@ -68,6 +68,7 @@ interface GameStore {
   startGrowing: (roomIndex: number) => void;
   flipToFlower: (vegIndex: number, flowerIndex: number) => void;
   harvest: (index: number) => void;
+  destroyCrop: (roomIndex: number) => void;
   buyUpgrade: (track: string, tierIndex: number, roomIndex: number) => void;
   acceptVC: () => void;
   declineVC: () => void;
@@ -190,7 +191,7 @@ function checkAchievements(ns: GameState, gd: GameDate, extras: Record<string, u
   }
 
   // SURVIVAL & ERAS
-  if (gd.year >= 2018 && gd.month >= 6) unlock("crash_2018");
+  if (gd.year > 2018 || (gd.year === 2018 && gd.month >= 6)) unlock("crash_2018");
   if (gd.year >= 2021) unlock("covid_2020");
   if (gd.year >= 2023) unlock("cliff_2022");
 
@@ -226,6 +227,8 @@ function migrateSavedState(saved: GameState): GameState {
   if (saved.totalPrerollRevenue === undefined) saved.totalPrerollRevenue = 0;
   if (saved.totalSpentOnRooms === undefined) saved.totalSpentOnRooms = 0;
   if (saved.vcTriggered === undefined) saved.vcTriggered = false;
+  if (!saved.exciseLiabilities) saved.exciseLiabilities = [];
+  if (saved.pausedAtMs === undefined) saved.pausedAtMs = null;
   return saved;
 }
 
@@ -258,7 +261,30 @@ export const useGameStore = create<GameStore>()(
       setShowResetConfirm: (v) => set((store) => ({ ui: { ...store.ui, showResetConfirm: v } })),
       setShowAMRInfo: (v) => set((store) => ({ ui: { ...store.ui, showAMRInfo: v } })),
       setGameSpeed: (s) => set((store) => ({ ui: { ...store.ui, gameSpeed: s } })),
-      setPaused: (p) => set((store) => ({ ui: { ...store.ui, paused: p } })),
+      setPaused: (p) => set((store) => {
+        const now = Date.now();
+        const s = store.state;
+        if (p) {
+          // Pausing — record when we paused
+          return {
+            ui: { ...store.ui, paused: true },
+            state: s ? { ...s, pausedAtMs: now } : s,
+          };
+        } else {
+          // Resuming — shift gameStartRealMs and lastTickRealMs forward
+          // by the full pause duration so no time appears to have passed
+          const pauseDuration = s?.pausedAtMs ? now - s.pausedAtMs : 0;
+          return {
+            ui: { ...store.ui, paused: false },
+            state: s ? {
+              ...s,
+              pausedAtMs: null,
+              gameStartRealMs: s.gameStartRealMs + pauseDuration,
+              lastTickRealMs: now,
+            } : s,
+          };
+        }
+      }),
       setShowAchievement: (id) => set((store) => ({ ui: { ...store.ui, showAchievement: id } })),
 
       // ── Init from localStorage ──
@@ -355,15 +381,12 @@ export const useGameStore = create<GameStore>()(
       // ── Flip to Flower ──
       flipToFlower: (vegIndex, flowerIndex) => {
         const { state: s, ui } = get();
-        if (!s) { console.warn("FLIP: no state"); return; }
+        if (!s) return;
         const veg = s.rooms[vegIndex];
         const flower = s.rooms[flowerIndex];
-        if (!veg || !flower) { console.warn("FLIP: no veg/flower room", vegIndex, flowerIndex); return; }
-        if (veg.status !== "ready_to_flip") { console.warn("FLIP: veg not ready_to_flip, status=", veg.status); return; }
-        if (!flower.unlocked) { console.warn("FLIP: flower not unlocked"); return; }
-        if (flower.type !== "flower") { console.warn("FLIP: flower type=", flower.type); return; }
-        if (flower.status !== "empty") { console.warn("FLIP: flower not empty, status=", flower.status); return; }
-        console.log("FLIP: all guards passed, executing flip", vegIndex, "->", flowerIndex);
+        if (!veg || !flower) return;
+        if (veg.status !== "ready_to_flip") return;
+        if (!flower.unlocked || flower.type !== "flower" || flower.status !== "empty") return;
 
         const rawVegQuality = getRotQuality(veg.rotDays, getRotSpeedMultiplierForRoom(s.upgrades, vegIndex));
         const vegBonus = getVegQualityBonus(s.upgrades, vegIndex);
@@ -379,7 +402,7 @@ export const useGameStore = create<GameStore>()(
           stalled: false, rotDays: 0,
         };
 
-        const ns = { ...s, rooms: newRooms };
+        const ns: GameState = structuredClone({ ...s, rooms: newRooms });
         const gd = getCurrentGameDate(ns);
         const newAch = checkAchievements(ns, gd, {});
 
@@ -424,13 +447,31 @@ export const useGameStore = create<GameStore>()(
         const grossRevenue = lbs * salePrice;
         const excise = grossRevenue * EXCISE_TAX_RATE;
         const broker = grossRevenue * BROKER_FEE_RATE;
-        const netRevenue = grossRevenue - excise - broker;
-        const effectiveRevenue = netRevenue * (1 - ns.vcRevenuePenalty);
+        // Excise is DEFERRED — broker is instant
+        const netRevenue = grossRevenue - broker;
+        const effectiveWholesale = netRevenue * (1 - ns.vcRevenuePenalty);
 
-        ns.cash += effectiveRevenue;
-        ns.totalRevenue += effectiveRevenue;
+        // Pre-roll revenue from trim (instant payout)
+        const trimLbs = Math.round(lbs * 0.33);
+        const prerollPrice = getPrerollPriceForRoom(ns.upgrades, index);
+        const prerollGross = trimLbs * prerollPrice;
+        const effectivePreroll = prerollGross * (1 - ns.vcRevenuePenalty);
+
+        const totalEffectiveRevenue = effectiveWholesale + effectivePreroll;
+
+        ns.cash += totalEffectiveRevenue;
+        ns.totalRevenue += totalEffectiveRevenue;
         ns.totalLbsProduced = (ns.totalLbsProduced || 0) + lbs;
-        ns.totalWholesaleRevenue = (ns.totalWholesaleRevenue || 0) + effectiveRevenue;
+        ns.totalWholesaleRevenue = (ns.totalWholesaleRevenue || 0) + effectiveWholesale;
+        ns.totalPrerollRevenue = (ns.totalPrerollRevenue || 0) + effectivePreroll;
+
+        // Defer excise tax to next month (the "cash trap")
+        const effectiveExcise = excise * (1 - ns.vcRevenuePenalty);
+        const dueMonth = gd.month === 12 ? 1 : gd.month + 1;
+        const dueYear = gd.month === 12 ? gd.year + 1 : gd.year;
+        if (!ns.exciseLiabilities) ns.exciseLiabilities = [];
+        ns.exciseLiabilities.push({ amount: effectiveExcise, dueYear, dueMonth });
+
         if (ns.cash > (ns.peakCash || 0)) ns.peakCash = ns.cash;
         if (ns.cash < (ns.lowestCash ?? ns.cash)) ns.lowestCash = ns.cash;
 
@@ -468,15 +509,19 @@ export const useGameStore = create<GameStore>()(
         }
 
         if (ns.monthlyPnL.length > 0) {
-          ns.monthlyPnL[ns.monthlyPnL.length - 1].harvestRevenue += effectiveRevenue;
-          ns.monthlyPnL[ns.monthlyPnL.length - 1].net += effectiveRevenue;
-          ns.monthlyPnL[ns.monthlyPnL.length - 1].cash = ns.cash;
+          const lastPnL = ns.monthlyPnL[ns.monthlyPnL.length - 1];
+          lastPnL.harvestRevenue += effectiveWholesale;
+          lastPnL.preroll += effectivePreroll;
+          lastPnL.net += totalEffectiveRevenue;
+          lastPnL.cash = ns.cash;
         }
 
         const rotPenaltyMsg = softenedRotQ < 1.0 ? ` (${Math.round(softenedRotQ * 100)}% quality)` : "";
+        const prerollMsg = effectivePreroll > 0 ? ` + ${formatCash(effectivePreroll)} pre-roll` : "";
+        const exciseMsg = ` | ${formatCash(effectiveExcise)} excise due ${dueMonth}/${dueYear}`;
         ns.notifications.push({
           type: "harvest",
-          message: `Harvested ${lbs} lbs @ ${formatCash(salePrice)}/lb = ${formatCash(effectiveRevenue)} net${rotPenaltyMsg}`,
+          message: `Harvested ${lbs} lbs @ ${formatCash(salePrice)}/lb = ${formatCash(effectiveWholesale)} wholesale${prerollMsg}${rotPenaltyMsg}${exciseMsg}`,
         });
 
         if (!ns.roomsHarvested) ns.roomsHarvested = {};
@@ -490,6 +535,36 @@ export const useGameStore = create<GameStore>()(
         });
       },
 
+      // ── Destroy Crop (manual abandon) ──
+      destroyCrop: (roomIndex) => {
+        const { state: s, ui } = get();
+        if (!s) return;
+        const room = s.rooms[roomIndex];
+        if (!room || !room.unlocked) return;
+        if (room.status === "empty") return; // nothing to destroy
+
+        set({
+          state: {
+            ...s,
+            rooms: updateRoom(s.rooms, roomIndex, {
+              status: "empty",
+              daysGrown: 0,
+              growStartMs: null,
+              rotDays: 0,
+              stalled: false,
+              vegQuality: undefined,
+              _rot50warned: false,
+              _rot25warned: false,
+            }),
+            notifications: [
+              ...s.notifications,
+              { type: "rot_destroyed" as const, message: `🗑️ Room ${roomIndex + 1} crop destroyed by operator.` },
+            ],
+          },
+          ui: { ...ui, selectedRoom: null },
+        });
+      },
+
       // ── Buy Upgrade ──
       buyUpgrade: (track, tierIndex, roomIndex) => {
         const { state: s, ui } = get();
@@ -499,6 +574,8 @@ export const useGameStore = create<GameStore>()(
         if (s.cash < scaledCost) return;
         if (getRoomUpgradeTier(s.upgrades, track, roomIndex) !== tierIndex) return;
         if (!s.rooms[roomIndex]?.unlocked) return;
+        // Pre-roll upgrades only apply to flower rooms
+        if (track === "preroll" && s.rooms[roomIndex]?.type !== "flower") return;
 
         if (tier.yearGate) {
           const gd = getCurrentGameDate(s);
@@ -508,12 +585,12 @@ export const useGameStore = create<GameStore>()(
         const newUpgrades = { ...s.upgrades };
         newUpgrades[track] = { ...newUpgrades[track], [roomIndex]: tierIndex + 1 };
 
-        const ns: GameState = {
+        const ns: GameState = structuredClone({
           ...s,
           cash: s.cash - scaledCost,
           totalSpentOnUpgrades: (s.totalSpentOnUpgrades || 0) + scaledCost,
           upgrades: newUpgrades,
-        };
+        });
 
         const gd = getCurrentGameDate(ns);
         const newAch = checkAchievements(ns, gd, {});
@@ -536,7 +613,7 @@ export const useGameStore = create<GameStore>()(
         const gd = getCurrentGameDate(ns);
         let totalMonthlyOverhead = 0;
         for (const r of activeRooms) {
-          totalMonthlyOverhead += getMonthlyOverheadForRoom(gd.year, ns.upgrades, r.index).total;
+          totalMonthlyOverhead += getMonthlyOverheadForRoom(gd.year, ns.upgrades, r.index, r.status).total;
         }
 
         let lost = 0;
@@ -580,6 +657,8 @@ export const useGameStore = create<GameStore>()(
       advanceTutorial: (toStep) => {
         const { state: s } = get();
         if (!s) return;
+        // Prevent re-running completed tutorial (would reset game state)
+        if (s.tutorialStep >= 5 && toStep <= s.tutorialStep) return;
         const ns: GameState = structuredClone(s); // user-triggered, acceptable perf
         ns.tutorialStep = toStep;
 
@@ -592,16 +671,18 @@ export const useGameStore = create<GameStore>()(
           ns.bonusGameDays = 0;
           ns.lastProcessedMonth = 14; // Feb 2016 billed in warp narrative; first real charge = Mar 2016
           // AMR Q1 2016 = $1880. 420 lbs × $1880 = $789,600 gross.
-          // Net of 15% excise + 5% broker = $631,680.
-          // Target $750K post-harvest → pre-harvest cash = $750K - $631,680 = $118,320.
-          ns.cash = 118320;
+          // Broker 8% = $63,168 (instant). Excise 15% = $118,440 (DEFERRED to next month).
+          // Net instant payout = $789,600 - $63,168 = $726,432.
+          // Target $750K post-harvest → pre-harvest cash = $750K - $726,432 = $23,568.
+          ns.cash = 23568;
           ns.totalRevenue = 0;
           ns.totalCosts = 250000; // room2 purchase only; overhead baked into cash
           ns.totalWholesaleRevenue = 0;
           ns.totalLbsProduced = 0;
           ns.peakCash = 750000;
-          ns.lowestCash = 118320;
+          ns.lowestCash = 23568;
           ns.totalSpentOnRooms = 250000;
+          ns.exciseLiabilities = []; // player's first harvest will create the first liability
           // Room 1: veg done, waiting for player to flip
           ns.rooms[0].status = "ready_to_flip";
           ns.rooms[0].type = "veg";
@@ -622,7 +703,7 @@ export const useGameStore = create<GameStore>()(
           // Seed the P&L ledger with the warp months
           ns.monthlyPnL = [
             { year: 2015, month: 12, overhead: 168000, preroll: 0, harvestRevenue: 0, net: -168000, cash: 332000 },
-            { year: 2016, month: 1,  overhead: 172200, preroll: 0, harvestRevenue: 0, net: -172200, cash: 118320 },
+            { year: 2016, month: 1,  overhead: 172200, preroll: 0, harvestRevenue: 0, net: -172200, cash: 23568 },
           ];
         }
         set({ state: ns });
@@ -632,6 +713,7 @@ export const useGameStore = create<GameStore>()(
       processTick: () => {
         const { state: prev, ui } = get();
         if (!prev || prev.gameOver || prev.gameWon) return;
+        if (ui.paused || prev.pausedAtMs !== null) return; // pause safety guard
 
         const now = Date.now();
         const elapsedMs = Math.min(now - prev.lastTickRealMs, 30000);
@@ -654,7 +736,8 @@ export const useGameStore = create<GameStore>()(
           const gd = msToGameDate(totalGameDays * MS_PER_GAME_DAY);
 
           // Win condition
-          if (gd.year > 2026 || (gd.year === 2026 && gd.month >= 4 && gd.day >= 20)) {
+          const pastWinDate = gd.year > 2026 || (gd.year === 2026 && (gd.month > 4 || (gd.month === 4 && gd.day >= 20)));
+          if (pastWinDate) {
             const activeRooms = draft.rooms.filter(r => r.unlocked).length;
             if (draft.cash > 0 && activeRooms >= 4) {
               draft.gameWon = true;
@@ -740,27 +823,54 @@ export const useGameStore = create<GameStore>()(
               const pYear = GAME_START_DATE.year + Math.floor((processMonth - 1) / 12);
               const pMonth = ((processMonth - 1) % 12) + 1;
               let totalOverhead = 0;
-              for (const r of draft.rooms) { if (r.unlocked) totalOverhead += getMonthlyOverheadForRoom(pYear, draft.upgrades, r.index).total; }
+              for (const r of draft.rooms) { if (r.unlocked) totalOverhead += getMonthlyOverheadForRoom(pYear, draft.upgrades, r.index, r.status).total; }
               if (draft.vcOverheadCredit > 0) totalOverhead *= (1 - draft.vcOverheadCredit);
-              const prerollRev = getTotalPrerollRevenue(draft.upgrades, draft.rooms);
-              const effectivePreroll = prerollRev * (1 - draft.vcRevenuePenalty);
-              draft.cash -= totalOverhead; draft.cash += effectivePreroll;
-              draft.totalCosts += totalOverhead; draft.totalRevenue += effectivePreroll;
-              draft.totalPrerollRevenue = (draft.totalPrerollRevenue || 0) + effectivePreroll;
+              draft.cash -= totalOverhead;
+              draft.totalCosts += totalOverhead;
               if (draft.cash > (draft.peakCash || 0)) draft.peakCash = draft.cash;
               if (draft.cash < (draft.lowestCash ?? draft.cash)) draft.lowestCash = draft.cash;
               if (draft.monthlyPnL.length > 200) draft.monthlyPnL.shift();
-              const monthNet = effectivePreroll - totalOverhead;
-              draft.monthlyPnL.push({ year: pYear, month: pMonth, overhead: totalOverhead, preroll: effectivePreroll, harvestRevenue: 0, net: monthNet, cash: draft.cash });
-              if (monthNet < 0) { draft._achRedMonth = true; draft.consecutiveProfitMonths = 0; }
+              const monthNet = -totalOverhead;
+              draft.monthlyPnL.push({ year: pYear, month: pMonth, overhead: totalOverhead, preroll: 0, harvestRevenue: 0, net: monthNet, cash: draft.cash });
+              if (monthNet < 0) {
+                // Only trigger Red Month achievement after the tutorial period (Mar 2016+)
+                if (pYear > 2016 || (pYear === 2016 && pMonth >= 3)) draft._achRedMonth = true;
+                draft.consecutiveProfitMonths = 0;
+              }
               else { draft.consecutiveProfitMonths = (draft.consecutiveProfitMonths || 0) + 1; }
             }
             draft.lastProcessedMonth = currentMonth;
           }
 
+          // Excise tax collection — on or after the 20th of each month
+          if (!draft.exciseLiabilities) draft.exciseLiabilities = [];
+          if (gd.day >= 20 && draft.exciseLiabilities.length > 0) {
+            const due = draft.exciseLiabilities.filter(l =>
+              l.dueYear < gd.year || (l.dueYear === gd.year && l.dueMonth <= gd.month)
+            );
+            if (due.length > 0) {
+              let totalExcise = 0;
+              for (const l of due) totalExcise += l.amount;
+              draft.cash -= totalExcise;
+              draft.totalCosts += totalExcise;
+              if (draft.cash < (draft.lowestCash ?? draft.cash)) draft.lowestCash = draft.cash;
+              draft.notifications.push({ type: "excise_paid" as const, message: `🏛️ Excise tax paid: ${formatCash(totalExcise)}` });
+              // Update current month P&L
+              if (draft.monthlyPnL.length > 0) {
+                const lastPnL = draft.monthlyPnL[draft.monthlyPnL.length - 1];
+                lastPnL.overhead += totalExcise;
+                lastPnL.net -= totalExcise;
+                lastPnL.cash = draft.cash;
+              }
+              draft.exciseLiabilities = draft.exciseLiabilities.filter(l =>
+                !(l.dueYear < gd.year || (l.dueYear === gd.year && l.dueMonth <= gd.month))
+              );
+            }
+          }
+
           // Narrative events
           const quarter = getQuarter(gd.month);
-          for (const ec of [{ year: 2018, quarter: 0, id: "crash2018" }, { year: 2020, quarter: 0, id: "covid2020" }, { year: 2022, quarter: 0, id: "cliff2022" }]) {
+          for (const ec of [{ year: 2018, quarter: 0, id: "amr_2018_crash" }, { year: 2020, quarter: 0, id: "covid_2020" }, { year: 2022, quarter: 0, id: "amr_2022_cliff" }]) {
             if (gd.year === ec.year && quarter >= ec.quarter && !draft.eventsShown[ec.id]) {
               draft.eventsShown[ec.id] = true;
               draft.notifications.push({ type: "event", id: ec.id });
@@ -774,6 +884,17 @@ export const useGameStore = create<GameStore>()(
           } else if (draft.cash <= 0 && draft.vcTaken) {
             draft.gameOver = true;
             draft.deathCause = "Second bankruptcy. Vulture Capital already used.";
+          }
+
+          // Prune stale display-only notifications (keep last 4 of each type)
+          const MAX_DISPLAY_NOTIFS = 4;
+          const displayTypes = ["harvest", "rot_warning", "rot_destroyed", "excise_paid"] as const;
+          for (const dtype of displayTypes) {
+            const matching = draft.notifications.filter(n => n.type === dtype);
+            if (matching.length > MAX_DISPLAY_NOTIFS) {
+              const toRemove = matching.slice(0, matching.length - MAX_DISPLAY_NOTIFS);
+              draft.notifications = draft.notifications.filter(n => !toRemove.includes(n));
+            }
           }
 
           // Achievements
