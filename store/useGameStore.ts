@@ -530,7 +530,9 @@ export const useGameStore = create<GameStore>()(
 
         // Persistent harvest log — survives refresh
         const MONTH_NAMES_STORE = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-        const harvestGd = msToGameDate(totalGameDays * MS_PER_GAME_DAY);
+        const _harvestRealMs = Date.now() - ns.gameStartRealMs;
+        const _harvestTotalGameDays = (_harvestRealMs / MS_PER_GAME_DAY) + (ns.bonusGameDays || 0);
+        const harvestGd = msToGameDate(_harvestTotalGameDays * MS_PER_GAME_DAY);
         if (!ns.harvestLog) ns.harvestLog = [];
         ns.harvestLog.push({
           message: harvestMessage,
