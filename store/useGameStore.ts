@@ -234,6 +234,7 @@ function migrateSavedState(saved: GameState): GameState {
   if (saved.totalSpentOnRooms === undefined) saved.totalSpentOnRooms = 0;
   if (saved.vcTriggered === undefined) saved.vcTriggered = false;
   if (!saved.harvestLog) saved.harvestLog = [];
+  if (saved.pausedAtMs === undefined) saved.pausedAtMs = null;
   return saved;
 }
 
@@ -268,7 +269,30 @@ export const useGameStore = create<GameStore>()(
       setShowRunwayInfo: (v) => set((store) => ({ ui: { ...store.ui, showRunwayInfo: v } })),
       setShowBurnInfo: (v) => set((store) => ({ ui: { ...store.ui, showBurnInfo: v } })),
       setGameSpeed: (s) => set((store) => ({ ui: { ...store.ui, gameSpeed: s } })),
-      setPaused: (p) => set((store) => ({ ui: { ...store.ui, paused: p } })),
+      setPaused: (p) => set((store) => {
+        const now = Date.now();
+        const s = store.state;
+        if (p) {
+          // Pausing — record when we paused
+          return {
+            ui: { ...store.ui, paused: true },
+            state: s ? { ...s, pausedAtMs: now } : s,
+          };
+        } else {
+          // Resuming — shift gameStartRealMs and lastTickRealMs forward
+          // by the full pause duration so no time appears to have passed
+          const pauseDuration = s?.pausedAtMs ? now - s.pausedAtMs : 0;
+          return {
+            ui: { ...store.ui, paused: false },
+            state: s ? {
+              ...s,
+              pausedAtMs: null,
+              gameStartRealMs: s.gameStartRealMs + pauseDuration,
+              lastTickRealMs: now,
+            } : s,
+          };
+        }
+      }),
       setShowAchievement: (id) => set((store) => ({ ui: { ...store.ui, showAchievement: id } })),
 
       // ── Init from localStorage ──
@@ -702,6 +726,7 @@ export const useGameStore = create<GameStore>()(
       processTick: () => {
         const { state: prev, ui } = get();
         if (!prev || prev.gameOver || prev.gameWon) return;
+        if (ui.paused || prev.pausedAtMs !== null) return; // safety guard
 
         const now = Date.now();
         const elapsedMs = Math.min(now - prev.lastTickRealMs, 30000);

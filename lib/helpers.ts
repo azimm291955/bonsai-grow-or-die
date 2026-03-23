@@ -304,6 +304,7 @@ export function createInitialState(playerName: string): GameState {
     totalPrerollRevenue: 0,
     totalSpentOnRooms: 0,
     harvestLog: [],
+    pausedAtMs: null,
   };
 }
 

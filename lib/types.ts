@@ -88,6 +88,7 @@ export interface GameState {
   totalPrerollRevenue: number;
   totalSpentOnRooms: number;
   harvestLog: HarvestLogEntry[];
+  pausedAtMs: number | null;
   _achRedMonth?: boolean;
   _achCropDeath?: boolean;
 }
