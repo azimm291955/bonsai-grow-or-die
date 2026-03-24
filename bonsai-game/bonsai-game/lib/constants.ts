@@ -59,20 +59,12 @@ export const UPGRADE_TRACKS: Record<string, UpgradeTrackDef> = {
       { cost: 520000, electricityMod: -0.40, yieldMod: 0.30, flowerCycleDays: 2, name: "Fluence/Fohse Full LED", copy: "The same lights Bonsai runs." },
     ],
   },
-  irrigation: {
-    name: "Irrigation", icon: "💧",
+  irrigationEnvironmental: {
+    name: "Irrigation/Environmental", icon: "💧🌡️",
     tiers: [
-      { cost: 80000, laborMod: -0.08, name: "Manual Optimization", copy: "Consistent feed. Consistent flower." },
-      { cost: 200000, laborMod: -0.16, name: "Semi-Automated", copy: "Your team does less. Your plants get more." },
-      { cost: 420000, laborMod: -0.25, name: "Dagba Full Automation", copy: "Set it. Grow it. The Dagba way." },
-    ],
-  },
-  environmental: {
-    name: "Environmental", icon: "🌡️",
-    tiers: [
-      { cost: 90000, nutrientMod: -0.08, co2Mod: -0.10, name: "Basic HVAC", copy: "Control the climate. Control the crop." },
-      { cost: 220000, nutrientMod: -0.12, co2Mod: -0.15, name: "Climate Monitoring", copy: "Data-driven grows don't die." },
-      { cost: 460000, nutrientMod: -0.15, co2Mod: -0.20, name: "Argus Full Control", copy: "Argus sees everything. So do you." },
+      { cost: 42000, laborMod: -0.08, nutrientMod: -0.08, co2Mod: -0.10, name: "Basic Climate & Watering", copy: "Consistent feed. Optimized environment." },
+      { cost: 76000, laborMod: -0.16, nutrientMod: -0.12, co2Mod: -0.15, name: "Automated + Monitoring", copy: "Your team does less. Plants get more." },
+      { cost: 113000, laborMod: -0.25, nutrientMod: -0.15, co2Mod: -0.20, name: "Full Integration", copy: "Complete climate and irrigation control." },
     ],
   },
   genetics: {
