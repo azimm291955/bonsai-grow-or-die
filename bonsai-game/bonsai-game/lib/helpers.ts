@@ -162,6 +162,20 @@ export function getPrerollPriceForRoom(upgrades: Upgrades, roomIndex: number): n
   return UPGRADE_TRACKS.preroll.tiers[pt - 1].prerollPricePerLb ?? 0;
 }
 
+export function getTotalPrerollRevenue(upgrades: Upgrades, rooms: Room[]): number {
+  let totalRevenue = 0;
+  for (const room of rooms) {
+    if (room.unlocked && room.type !== "veg") {
+      const pricePerLb = getPrerollPriceForRoom(upgrades, room.index);
+      // Estimate ~2 lbs per harvest on average, assume monthly production
+      if (pricePerLb > 0) {
+        totalRevenue += pricePerLb * 2;
+      }
+    }
+  }
+  return totalRevenue;
+}
+
 export function getRotSpeedMultiplierForRoom(upgrades: Upgrades, roomIndex: number): number {
   const ot = getRoomUpgradeTier(upgrades, "operations", roomIndex);
   if (ot > 0) return UPGRADE_TRACKS.operations.tiers[ot - 1].rotSpeedMult ?? 1.0;

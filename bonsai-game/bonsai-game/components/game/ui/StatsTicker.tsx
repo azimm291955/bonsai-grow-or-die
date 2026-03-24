@@ -2,7 +2,7 @@
 
 import { useGameStore } from "@/store/useGameStore";
 import { useShallow } from "zustand/react/shallow";
-import { getCurrentGameDate, getQuarter, getAMR, getAverageOverheadPerRoom, formatCash } from "@/lib/helpers";
+import { getCurrentGameDate, getQuarter, getAMR, getAverageOverheadPerRoom, getTotalPrerollRevenue, formatCash } from "@/lib/helpers";
 import type { Room, Upgrades } from "@/lib/types";
 
 export default function StatsTicker() {
@@ -29,7 +29,7 @@ export default function StatsTicker() {
   const flowerRoomCount = rooms.filter((r: Room) => r.unlocked && r.type === "flower").length;
   const vegRoomCount = rooms.filter((r: Room) => r.unlocked && r.type === "veg").length;
   const grossBurn = overhead ? overhead.total * activeRoomCount : 0;
-  const prerollIncome = 0; // TODO: implement getTotalPrerollRevenue
+  const prerollIncome = getTotalPrerollRevenue(upgrades, rooms) * (1 - vcRevenuePenalty);
   const netBurn = grossBurn - prerollIncome;
   const monthsRunway = netBurn > 0 && cash > 0 ? Math.floor(cash / netBurn) : null;
 
