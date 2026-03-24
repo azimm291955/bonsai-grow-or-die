@@ -159,7 +159,7 @@ export function getAverageOverheadPerRoom(year: number, upgrades: Upgrades, room
 export function getPrerollPriceForRoom(upgrades: Upgrades, roomIndex: number): number {
   const pt = getRoomUpgradeTier(upgrades, "preroll", roomIndex);
   if (pt === 0) return 0;
-  return UPGRADE_TRACKS.preroll.tiers[pt - 1].prerollPricePerLb ?? 0;
+  return (UPGRADE_TRACKS.preroll.tiers[pt - 1] as any).monthlyRevenue ?? 0;
 }
 
 export function getRotSpeedMultiplierForRoom(upgrades: Upgrades, roomIndex: number): number {
@@ -329,11 +329,11 @@ export function getCurrentGameDate(gameStartRealMs: number, bonusGameDays: numbe
 export function getTotalPrerollRevenue(upgrades: Upgrades, rooms: Room[]): number {
   let total = 0;
   for (const room of rooms) {
-    if (room.unlocked && room.status === "flowering") {
-      const pricePerLb = getPrerollPriceForRoom(upgrades, room.index);
-      if (pricePerLb > 0) {
-        const estimatedLbs = (room.harvestCount || 1) * 2; // rough estimate
-        total += pricePerLb * estimatedLbs;
+    if (room.unlocked) {
+      const pt = getRoomUpgradeTier(upgrades, "preroll", room.index);
+      if (pt > 0) {
+        const tier = UPGRADE_TRACKS.preroll.tiers[pt - 1];
+        total += (tier as any).monthlyRevenue ?? 0;
       }
     }
   }
