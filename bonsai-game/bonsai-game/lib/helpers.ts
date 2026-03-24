@@ -326,7 +326,7 @@ export function getCurrentGameDate(gameStartRealMs: number, bonusGameDays: numbe
 }
 
 /** Sum preroll revenue across all rooms with preroll upgrades */
-export function getTotalPrerollRevenue(rooms: Room[], upgrades: Upgrades): number {
+export function getTotalPrerollRevenue(upgrades: Upgrades, rooms: Room[]): number {
   let total = 0;
   for (const room of rooms) {
     if (room.unlocked && room.status === "flowering") {
