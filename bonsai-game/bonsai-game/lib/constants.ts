@@ -94,9 +94,9 @@ export const UPGRADE_TRACKS: Record<string, UpgradeTrackDef> = {
   operations: {
     name: "Operations", icon: "👤",
     tiers: [
-      { cost: 100000, autoFlip: true, rotSpeedMult: 0.50, name: "Head Grower", copy: "Let the pros handle it.", vegCycleDays: 0, flowerCycleDays: 0 },
-      { cost: 200000, autoFlip: true, rotSpeedMult: 0.25, name: "Specialist", copy: "Tighter ops. Faster turns.", vegCycleDays: 1, flowerCycleDays: 2 },
-      { cost: 350000, autoFlip: true, rotSpeedMult: 0.10, name: "Master Grower", copy: "Your facility runs itself.", vegCycleDays: 2, flowerCycleDays: 3 },
+      { cost: 50000, autoFlip: true, rotSpeedMult: 0.50, name: "Head Grower", copy: "Let the pros handle it.", vegCycleDays: 0, flowerCycleDays: 0 },
+      { cost: 140000, autoFlip: true, rotSpeedMult: 0.25, name: "Specialist", copy: "Tighter ops. Faster turns.", vegCycleDays: 1, flowerCycleDays: 2 },
+      { cost: 250000, autoFlip: true, rotSpeedMult: 0.10, name: "Master Grower", copy: "Your facility runs itself.", vegCycleDays: 2, flowerCycleDays: 3 },
     ],
   },
 };
