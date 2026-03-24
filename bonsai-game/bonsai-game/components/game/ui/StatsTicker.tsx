@@ -29,7 +29,7 @@ export default function StatsTicker() {
   const flowerRoomCount = rooms.filter((r: Room) => r.unlocked && r.type === "flower").length;
   const vegRoomCount = rooms.filter((r: Room) => r.unlocked && r.type === "veg").length;
   const grossBurn = overhead ? overhead.total * activeRoomCount : 0;
-  const prerollIncome = getTotalPrerollRevenue(upgrades, rooms) * (1 - vcRevenuePenalty);
+  const prerollIncome = 0; // TODO: implement getTotalPrerollRevenue
   const netBurn = grossBurn - prerollIncome;
   const monthsRunway = netBurn > 0 && cash > 0 ? Math.floor(cash / netBurn) : null;
 
