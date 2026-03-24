@@ -2,7 +2,7 @@
 
 import { useGameStore } from "@/store/useGameStore";
 import { useShallow } from "zustand/react/shallow";
-import { getCurrentGameDate, getQuarter, getAMR, getAverageOverheadPerRoom, getTotalPrerollRevenue, formatCash } from "@/lib/helpers";
+import { getCurrentGameDate, getQuarter, getAMR, getAverageOverheadPerRoom, formatCash } from "@/lib/helpers";
 import type { Room, Upgrades } from "@/lib/types";
 
 export default function StatsTicker() {
