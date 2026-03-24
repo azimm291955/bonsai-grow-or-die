@@ -123,6 +123,19 @@ export interface UpgradeTier {
   cost: number;
   effect?: string;
   yearGate?: number;
+  electricityMod?: number;
+  yieldMod?: number;
+  laborMod?: number;
+  nutrientMod?: number;
+  co2Mod?: number;
+  priceMod?: number;
+  monthlyRevenue?: number;
+  operatingCostPct?: number;
+  prerollPricePerLb?: number;
+  autoFlip?: boolean;
+  rotSpeedMult?: number;
+  vegCycleDays?: number;
+  flowerCycleDays?: number;
 }
 
 export interface UpgradeTrack {
