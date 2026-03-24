@@ -37,6 +37,7 @@ export interface UpgradeTierDef {
   co2Mod?: number;
   priceMod?: number;
   monthlyRevenue?: number;
+  operatingCostPct?: number;
   yearGate?: number;
   autoFlip?: boolean;
   rotSpeedMult?: number;
@@ -78,9 +79,9 @@ export const UPGRADE_TRACKS: Record<string, UpgradeTrackDef> = {
   preroll: {
     name: "Pre-Roll Line", icon: "🚬",
     tiers: [
-      { cost: 75000, monthlyRevenue: 8000, name: "Hand Rolling", copy: "Don't waste the trim.", yearGate: 2016 },
-      { cost: 180000, monthlyRevenue: 22000, name: "Semi-Auto Machine", copy: "Volume is the game now.", yearGate: 2019 },
-      { cost: 380000, monthlyRevenue: 45000, name: "Full Pre-Roll Line", copy: "AMR can't touch pre-roll revenue.", yearGate: 2022 },
+      { cost: 75000, monthlyRevenue: 8000, operatingCostPct: 0.15, name: "Hand Rolling", copy: "Don't waste the trim.", yearGate: 2016 },
+      { cost: 180000, monthlyRevenue: 22000, operatingCostPct: 0.15, name: "Semi-Auto Machine", copy: "Volume is the game now.", yearGate: 2019 },
+      { cost: 380000, monthlyRevenue: 45000, operatingCostPct: 0.15, name: "Full Pre-Roll Line", copy: "AMR can't touch pre-roll revenue.", yearGate: 2022 },
     ],
   },
   operations: {
