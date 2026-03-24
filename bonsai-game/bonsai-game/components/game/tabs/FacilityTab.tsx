@@ -2,7 +2,7 @@
 
 import { useGameStore } from "@/store/useGameStore";
 import { useShallow } from "zustand/react/shallow";
-import { getAverageOverheadPerRoom, getTotalPrerollRevenue, formatCash, getYieldMultiplierForRoom, getPriceMultiplierForRoom, getMonthlyOverheadForRoom, getCurrentGameDate, getQuarter, getAMR } from "@/lib/helpers";
+import { getAverageOverheadPerRoom, formatCash, getYieldMultiplierForRoom, getPriceMultiplierForRoom, getMonthlyOverheadForRoom, getCurrentGameDate, getQuarter, getAMR } from "@/lib/helpers";
 import { BASE_YIELD_PER_HARVEST } from "@/lib/constants";
 import type { Room, Upgrades } from "@/lib/types";
 import RoomCard from "../RoomCard";
