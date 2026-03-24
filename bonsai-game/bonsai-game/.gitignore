@@ -3,3 +3,10 @@ node_modules/
 .env*.local
 *.node
 .vercel
+
+# Credentials - never commit these
+.credentials/
+*.json.bak
+service-account.json
+*credentials*.json
+*token*.pickle
