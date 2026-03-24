@@ -55,8 +55,8 @@ export const UPGRADE_TRACKS: Record<string, UpgradeTrackDef> = {
     name: "Lighting", icon: "💡",
     tiers: [
       { cost: 120000, electricityMod: -0.15, yieldMod: 0.08, name: "HPS Upgrade", copy: "Better bulbs. Better buds." },
-      { cost: 280000, electricityMod: -0.28, yieldMod: 0.18, name: "LED Hybrid", copy: "Half the heat. Twice the output." },
-      { cost: 520000, electricityMod: -0.40, yieldMod: 0.30, name: "Fluence/Fohse Full LED", copy: "The same lights Bonsai runs." },
+      { cost: 280000, electricityMod: -0.28, yieldMod: 0.18, flowerCycleDays: 1, name: "LED Hybrid", copy: "Half the heat. Twice the output." },
+      { cost: 520000, electricityMod: -0.40, yieldMod: 0.30, flowerCycleDays: 2, name: "Fluence/Fohse Full LED", copy: "The same lights Bonsai runs." },
     ],
   },
   irrigation: {
