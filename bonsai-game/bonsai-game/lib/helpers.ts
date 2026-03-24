@@ -325,5 +325,20 @@ export function getCurrentGameDate(gameStartRealMs: number, bonusGameDays: numbe
   return msToGameDate(totalGameDays * MS_PER_GAME_DAY);
 }
 
+/** Sum preroll revenue across all rooms with preroll upgrades */
+export function getTotalPrerollRevenue(rooms: Room[], upgrades: Upgrades): number {
+  let total = 0;
+  for (const room of rooms) {
+    if (room.unlocked && room.status === "flowering") {
+      const pricePerLb = getPrerollPriceForRoom(upgrades, room.index);
+      if (pricePerLb > 0) {
+        const estimatedLbs = (room.harvestCount || 1) * 2; // rough estimate
+        total += pricePerLb * estimatedLbs;
+      }
+    }
+  }
+  return total;
+}
+
 /** @deprecated Use getCurrentGameDate instead */
 export const getGameDateFromState = getCurrentGameDate;

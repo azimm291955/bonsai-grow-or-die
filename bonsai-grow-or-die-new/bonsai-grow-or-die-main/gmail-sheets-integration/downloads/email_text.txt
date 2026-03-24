@@ -1,0 +1,43 @@
+Aaron C. Zimmerman
+Chief Financial Officer
+Bonsai Cultivation
+(720) 939 - 5262
+
+Find us on Leaflink:
+http://leaflink.com/menu/bonsai-cultivation-2/
+
+
+
+---------- Forwarded message ---------
+From: Vercel <notifications@vercel.com>
+Date: Sun, Feb 22, 2026, 19:35
+Subject: Failed production deployment on team 'Aaron C Zimmerman's projects'
+To: <aaron.zimmerman@bonsaicultivation.com>
+
+
+[image: Vercel]
+
+Hi azimm291955,
+
+There was an error deploying *bonsai-production-data* to the production
+environment on *Aaron C Zimmerman's projects*.
+
+See deployment details
+<https://vercel.com/aaron-c-zimmermans-projects/bonsai-production-data/2GeAMqy3tx9KZXX1VN5GMhRQtntY?utm_medium=email&utm_source=notifications>
+
+You can also view latest deployments
+<https://vercel.com/aaron-c-zimmermans-projects/bonsai-production-data/deployments?filterBranch=main&utm_medium=email&utm_source=notifications>
+for branch *main*.
+------------------------------
+
+If you’d like to report an issue, reach out to Vercel Help
+<https://vercel.com/help?utm_medium=email&utm_source=notifications>.
+
+Copyright © 2025 Vercel Inc.
+<https://vercel.com?utm_medium=email&utm_source=notifications> All rights
+reserved.
+440 N Barranca Ave #4133 Covina, CA 91723
+<https://www.google.com/maps/search/440+N+Barranca+Ave+%234133+Covina,+CA+91723?entry=gmail&source=g>
+
+Manage your notification settings
+<https://vercel.com/aaron-c-zimmermans-projects/~/settings/notifications?utm_medium=email&utm_source=notifications>

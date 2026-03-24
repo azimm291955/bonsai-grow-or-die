@@ -1,0 +1,198 @@
+"use client";
+
+import { useEffect } from "react";
+import { useGameStore } from "@/store/useGameStore";
+import { useTickLoop } from "@/hooks/useTickLoop";
+import { fetchLeaderboardAction } from "@/app/actions/leaderboard";
+import { ACHIEVEMENTS } from "@/lib/constants";
+import { getGameDateFromState, getQuarter, getAMR } from "@/lib/helpers";
+
+// UI Components
+import TopBar from "./ui/TopBar";
+import StatsTicker from "./ui/StatsTicker";
+import SpeedControls from "./ui/SpeedControls";
+
+// Tabs
+import FacilityTab from "./tabs/FacilityTab";
+import UpgradesPanel from "./UpgradesPanel";
+import PnLTab from "./PnLTab";
+import AchievementsTab from "./AchievementsTab";
+import LeaderboardTab from "./LeaderboardTab";
+
+// Screens
+import Onboarding from "./Onboarding";
+import WinScreen from "./WinScreen";
+import GameOverScreen from "./GameOverScreen";
+
+// Modals
+import VcOfferModal from "./modals/VcOfferModal";
+import EventModal from "./modals/EventModal";
+import RoomBuyModal from "./modals/RoomBuyModal";
+import ResetConfirmModal from "./modals/ResetConfirmModal";
+import AchievementToast from "./modals/AchievementToast";
+import RoomDetailModal from "./modals/RoomDetailModal";
+import Tutorial from "./Tutorial";
+
+// ─── Keyframes ───
+const GAME_STYLES = `
+  @keyframes action-pulse { 0%,100%{opacity:0.8;box-shadow:0 0 8px rgba(255,183,77,0.2)} 50%{opacity:1;box-shadow:0 0 20px rgba(255,183,77,0.4)} }
+  @keyframes glow-green { 0%,100%{box-shadow:inset 0 0 15px rgba(139,195,74,0.05)} 50%{box-shadow:inset 0 0 25px rgba(139,195,74,0.12)} }
+  @keyframes glow-purple { 0%,100%{box-shadow:inset 0 0 15px rgba(206,147,216,0.05)} 50%{box-shadow:inset 0 0 25px rgba(206,147,216,0.12)} }
+  @keyframes toast-in { 0%{transform:translateY(20px);opacity:0} 100%{transform:translateY(0);opacity:1} }
+  @keyframes shimmer-bar { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+  @keyframes lock-breathe { 0%,100%{border-color:rgba(255,255,255,0.04)} 50%{border-color:rgba(255,255,255,0.08)} }
+  @keyframes fade-up { 0%{transform:translateY(20px);opacity:0} 100%{transform:translateY(0);opacity:1} }
+`;
+
+// ─── AMR Info Modal ───
+function AMRInfoModal() {
+  const showAMRInfo = useGameStore((s) => s.ui.showAMRInfo);
+  const setShowAMRInfo = useGameStore((s) => s.setShowAMRInfo);
+  const state = useGameStore((s) => s.state);
+
+  if (!showAMRInfo || !state) return null;
+
+  // Compute current AMR inline (simple enough to not need a separate component)
+  const gd = getGameDateFromState(state.gameStartRealMs, state.bonusGameDays);
+  const currentAMR = getAMR(gd.year, getQuarter(gd.month));
+
+  return (
+    <div className="fixed inset-0 bg-black/85 z-[200] flex items-center justify-center" onClick={() => setShowAMRInfo(false)}>
+      <div className="bg-[#1a1a1a] border border-bonsai-amber/20 rounded-2xl p-6 max-w-sm mx-4" onClick={e => e.stopPropagation()}>
+        <div className="text-base font-extrabold text-bonsai-amber mb-2 tracking-widest">AVERAGE MARKET RATE (AMR)</div>
+        <p className="text-xs text-[#888] leading-relaxed mb-4">
+          The AMR is the wholesale price per pound your broker pays. It tracks real Colorado cannabis market data from 2015–2026.
+          Prices peaked in 2017 (~$1,400/lb), crashed by 2019, and have continued to compress.
+          Upgrades can raise your effective sell price above the AMR.
+        </p>
+        <div className="text-sm font-bold text-bonsai-amber mb-3">Current: ${currentAMR}/lb</div>
+        <button onClick={() => setShowAMRInfo(false)} className="w-full py-2 bg-white/[0.05] border border-white/[0.08] rounded-lg text-[#666] text-sm cursor-pointer">Got it</button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Game UI ───
+function MainGameUI() {
+  const state = useGameStore((s) => s.state);
+  const activeTab = useGameStore((s) => s.ui.activeTab);
+  const setActiveTab = useGameStore((s) => s.setActiveTab);
+
+  if (!state) return null;
+
+  const tabs = [
+    { id: "facility", icon: "🌿", label: "Grow" },
+    { id: "pnl", icon: "📊", label: "P&L" },
+    { id: "upgrades", icon: "⚡", label: "Upgrades" },
+    { id: "trophies", icon: "🏆", label: `${Object.keys(state.achievements || {}).length}/${ACHIEVEMENTS.length}` },
+    { id: "leaderboard", icon: "👑", label: "Top 420" },
+  ];
+
+  return (
+    <div
+      className="min-h-screen w-full flex justify-center"
+      style={{
+        background: "#0a0a0a",
+        fontFamily: "'Inter', system-ui, sans-serif",
+      }}
+    >
+    <div
+      className="min-h-screen text-white w-full max-w-[480px] relative"
+      style={{
+        background: "radial-gradient(ellipse at 50% 0%, #152015 0%, #111 30%, #0a0a0a 100%)",
+      }}
+    >
+      <style>{GAME_STYLES}</style>
+
+      {/* ═══ TOP BAR ═══ */}
+      <div
+        className="sticky top-0 z-50 px-4 pt-2.5 pb-2"
+        style={{
+          background: "linear-gradient(180deg, rgba(15,20,15,0.98) 0%, rgba(10,10,10,0.95) 100%)",
+          backdropFilter: "blur(12px)",
+          borderBottom: "1px solid rgba(139,195,74,0.1)",
+        }}
+      >
+        <TopBar />
+        <StatsTicker />
+        <SpeedControls />
+      </div>
+
+      {/* ═══ TAB NAV ═══ */}
+      <div
+        className="flex sticky z-40"
+        style={{ top: 95, background: "rgba(10,10,10,0.9)", backdropFilter: "blur(8px)", borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+      >
+        {tabs.map(tab => (
+          <button
+            key={tab.id}
+            data-tutorial={tab.id === "pnl" ? "tab-pnl" : tab.id === "upgrades" ? "tab-upgrades" : undefined}
+            onClick={() => setActiveTab(tab.id)}
+            className="flex-1 py-3 pb-2.5 bg-transparent border-none cursor-pointer text-[12px] font-bold tracking-widest transition-all"
+            style={{
+              color: activeTab === tab.id ? "#8BC34A" : "#444",
+              borderBottom: activeTab === tab.id ? "2px solid #8BC34A" : "2px solid transparent",
+            }}
+            aria-selected={activeTab === tab.id}
+            role="tab"
+          >
+            <span className="text-sm">{tab.icon}</span>{" "}
+            <span className="text-[11px]">{tab.label.toUpperCase()}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* ═══ CONTENT ═══ */}
+      <div className="px-3 pb-20 pt-3">
+        {activeTab === "facility" && <FacilityTab />}
+        {activeTab === "pnl" && <PnLTab />}
+        {activeTab === "upgrades" && <UpgradesPanel />}
+        {activeTab === "trophies" && <AchievementsTab />}
+        {activeTab === "leaderboard" && <LeaderboardTab />}
+      </div>
+
+      {/* ═══ MODALS ═══ */}
+      <VcOfferModal />
+      <EventModal />
+      <RoomBuyModal />
+      <ResetConfirmModal />
+      <AchievementToast />
+      <RoomDetailModal />
+      <AMRInfoModal />
+      <Tutorial />
+    </div>
+    </div>
+  );
+}
+
+// ─── Router ───
+function GameRouter() {
+  const screen = useGameStore((s) => s.ui.screen);
+  const state = useGameStore((s) => s.state);
+  const initFromStorage = useGameStore((s) => s.initFromStorage);
+
+  // Mount tick loop exactly once here
+  useTickLoop();
+
+  // Init on mount
+  useEffect(() => {
+    initFromStorage();
+  }, [initFromStorage]);
+
+  if (screen === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
+        <div className="text-bonsai-green text-sm">Loading…</div>
+      </div>
+    );
+  }
+  if (screen === "onboarding") return <Onboarding />;
+  if (state?.gameWon) return <WinScreen />;
+  if (state?.gameOver) return <GameOverScreen />;
+  return <MainGameUI />;
+}
+
+// ─── Root export ───
+export default function BonsaiGame() {
+  return <GameRouter />;
+}
