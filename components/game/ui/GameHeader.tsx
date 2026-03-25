@@ -105,11 +105,14 @@ export default function GameHeader() {
             className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: vcTaken ? 16 : 28,
+              fontSize: vcTaken ? 16 : 52,
               fontWeight: 900,
-              letterSpacing: vcTaken ? 4 : 3,
-              color: vcTaken ? "#ef5350" : cashColor,
-              opacity: vcTaken ? 0.10 : 0.06,
+              letterSpacing: vcTaken ? 4 : 6,
+              color: "transparent",
+              WebkitTextStroke: vcTaken
+                ? "1px rgba(239,83,80,0.22)"
+                : `1.5px ${cash > 0 ? "rgba(139,195,74,0.28)" : "rgba(239,83,80,0.28)"}`,
+              opacity: vcTaken ? 0.9 : 0.9,
               whiteSpace: "nowrap",
               lineHeight: 1,
             }}
