@@ -692,12 +692,11 @@ export const useGameStore = create<GameStore>()(
 
         if (toStep === 5) {
           // Bake in the full post-tutorial state:
-          // Feb 26 2016 -> Apr 30 2016 = 64 game-days (verified with msToGameDate).
-          const MS_TO_APR30 = 64 * MS_PER_GAME_DAY;
-          ns.gameStartRealMs = Date.now() - MS_TO_APR30;
+          // Game starts at GAME_START_DATE (Feb 26, 2016). Room 2 is pre-seeded ready to harvest.
+          ns.gameStartRealMs = Date.now();
           ns.lastTickRealMs = Date.now();
           ns.bonusGameDays = 0;
-          ns.lastProcessedMonth = 14; // Feb 2016 billed in warp narrative; first real charge = Mar 2016
+          ns.lastProcessedMonth = 2; // Feb 2016 billed in warp narrative; first real charge = Mar 2016 (month 3 relative to new GAME_START_DATE Feb 2016)
           // AMR Q1 2016 = $1880. 420 lbs × $1880 = $789,600 gross.
           // Broker 8% = $63,168. Excise 15% = $118,440 (IMMEDIATE at harvest).
           // Net payout = $789,600 - $63,168 - $118,440 = $607,992.
