@@ -144,18 +144,18 @@ export interface AchievementDef {
 
 export const ACHIEVEMENTS: AchievementDef[] = [
   // --- CULTIVATION ---
-  { id: "first_harvest", cat: "cultivation", badge: "🌿", name: "First Harvest — Feb 26, 2016", desc: "This was the real date of Bonsai Cultivation's first-ever harvest. 420 lbs of wholesale flower, pulled from Room 2 in a converted warehouse in Denver. You're making history.", maxProgress: 1 },
-  { id: "harvest_10", cat: "cultivation", badge: "🌿🌿", name: "Seasoned Grower", desc: "Complete 10 harvests", maxProgress: 10 },
-  { id: "harvest_30", cat: "cultivation", badge: "🏆", name: "Harvest Machine", desc: "Complete 30 harvests", maxProgress: 30 },
-  { id: "assembly_line", cat: "cultivation", badge: "🏭", name: "Assembly Line", desc: "Harvest from 5+ different rooms", maxProgress: 5 },
-  { id: "crop_death", cat: "cultivation", badge: "💀", name: "Crop Death", desc: "Let a crop rot to 0%", maxProgress: 1 },
+  { id: "first_harvest", cat: "cultivation", badge: "🌿", name: "First Harvest — Feb 26, 2016", desc: "The real date of Bonsai's first harvest! The day the legend took root. 420 lbs of premium flower, harvested straight from the concrete jungle of a Denver warehouse. Room 2 didn't just produce a harvest; it made history. Now, it's your turn to grow the empire.", maxProgress: 1 },
+  { id: "harvest_10", cat: "cultivation", badge: "🌿🌿", name: "Seasoned Grower", desc: "Complete 10 harvests. Ten harvests deep! Zero compromises. You've mastered the art of the cycle, dialing in the lights, the feed, and the timing until it's second nature. Crushing the double-digit mark proves you have the grit to dominate the Denver grind. You aren't just growing plants anymore—you're fueling an unstoppable momentum.", maxProgress: 10 },
+  { id: "harvest_30", cat: "cultivation", badge: "🏆", name: "Harvest Machine", desc: "42 harvests deep. The answer to everything. You've peered into the heart of the cycle and found the ultimate truth: quality is king. Don't panic; you've officially mastered the galaxy.", maxProgress: 42 },
+  { id: "assembly_line", cat: "cultivation", badge: "🏭", name: "Assembly Line", desc: "Harvest 5+ different rooms. Beyond the walls of Room 2. You've scaled the legend across five different rooms, proving that your genius isn't confined to a single space. Managing this much canopy requires more than just luck; it takes the vision of a mogul. The warehouse is breathing as one, and your empire is finally finding its true scale.", maxProgress: 5 },
+  { id: "crop_death", cat: "cultivation", badge: "💀", name: "Crop Death", desc: "Let a crop rot to 0%. Watched it all turn to dust. The smell. The loss. Sometimes the best education comes from failure. You won't make this mistake twice.", maxProgress: 1 },
 
   // --- FINANCIAL ---
-  { id: "rev_1m", cat: "financial", badge: "💵", name: "First Million", desc: "Reach $1M total revenue", maxProgress: 1000000 },
-  { id: "rev_5m", cat: "financial", badge: "💰", name: "Five Bagger", desc: "Reach $5M total revenue", maxProgress: 5000000 },
-  { id: "rev_25m", cat: "financial", badge: "💎", name: "Diamond Hands", desc: "Reach $25M total revenue", maxProgress: 25000000 },
-  { id: "cash_hoarder", cat: "financial", badge: "🏦", name: "Cash Hoarder", desc: "Have $2M+ cash on hand at once", maxProgress: 2000000 },
-  { id: "red_month", cat: "financial", badge: "📉", name: "Red Month", desc: "Survive a month with negative cash flow", maxProgress: 1 },
+  { id: "rev_1m", cat: "financial", badge: "💵", name: "First Million", desc: "Reach $1M total revenue. A million reasons why they should've never doubted you!", maxProgress: 1000000 },
+  { id: "rev_5m", cat: "financial", badge: "💰", name: "Ten-Bagger", desc: "Reach $10M total revenue. The Eight-Figure Force. You've reached $10M in revenue! You've transformed that original Denver warehouse into a financial powerhouse. From the first 420 lbs to an eight-figure powerhouse, your momentum is crushing the competition!", maxProgress: 10000000 },
+  { id: "rev_25m", cat: "financial", badge: "💎", name: "The Centennial Sovereign", desc: "Reach $100M total revenue. The hundred-million-dollar mark has fallen. You've built a financial fortress that stands as the ultimate testament to your cultivation mastery. Every light, every room, and every harvest has led to this moment of absolute market supremacy. Your name is now synonymous with the Bonsai standard.", maxProgress: 100000000 },
+  { id: "cash_hoarder", cat: "financial", badge: "🏦", name: "Cash Hoarder", desc: "Have $5M+ cash on hand at once. Five million in cold, hard cash. You've stacked the bags so high they're starting to crowd the canopy.", maxProgress: 5000000 },
+  { id: "red_month", cat: "financial", badge: "📉", name: "Red Month", desc: "Survive a month with negative cash flow. Thirty days of deficit. One unbreakable spirit. You've navigated the hardest month in the warehouse's history without losing your nerve.", maxProgress: 1 },
 
   // --- FACILITY ---
   { id: "rooms_4", cat: "facility", badge: "🏠", name: "Expansion", desc: "Unlock 4 rooms", maxProgress: 4 },
