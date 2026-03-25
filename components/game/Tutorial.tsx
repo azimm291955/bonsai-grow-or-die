@@ -167,7 +167,7 @@ function FacilityOverview({ onNext }: { onNext: () => void }) {
               background: "rgba(139,195,74,0.06)", border: "1px solid rgba(139,195,74,0.15)",
               borderRadius: 8, padding: "10px 12px",
             }}>
-              <span style={{ color: "#8BC34A", fontWeight: 600 }}>Room 1 is fully grown</span> — notice the full green progress bar. Those plants are ready to move to a flower room.
+              <span style={{ color: "#8BC34A", fontWeight: 600 }}>Room 1 is fully grown</span> — notice the full gold progress bar. Those plants are ready to move to a flower room.
             </div>
             <button
               onClick={onNext}
