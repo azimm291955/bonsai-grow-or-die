@@ -117,7 +117,7 @@ export const GAME_DAYS_PER_MONTH = 30;
 // 2 hrs = 30 game days → 240000ms/day = 4 min/day
 export const MS_PER_GAME_DAY = (2 * 60 * 60 * 1000) / GAME_DAYS_PER_MONTH;
 export const STARTING_CASH = 750000;
-export const GAME_START_DATE = { year: 2015, month: 12, day: 30 };
+export const GAME_START_DATE = { year: 2016, month: 2, day: 26 };
 export const WIN_DATE = { year: 2026, month: 4, day: 20 };
 
 // ============================================================
@@ -144,7 +144,7 @@ export interface AchievementDef {
 
 export const ACHIEVEMENTS: AchievementDef[] = [
   // --- CULTIVATION ---
-  { id: "first_harvest", cat: "cultivation", badge: "🌿", name: "First Harvest — Feb 29, 2016", desc: "This was the real date of Bonsai Cultivation's first-ever harvest. 420 lbs of wholesale flower, pulled from Room 2 in a converted warehouse in Denver. You're making history.", maxProgress: 1 },
+  { id: "first_harvest", cat: "cultivation", badge: "🌿", name: "First Harvest — Feb 26, 2016", desc: "This was the real date of Bonsai Cultivation's first-ever harvest. 420 lbs of wholesale flower, pulled from Room 2 in a converted warehouse in Denver. You're making history.", maxProgress: 1 },
   { id: "harvest_10", cat: "cultivation", badge: "🌿🌿", name: "Seasoned Grower", desc: "Complete 10 harvests", maxProgress: 10 },
   { id: "harvest_30", cat: "cultivation", badge: "🏆", name: "Harvest Machine", desc: "Complete 30 harvests", maxProgress: 30 },
   { id: "assembly_line", cat: "cultivation", badge: "🏭", name: "Assembly Line", desc: "Harvest from 5+ different rooms", maxProgress: 5 },

@@ -692,9 +692,9 @@ export const useGameStore = create<GameStore>()(
 
         if (toStep === 5) {
           // Bake in the full post-tutorial state:
-          // Dec 30 2015 -> Feb 29 2016 = 64 game-days (verified with msToGameDate).
-          const MS_TO_FEB29 = 64 * MS_PER_GAME_DAY;
-          ns.gameStartRealMs = Date.now() - MS_TO_FEB29;
+          // Feb 26 2016 -> Apr 30 2016 = 64 game-days (verified with msToGameDate).
+          const MS_TO_APR30 = 64 * MS_PER_GAME_DAY;
+          ns.gameStartRealMs = Date.now() - MS_TO_APR30;
           ns.lastTickRealMs = Date.now();
           ns.bonusGameDays = 0;
           ns.lastProcessedMonth = 14; // Feb 2016 billed in warp narrative; first real charge = Mar 2016
