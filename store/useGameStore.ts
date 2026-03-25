@@ -293,7 +293,18 @@ export const useGameStore = create<GameStore>()(
           };
         }
       }),
-      setShowAchievement: (id) => set((store) => ({ ui: { ...store.ui, showAchievement: id } })),
+      setShowAchievement: (id) => set((store) => {
+        // When dismissing an achievement (id === null), reset lastTickRealMs
+        // so the next tick doesn't "catch up" on time spent viewing the popup.
+        const s = store.state;
+        if (id === null && s) {
+          return {
+            ui: { ...store.ui, showAchievement: id },
+            state: { ...s, lastTickRealMs: Date.now() },
+          };
+        }
+        return { ui: { ...store.ui, showAchievement: id } };
+      }),
 
       // ── Init from localStorage ──
       initFromStorage: () => {
@@ -650,6 +661,7 @@ export const useGameStore = create<GameStore>()(
         ns.vcOverheadCredit = 0.05;
         ns.notifications = [];
 
+        ns.lastTickRealMs = Date.now();
         set({ state: ns, ui: { ...ui, showVC: false } });
       },
 
