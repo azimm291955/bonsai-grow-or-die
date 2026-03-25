@@ -197,7 +197,7 @@ function checkAchievements(ns: GameState, gd: GameDate, extras: Record<string, u
   }
 
   // SURVIVAL & ERAS
-  if (gd.year > 2018 || (gd.year === 2018 && gd.month >= 6)) unlock("crash_2018");
+  if (gd.year >= 2019) unlock("crash_2018");
   if (gd.year >= 2021) unlock("covid_2020");
   if (gd.year >= 2023) unlock("cliff_2022");
 

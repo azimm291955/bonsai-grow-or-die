@@ -80,9 +80,9 @@ export const UPGRADE_TRACKS: Record<string, UpgradeTrackDef> = {
   preroll: {
     name: "Pre-Roll Line", icon: "🚬",
     tiers: [
-      { cost: 75000, monthlyRevenue: 8000, operatingCostPct: 0.15, prerollPricePerLb: 6, name: "Hand Rolling", copy: "Don't waste the trim.", yearGate: 2016 },
-      { cost: 180000, monthlyRevenue: 22000, operatingCostPct: 0.15, prerollPricePerLb: 7, name: "Semi-Auto Machine", copy: "Volume is the game now.", yearGate: 2019 },
-      { cost: 380000, monthlyRevenue: 45000, operatingCostPct: 0.15, prerollPricePerLb: 8, name: "Full Pre-Roll Line", copy: "AMR can't touch pre-roll revenue.", yearGate: 2022 },
+      { cost: 75000, monthlyRevenue: 8000, operatingCostPct: 0.15, prerollPricePerLb: 103, name: "Knock-Box", copy: "Don't waste the trim.", yearGate: 2016 },
+      { cost: 180000, monthlyRevenue: 22000, operatingCostPct: 0.15, prerollPricePerLb: 283, name: "ApeHex Rolling Machine", copy: "Volume is the game now.", yearGate: 2019 },
+      { cost: 380000, monthlyRevenue: 45000, operatingCostPct: 0.15, prerollPricePerLb: 580, name: "Better Process - Joint Tubing Automation", copy: "AMR can't touch pre-roll revenue.", yearGate: 2022 },
     ],
   },
   operations: {
