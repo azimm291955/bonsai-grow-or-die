@@ -290,7 +290,7 @@ export default function RoomCard({ room, roomIndex }: RoomCardProps) {
   };
 
   const trackIcons: [string, string][] = [
-    ["lighting", "💡"], ["irrigation", "💧"], ["environmental", "🌡️"],
+    ["lighting", "💡"], ["irrigationEnvironmental", "💧🌡️"],
     ["genetics", "🧬"], ["preroll", "🚬"], ["operations", "👤"],
   ];
   const hasUpgrades = trackIcons.some(([t]) => getRoomUpgradeTier(upgrades, t as keyof typeof UPGRADE_TRACKS, i) > 0);

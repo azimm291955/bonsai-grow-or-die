@@ -20,8 +20,7 @@ export interface UpgradeMap {
 
 export interface Upgrades {
   lighting: UpgradeMap;
-  irrigation: UpgradeMap;
-  environmental: UpgradeMap;
+  irrigationEnvironmental: UpgradeMap;
   genetics: UpgradeMap;
   preroll: UpgradeMap;
   operations: UpgradeMap;

@@ -115,7 +115,7 @@ function BurnInfoModal() {
           nutrients & CO₂, and licensing fees for every unlocked room — whether or not that room has an active crop.
         </p>
         <div className="text-xs text-[#666] leading-relaxed mb-4">
-          <strong className="text-[#aaa]">Tip:</strong> Upgrades to irrigation, environmental controls, and operations
+          <strong className="text-[#aaa]">Tip:</strong> Upgrades to irrigation/environmental and operations
           can reduce per-room overhead. Empty rooms still cost ~15% of their full electricity and labor.
         </div>
         <button onClick={() => setShowBurnInfo(false)} className="w-full py-2 bg-white/[0.05] border border-white/[0.08] rounded-lg text-[#666] text-sm cursor-pointer">Got it</button>

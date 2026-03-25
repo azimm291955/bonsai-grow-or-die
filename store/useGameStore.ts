@@ -840,27 +840,19 @@ export const useGameStore = create<GameStore>()(
               let totalOverhead = 0;
               for (const r of draft.rooms) { if (r.unlocked) totalOverhead += getMonthlyOverheadForRoom(pYear, draft.upgrades, r.index, r.status).total; }
               if (draft.vcOverheadCredit > 0) totalOverhead *= (1 - draft.vcOverheadCredit);
-
-              // Check the just-completed month's actual net (overhead + harvest revenue)
-              // before pushing the new month. This is the only point where the previous
-              // month's PnL entry is fully settled — harvest() adds revenue retroactively.
-              if (draft.monthlyPnL.length > 0) {
-                const completedEntry = draft.monthlyPnL[draft.monthlyPnL.length - 1];
-                const isAfterTutorial = completedEntry.year > 2016 || (completedEntry.year === 2016 && completedEntry.month >= 4);
-                if (completedEntry.net < 0) {
-                  if (isAfterTutorial) draft._achRedMonth = true;
-                  draft.consecutiveProfitMonths = 0;
-                } else {
-                  draft.consecutiveProfitMonths = (draft.consecutiveProfitMonths || 0) + 1;
-                }
-              }
-
               draft.cash -= totalOverhead;
               draft.totalCosts += totalOverhead;
               if (draft.cash > (draft.peakCash || 0)) draft.peakCash = draft.cash;
               if (draft.cash < (draft.lowestCash ?? draft.cash)) draft.lowestCash = draft.cash;
               if (draft.monthlyPnL.length > 200) draft.monthlyPnL.shift();
-              draft.monthlyPnL.push({ year: pYear, month: pMonth, overhead: totalOverhead, preroll: 0, harvestRevenue: 0, net: -totalOverhead, cash: draft.cash });
+              const monthNet = -totalOverhead;
+              draft.monthlyPnL.push({ year: pYear, month: pMonth, overhead: totalOverhead, preroll: 0, harvestRevenue: 0, net: monthNet, cash: draft.cash });
+              if (monthNet < 0) {
+                // Only trigger Red Month achievement after the tutorial period (Apr 2016+)
+                if (pYear > 2016 || (pYear === 2016 && pMonth >= 4)) draft._achRedMonth = true;
+                draft.consecutiveProfitMonths = 0;
+              }
+              else { draft.consecutiveProfitMonths = (draft.consecutiveProfitMonths || 0) + 1; }
             }
             draft.lastProcessedMonth = currentMonth;
           }
@@ -914,8 +906,7 @@ export const useGameStore = create<GameStore>()(
         if (ui.showAchievement) return; // One at a time
         if (ui.achievementQueue.length === 0) return;
         const [next, ...rest] = ui.achievementQueue;
-        // Drop to 1x so a popping achievement doesn't silently rot your crop at 64x
-        set({ ui: { ...ui, showAchievement: next, achievementQueue: rest, gameSpeed: 1 } });
+        set({ ui: { ...ui, showAchievement: next, achievementQueue: rest } });
       },
 
       // ── Notification Processing ──

@@ -24,7 +24,7 @@ export const WAGE_TABLE: Record<number, number> = {
   2022: 53900, 2023: 56000, 2024: 62200, 2025: 62200, 2026: 62200,
 };
 
-export const ROOM_COSTS = [0, 250000, 150000, 450000, 600000, 750000, 900000, 1000000, 1100000];
+export const ROOM_COSTS = [0, 250000, 350000, 450000, 600000, 750000, 900000, 1000000, 1100000];
 
 export interface UpgradeTierDef {
   cost: number;
@@ -37,6 +37,7 @@ export interface UpgradeTierDef {
   co2Mod?: number;
   priceMod?: number;
   monthlyRevenue?: number;
+  operatingCostPct?: number;
   prerollPricePerLb?: number;
   yearGate?: number;
   autoFlip?: boolean;
@@ -56,24 +57,16 @@ export const UPGRADE_TRACKS: Record<string, UpgradeTrackDef> = {
     name: "Lighting", icon: "💡",
     tiers: [
       { cost: 120000, electricityMod: -0.15, yieldMod: 0.08, name: "HPS Upgrade", copy: "Better bulbs. Better buds." },
-      { cost: 280000, electricityMod: -0.28, yieldMod: 0.18, name: "LED Hybrid", copy: "Half the heat. Twice the output." },
-      { cost: 520000, electricityMod: -0.40, yieldMod: 0.30, name: "Fluence/Fohse Full LED", copy: "The same lights Bonsai runs." },
+      { cost: 280000, electricityMod: -0.28, yieldMod: 0.18, flowerCycleDays: 1, name: "LED Hybrid", copy: "Half the heat. Twice the output." },
+      { cost: 520000, electricityMod: -0.40, yieldMod: 0.30, flowerCycleDays: 2, name: "Fluence/Fohse Full LED", copy: "The same lights Bonsai runs." },
     ],
   },
-  irrigation: {
-    name: "Irrigation", icon: "💧",
+  irrigationEnvironmental: {
+    name: "Irrigation/Environmental", icon: "💧🌡️",
     tiers: [
-      { cost: 80000, laborMod: -0.20, name: "Manual Optimization", copy: "Consistent feed. Consistent flower." },
-      { cost: 200000, laborMod: -0.40, name: "Semi-Automated", copy: "Your team does less. Your plants get more." },
-      { cost: 420000, laborMod: -0.66, name: "Dagda Full Automation", copy: "Set it. Grow it. The Dagda way." },
-    ],
-  },
-  environmental: {
-    name: "Environmental", icon: "🌡️",
-    tiers: [
-      { cost: 90000, nutrientMod: -0.20, co2Mod: -0.20, name: "Basic HVAC", copy: "Control the climate. Control the crop." },
-      { cost: 220000, nutrientMod: -0.40, co2Mod: -0.40, yieldMod: 0.042, name: "Climate Monitoring", copy: "Data-driven grows don't die." },
-      { cost: 460000, nutrientMod: -0.66, co2Mod: -0.66, yieldMod: 0.071, name: "Argus Full Control", copy: "Argus sees everything. So do you." },
+      { cost: 42000, laborMod: -0.08, nutrientMod: -0.08, co2Mod: -0.10, name: "Basic Climate & Watering", copy: "Consistent feed. Optimized environment." },
+      { cost: 76000, laborMod: -0.16, nutrientMod: -0.12, co2Mod: -0.15, name: "Automated + Monitoring", copy: "Your team does less. Plants get more." },
+      { cost: 113000, laborMod: -0.25, nutrientMod: -0.15, co2Mod: -0.20, name: "Full Integration", copy: "Complete climate and irrigation control." },
     ],
   },
   genetics: {
@@ -87,17 +80,17 @@ export const UPGRADE_TRACKS: Record<string, UpgradeTrackDef> = {
   preroll: {
     name: "Pre-Roll Line", icon: "🚬",
     tiers: [
-      { cost: 75000, prerollPricePerLb: 145, name: "Hand Rolling", copy: "Don't waste the trim. $145/lb on harvest trim.", yearGate: 2016 },
-      { cost: 180000, prerollPricePerLb: 400, name: "Semi-Auto Machine", copy: "Volume is the game now. $400/lb on harvest trim.", yearGate: 2019 },
-      { cost: 380000, prerollPricePerLb: 800, name: "Full Pre-Roll Line", copy: "Premium margins. $800/lb on harvest trim.", yearGate: 2022 },
+      { cost: 75000, monthlyRevenue: 8000, operatingCostPct: 0.15, prerollPricePerLb: 6, name: "Hand Rolling", copy: "Don't waste the trim.", yearGate: 2016 },
+      { cost: 180000, monthlyRevenue: 22000, operatingCostPct: 0.15, prerollPricePerLb: 7, name: "Semi-Auto Machine", copy: "Volume is the game now.", yearGate: 2019 },
+      { cost: 380000, monthlyRevenue: 45000, operatingCostPct: 0.15, prerollPricePerLb: 8, name: "Full Pre-Roll Line", copy: "AMR can't touch pre-roll revenue.", yearGate: 2022 },
     ],
   },
   operations: {
     name: "Operations", icon: "👤",
     tiers: [
-      { cost: 100000, autoFlip: true, rotSpeedMult: 0.50, name: "Head Grower", copy: "Let the pros handle it.", vegCycleDays: 0, flowerCycleDays: 0 },
-      { cost: 200000, autoFlip: true, rotSpeedMult: 0.25, name: "Specialist", copy: "Tighter ops. Faster turns.", vegCycleDays: 1, flowerCycleDays: 2 },
-      { cost: 350000, autoFlip: true, rotSpeedMult: 0.10, name: "Master Grower", copy: "Your facility runs itself.", vegCycleDays: 2, flowerCycleDays: 3 },
+      { cost: 50000, autoFlip: true, rotSpeedMult: 0.50, name: "Head Grower", copy: "Let the pros handle it.", vegCycleDays: 0, flowerCycleDays: 0 },
+      { cost: 140000, autoFlip: true, rotSpeedMult: 0.25, name: "Specialist", copy: "Tighter ops. Faster turns.", vegCycleDays: 1, flowerCycleDays: 2 },
+      { cost: 250000, autoFlip: true, rotSpeedMult: 0.10, name: "Master Grower", copy: "Your facility runs itself.", vegCycleDays: 2, flowerCycleDays: 3 },
     ],
   },
 };
@@ -123,7 +116,7 @@ export const FLOWER_DAYS = 64;
 export const GAME_DAYS_PER_MONTH = 30;
 // 2 hrs = 30 game days → 240000ms/day = 4 min/day
 export const MS_PER_GAME_DAY = (2 * 60 * 60 * 1000) / GAME_DAYS_PER_MONTH;
-export const STARTING_CASH = 765000;
+export const STARTING_CASH = 750000;
 export const GAME_START_DATE = { year: 2015, month: 12, day: 30 };
 export const WIN_DATE = { year: 2026, month: 4, day: 20 };
 

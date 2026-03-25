@@ -35,6 +35,16 @@
     ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "bonsai-game",
+    "bonsai-production-data",
+    "gmail-sheets-integration",
+    "homework",
+    "instagram-poster",
+    "logging",
+    "memory",
+    "scripts",
+    "skills",
+    "tasks"
   ]
 }

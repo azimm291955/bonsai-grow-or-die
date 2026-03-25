@@ -43,8 +43,6 @@ export function getYieldMultiplierForRoom(upgrades: Upgrades, roomIndex: number)
   if (lt > 0) mult += UPGRADE_TRACKS.lighting.tiers[lt - 1].yieldMod ?? 0;
   const gt = getRoomUpgradeTier(upgrades, "genetics", roomIndex);
   if (gt > 0) mult += UPGRADE_TRACKS.genetics.tiers[gt - 1].yieldMod ?? 0;
-  const et = getRoomUpgradeTier(upgrades, "environmental", roomIndex);
-  if (et > 0) mult += UPGRADE_TRACKS.environmental.tiers[et - 1].yieldMod ?? 0;
   return mult;
 }
 
@@ -70,9 +68,11 @@ export function getVegDaysForRoom(upgrades: Upgrades, roomIndex: number): number
 }
 
 export function getFlowerDaysForRoom(upgrades: Upgrades, roomIndex: number): number {
+  const lt = getRoomUpgradeTier(upgrades, "lighting", roomIndex);
+  const lightReduction = lt > 0 ? (UPGRADE_TRACKS.lighting.tiers[lt - 1].flowerCycleDays ?? 0) : 0;
   const ot = getRoomUpgradeTier(upgrades, "operations", roomIndex);
   const opsReduction = ot > 0 ? (UPGRADE_TRACKS.operations.tiers[ot - 1].flowerCycleDays ?? 0) : 0;
-  return FLOWER_DAYS - opsReduction;
+  return FLOWER_DAYS - lightReduction - opsReduction;
 }
 
 export function getPriceMultiplierForRoom(upgrades: Upgrades, roomIndex: number): number {
@@ -91,11 +91,10 @@ export function getMonthlyOverheadForRoom(year: number, upgrades: Upgrades, room
 
   const lt = getRoomUpgradeTier(upgrades, "lighting", roomIndex);
   if (lt > 0) electricity *= (1 + (UPGRADE_TRACKS.lighting.tiers[lt - 1].electricityMod ?? 0));
-  const it = getRoomUpgradeTier(upgrades, "irrigation", roomIndex);
-  if (it > 0) labor *= (1 + (UPGRADE_TRACKS.irrigation.tiers[it - 1].laborMod ?? 0));
-  const et = getRoomUpgradeTier(upgrades, "environmental", roomIndex);
-  if (et > 0) {
-    const tier = UPGRADE_TRACKS.environmental.tiers[et - 1];
+  const iet = getRoomUpgradeTier(upgrades, "irrigationEnvironmental", roomIndex);
+  if (iet > 0) {
+    const tier = UPGRADE_TRACKS.irrigationEnvironmental.tiers[iet - 1];
+    labor *= (1 + (tier.laborMod ?? 0));
     nutrients *= (1 + ((tier.nutrientMod ?? 0) + (tier.co2Mod ?? 0)) / 2);
   }
 
@@ -164,6 +163,19 @@ export function getPrerollPriceForRoom(upgrades: Upgrades, roomIndex: number): n
   return UPGRADE_TRACKS.preroll.tiers[pt - 1].prerollPricePerLb ?? 0;
 }
 
+export function getTotalPrerollRevenue(upgrades: Upgrades, rooms: Room[]): number {
+  let totalRevenue = 0;
+  for (const room of rooms) {
+    if (room.unlocked && room.type !== "veg") {
+      const pricePerLb = getPrerollPriceForRoom(upgrades, room.index);
+      if (pricePerLb > 0) {
+        totalRevenue += pricePerLb * 2;
+      }
+    }
+  }
+  return totalRevenue;
+}
+
 export function getRotSpeedMultiplierForRoom(upgrades: Upgrades, roomIndex: number): number {
   const ot = getRoomUpgradeTier(upgrades, "operations", roomIndex);
   if (ot > 0) return UPGRADE_TRACKS.operations.tiers[ot - 1].rotSpeedMult ?? 1.0;
@@ -198,7 +210,7 @@ export function getTotalUpgradesPossible(rooms: Room[]): number {
 export function migrateUpgrades(upgrades: Upgrades | Record<string, number>, rooms: Room[]): Upgrades {
   const firstVal = Object.values(upgrades)[0];
   if (typeof firstVal === "object" && firstVal !== null) return upgrades as Upgrades;
-  const newUpgrades: Upgrades = { lighting: {}, irrigation: {}, environmental: {}, genetics: {}, preroll: {}, operations: {} };
+  const newUpgrades: Upgrades = { lighting: {}, irrigationEnvironmental: {}, genetics: {}, preroll: {}, operations: {} };
   for (const [track, tier] of Object.entries(upgrades)) {
     newUpgrades[track] = {};
     if ((tier as number) > 0) {
@@ -275,7 +287,7 @@ export function createInitialState(playerName: string): GameState {
     totalRevenue: 0,
     totalCosts: 0,
     rooms,
-    upgrades: { lighting: {}, irrigation: {}, environmental: {}, genetics: {}, preroll: {}, operations: {} },
+    upgrades: { lighting: {}, irrigationEnvironmental: {}, genetics: {}, preroll: {}, operations: {} },
     gameStartRealMs: Date.now(),
     lastTickRealMs: Date.now(),
     vcTaken: false,
