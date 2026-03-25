@@ -100,26 +100,6 @@ export default function GameHeader() {
             background: vcTaken ? "rgba(239,83,80,0.06)" : "transparent",
           }}
         >
-          {/* Watermark: BONSAI default, VULTURE CAPITAL if VC taken */}
-          <div
-            className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: vcTaken ? 16 : 20,
-              fontWeight: 900,
-              letterSpacing: vcTaken ? 4 : 5,
-              color: "transparent",
-              WebkitTextStroke: vcTaken
-                ? "1px rgba(239,83,80,0.30)"
-                : "1.5px rgba(212,170,0,0.55)",
-              opacity: 1,
-              whiteSpace: "nowrap",
-              lineHeight: 1,
-            }}
-          >
-            {vcTaken ? "VULTURE CAPITAL" : "BONSAI"}
-          </div>
-
           {/* Cash number */}
           <div
             className="relative z-10"
