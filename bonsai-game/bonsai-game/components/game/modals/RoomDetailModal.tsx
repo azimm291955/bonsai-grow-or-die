@@ -51,34 +51,33 @@ export default function RoomDetailModal() {
         </p>
 
         {room.status === "growing" && (
-          <>
-            <div className="w-full h-2 bg-[#333] rounded mb-2">
-              <div
-                className="h-full rounded transition-all duration-1000"
-                style={{
-                  width: `${Math.min(room.daysGrown / targetDays, 1) * 100}%`,
-                  background: isVeg ? "#8BC34A" : "#CE93D8",
-                }}
-              />
-            </div>
-            {/* Harvest date display */}
-            {(() => {
-              const remainingDays = Math.max(0, Math.ceil(targetDays - room.daysGrown));
-              const currentGameDate = getCurrentGameDate(state.gameStartRealMs, state.bonusGameDays || 0);
-              const harvestMs = (remainingDays * MS_PER_GAME_DAY);
-              const currentMs = (currentGameDate.year * 365 + (currentGameDate.month - 1) * 30 + currentGameDate.day - 1) * MS_PER_GAME_DAY;
-              const harvestGameDate = msToGameDate(currentMs + harvestMs);
-              const harvestDateStr = formatDate(harvestGameDate);
-
-              return (
-                <div className="text-xs text-[#666] flex justify-between mt-1">
-                  <span>{Math.round(Math.min(room.daysGrown / targetDays, 1) * 100)}%</span>
-                  <span>{remainingDays}d - {harvestDateStr}</span>
-                </div>
-              );
-            })()}
-          </>
+          <div className="w-full h-2 bg-[#333] rounded mb-2">
+            <div
+              className="h-full rounded transition-all duration-1000"
+              style={{
+                width: `${Math.min(room.daysGrown / targetDays, 1) * 100}%`,
+                background: isVeg ? "#8BC34A" : "#CE93D8",
+              }}
+            />
+          </div>
         )}
+
+        {/* Harvest date display - always visible when growing */}
+        {room.status === "growing" && (() => {
+          const remainingDays = Math.max(0, Math.ceil(targetDays - room.daysGrown));
+          const currentGameDate = getCurrentGameDate(state.gameStartRealMs, state.bonusGameDays || 0);
+          const harvestMs = (remainingDays * MS_PER_GAME_DAY);
+          const currentMs = (currentGameDate.year * 365 + (currentGameDate.month - 1) * 30 + currentGameDate.day - 1) * MS_PER_GAME_DAY;
+          const harvestGameDate = msToGameDate(currentMs + harvestMs);
+          const harvestDateStr = formatDate(harvestGameDate);
+
+          return (
+            <div className="text-sm text-[#888] flex justify-between mb-3">
+              <span>{Math.round(Math.min(room.daysGrown / targetDays, 1) * 100)}%</span>
+              <span>{remainingDays}d - {harvestDateStr}</span>
+            </div>
+          );
+        })()}
 
         {rotQuality < 1 && (room.status === "ready_to_flip" || room.status === "ready_to_harvest") && (
           <div className="text-[11px] font-bold mb-3" style={{ color: rotQuality < 0.3 ? "#ef5350" : "#FFB74D" }}>
