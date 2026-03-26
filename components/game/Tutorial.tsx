@@ -400,7 +400,7 @@ export default function Tutorial() {
                   START THE CLOCK →
                 </button>
                 <div style={{ marginTop: 8, textAlign: "center", fontSize: 10, color: "#555", lineHeight: 1.5 }}>
-                  Feb 29, 2016. The next 10 years begin now.
+                  Feb 26, 2016. The next 10 years begin now.
                 </div>
               </TutTooltip>
             )}
@@ -413,7 +413,7 @@ export default function Tutorial() {
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.93)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, zIndex: 400, animation: "tut-fade 0.35s ease-out" }}>
           <div style={{ background: "#111", border: "1px solid rgba(206,147,216,0.35)", borderRadius: 20, maxWidth: 380, width: "100%", padding: "36px 28px", boxShadow: "0 0 80px rgba(206,147,216,0.1)", animation: "tut-up 0.4s ease-out" }}>
             <div style={{ fontSize: 11, letterSpacing: 4, color: "#CE93D8", fontWeight: 700, marginBottom: 16 }}>64 DAYS LATER</div>
-            <div style={{ fontSize: 28, fontWeight: 800, color: "#fff", lineHeight: 1.2, marginBottom: 20 }}>Feb 29, 2016.</div>
+            <div style={{ fontSize: 28, fontWeight: 800, color: "#fff", lineHeight: 1.2, marginBottom: 20 }}>Feb 26, 2016.</div>
             <div style={{ fontSize: 13, color: "#999", lineHeight: 1.85, marginBottom: 12 }}>
               Your flower room is <span style={{ color: "#8BC34A", fontWeight: 700 }}>ready to harvest</span>. The next batch in Room 1 is <span style={{ color: "#FFB74D", fontWeight: 700 }}>ready to flip</span>.
             </div>

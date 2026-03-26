@@ -346,7 +346,7 @@ export interface AchievementDef {
 
 export const ACHIEVEMENTS: AchievementDef[] = [
   // --- CULTIVATION ---
-  { id: "first_harvest", cat: "cultivation", badge: "🌿", name: "First Harvest — Feb 29, 2016", desc: "This was the real date of Bonsai Cultivation's first-ever harvest. 420 lbs of wholesale flower, pulled from Room 2 in a converted warehouse in Denver. You're making history.", maxProgress: 1 },
+  { id: "first_harvest", cat: "cultivation", badge: "🌿", name: "First Harvest — Feb 26, 2016", desc: "This was the real date of Bonsai Cultivation's first-ever harvest. 420 lbs of wholesale flower, pulled from Room 2 in a converted warehouse in Denver. You're making history.", maxProgress: 1 },
   { id: "harvest_10", cat: "cultivation", badge: "🌿🌿", name: "Seasoned Grower", desc: "Complete 10 harvests", maxProgress: 10 },
   { id: "harvest_30", cat: "cultivation", badge: "🏆", name: "Harvest Machine", desc: "Complete 30 harvests", maxProgress: 30 },
   { id: "assembly_line", cat: "cultivation", badge: "🏭", name: "Assembly Line", desc: "Harvest from 5+ different rooms", maxProgress: 5 },
@@ -1366,7 +1366,7 @@ export const useGameStore = create<GameStore>()(
 
         if (toStep === 5) {
           // Bake in the full post-tutorial state:
-          // Dec 30 2015 -> Feb 29 2016 = 61 game-days. Backdate start so clock opens there.
+          // Dec 30 2015 -> Feb 26 2016 = 61 game-days. Backdate start so clock opens there.
           const MS_TO_FEB29 = 61 * ((2 * 60 * 60 * 1000) / 30);
           ns.gameStartRealMs = Date.now() - MS_TO_FEB29;
           ns.lastTickRealMs = Date.now();
@@ -3539,7 +3539,7 @@ export default function Tutorial() {
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.93)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, zIndex: 400, animation: "tut-fade 0.35s ease-out" }}>
           <div style={{ background: "#111", border: "1px solid rgba(206,147,216,0.35)", borderRadius: 20, maxWidth: 380, width: "100%", padding: "36px 28px", boxShadow: "0 0 80px rgba(206,147,216,0.1)", animation: "tut-up 0.4s ease-out" }}>
             <div style={{ fontSize: 11, letterSpacing: 4, color: "#CE93D8", fontWeight: 700, marginBottom: 16 }}>WHAT JUST HAPPENED</div>
-            <div style={{ fontSize: 28, fontWeight: 800, color: "#fff", lineHeight: 1.2, marginBottom: 20 }}>Feb 29, 2016.</div>
+            <div style={{ fontSize: 28, fontWeight: 800, color: "#fff", lineHeight: 1.2, marginBottom: 20 }}>Feb 26, 2016.</div>
             <div style={{ fontSize: 13, color: "#999", lineHeight: 1.85, marginBottom: 8 }}>
               That harvest took <span style={{ color: "#fff" }}>64 days</span> of flower. While you waited, two months of overhead came out —
               <span style={{ color: "#fff" }}> $168K in December</span>,{" "}
@@ -3571,7 +3571,7 @@ export default function Tutorial() {
             <div style={{ fontSize: 56, marginBottom: 12 }}>🌿</div>
             <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", marginBottom: 18 }}>First Harvest</div>
             <div style={{ fontSize: 13, color: "#999", lineHeight: 1.85, textAlign: "left", marginBottom: 6 }}>
-              <p style={{ margin: "0 0 10px", color: "#ddd", fontWeight: 600 }}>Feb 29, 2016. 420 lbs. Room 2. A converted warehouse in Denver.</p>
+              <p style={{ margin: "0 0 10px", color: "#ddd", fontWeight: 600 }}>Feb 26, 2016. 420 lbs. Room 2. A converted warehouse in Denver.</p>
               <p style={{ margin: "0 0 10px" }}>This was the real date Bonsai Cultivation pulled their first-ever harvest. The AMR is $2,007/lb. Colorado is in a gold rush.</p>
               <p style={{ margin: "0 0 10px" }}>Room 1 is ready to flip. Room 2 is empty. The clock hasn&apos;t started yet.</p>
               <p style={{ margin: 0, color: "#FFB74D" }}>Prices will crash. Overhead will climb. The next 10 years will test everything.</p>
