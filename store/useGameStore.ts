@@ -294,13 +294,20 @@ export const useGameStore = create<GameStore>()(
         }
       }),
       setShowAchievement: (id) => set((store) => {
-        // When dismissing an achievement (id === null), reset lastTickRealMs
-        // so the next tick doesn't "catch up" on time spent viewing the popup.
+        const now = Date.now();
         const s = store.state;
         if (id === null && s) {
+          // Dismissing — shift gameStartRealMs forward by the time spent
+          // viewing the achievement so the game calendar doesn't jump ahead
+          // of plant growth (same approach as manual pause resume).
+          const shownDuration = now - s.lastTickRealMs;
           return {
             ui: { ...store.ui, showAchievement: id },
-            state: { ...s, lastTickRealMs: Date.now() },
+            state: {
+              ...s,
+              gameStartRealMs: s.gameStartRealMs + shownDuration,
+              lastTickRealMs: now,
+            },
           };
         }
         return { ui: { ...store.ui, showAchievement: id } };
@@ -667,7 +674,12 @@ export const useGameStore = create<GameStore>()(
         ns.vcOverheadCredit = 0.05;
         ns.notifications = [];
 
-        ns.lastTickRealMs = Date.now();
+        // Shift gameStartRealMs forward by time spent viewing the VC modal
+        // so the game calendar doesn't jump ahead of plant growth.
+        const now = Date.now();
+        const shownDuration = now - ns.lastTickRealMs;
+        ns.gameStartRealMs += shownDuration;
+        ns.lastTickRealMs = now;
         set({ state: ns, ui: { ...ui, showVC: false } });
       },
 
@@ -675,6 +687,7 @@ export const useGameStore = create<GameStore>()(
       declineVC: () => {
         const { state: s, ui } = get();
         if (!s) return;
+        // Game over — no need to shift gameStartRealMs since time stops anyway
         set({
           state: { ...s, gameOver: true, deathCause: "Declined Vulture Capital. Cash hit $0." },
           ui: { ...ui, showVC: false },
