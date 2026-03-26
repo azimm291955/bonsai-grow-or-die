@@ -356,6 +356,8 @@ export const useGameStore = create<GameStore>()(
       unlockRoom: (index) => {
         const { state: s, ui } = get();
         if (!s) return;
+        // During tutorial, only Room 2 (index 1) can be unlocked
+        if (s.tutorialStep < 5 && index !== 1) return;
         const cost = ROOM_COSTS[index];
         if (s.cash < cost) return;
 

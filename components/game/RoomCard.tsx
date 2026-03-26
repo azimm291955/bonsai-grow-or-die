@@ -205,6 +205,7 @@ function FlowerPlant({ room, upgrades, roomIndex }: { room: Room; upgrades: any;
 export default function RoomCard({ room, roomIndex }: RoomCardProps) {
   // Only subscribe to upgrades — room data comes from props
   const upgrades = useGameStore((s) => s.state?.upgrades);
+  const tutorialStep = useGameStore((s) => s.state?.tutorialStep ?? 0);
   const setShowRoomBuy = useGameStore((s) => s.setShowRoomBuy);
   const setSelectedRoom = useGameStore((s) => s.setSelectedRoom);
   if (!upgrades) return null;
@@ -262,11 +263,14 @@ export default function RoomCard({ room, roomIndex }: RoomCardProps) {
 
   // ── LOCKED ROOM ──
   if (!room.unlocked) {
+    // During tutorial, only Room 2 (index 1) is interactive
+    const lockedDuringTutorial = tutorialStep < 5 && i !== 1;
     return (
       <button
-        onClick={() => setShowRoomBuy(i)}
-        className="bg-white/[0.01] border border-dashed border-white/[0.06] rounded-[14px] px-2.5 py-4 cursor-pointer text-center min-h-[140px] flex flex-col items-center justify-center transition-all duration-300"
-        style={{ animation: "lock-breathe 4s ease-in-out infinite" }}
+        onClick={lockedDuringTutorial ? undefined : () => setShowRoomBuy(i)}
+        disabled={lockedDuringTutorial}
+        className={`bg-white/[0.01] border border-dashed border-white/[0.06] rounded-[14px] px-2.5 py-4 text-center min-h-[140px] flex flex-col items-center justify-center transition-all duration-300 ${lockedDuringTutorial ? "opacity-30 cursor-not-allowed" : "cursor-pointer"}`}
+        style={lockedDuringTutorial ? undefined : { animation: "lock-breathe 4s ease-in-out infinite" }}
         data-tutorial={i === 1 ? "room-2" : undefined}
         aria-label={`Unlock Room ${i + 1} for ${formatCash(ROOM_COSTS[i])}`}
       >
@@ -274,7 +278,7 @@ export default function RoomCard({ room, roomIndex }: RoomCardProps) {
         <div className="text-[22px] mb-2 opacity-30">🔒</div>
         <div className="text-sm text-[#555] font-bold" style={{ fontFamily: "var(--font-mono)" }}>{formatCash(ROOM_COSTS[i])}</div>
         <div className="text-[9px] text-bonsai-red mt-0.5">+overhead/mo</div>
-        <div className="text-[9px] text-[#333] mt-0.5">tap to unlock</div>
+        <div className="text-[9px] text-[#333] mt-0.5">{lockedDuringTutorial ? "" : "tap to unlock"}</div>
       </button>
     );
   }
