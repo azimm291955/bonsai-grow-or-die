@@ -86,6 +86,8 @@ export default function GameHeader() {
   const activeRoomCount = rooms.filter((r: Room) => r.unlocked).length;
   const grossBurn = overhead ? overhead.total * activeRoomCount : 0;
   const monthsRunway = grossBurn > 0 && cash > 0 ? Math.floor(cash / grossBurn) : null;
+  const cashStr = formatCash(cash);
+  const cashFontSize = cashStr.length >= 7 ? 30 : cashStr.length >= 6 ? 36 : 44;
   const cashColor = cash > 0 ? "#8BC34A" : "#ef5350";
   const runwayColor = monthsRunway === null ? "#888" : monthsRunway < 6 ? "#ef5350" : monthsRunway < 12 ? "#FFB74D" : "#8BC34A";
 
@@ -106,14 +108,14 @@ export default function GameHeader() {
             style={{
               fontFamily: "var(--font-mono)",
               fontWeight: 800,
-              fontSize: 44,
+              fontSize: cashFontSize,
               lineHeight: 1,
               letterSpacing: -2,
               color: cashColor,
               textShadow: `0 0 40px ${cash > 0 ? "rgba(139,195,74,0.2)" : "rgba(239,83,80,0.3)"}`,
             }}
           >
-            {formatCash(cash)}
+            {cashStr}
           </div>
 
           {/* Name · Date — tight footer row */}

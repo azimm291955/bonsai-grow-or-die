@@ -240,8 +240,14 @@ export function getRotQuality(daysSitting: number, rotSpeedMult: number): number
 export function formatCash(n: number): string {
   const abs = Math.abs(n);
   const sign = n < 0 ? "-" : "";
-  if (abs >= 1000000) return `${sign}$${(abs / 1000000).toFixed(abs % 1000000 === 0 ? 0 : 1)}M`;
-  if (abs >= 1000) return `${sign}$${Math.round(abs / 1000)}K`;
+  if (abs >= 1_000_000_000) return `${sign}$${Math.round(abs / 1_000_000_000)}B`;
+  if (abs >= 100_000_000) {
+    const roundedM = Math.round(abs / 1_000_000);
+    if (roundedM >= 1000) return `${sign}$1B`; // auto-promote $999.5M+ → $1B
+    return `${sign}$${roundedM}M`;
+  }
+  if (abs >= 1_000_000) return `${sign}$${(abs / 1_000_000).toFixed(abs % 1_000_000 === 0 ? 0 : 1)}M`;
+  if (abs >= 1_000) return `${sign}$${Math.round(abs / 1_000)}K`;
   return `${sign}$${Math.round(abs).toLocaleString()}`;
 }
 
