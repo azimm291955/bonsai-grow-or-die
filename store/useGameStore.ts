@@ -766,6 +766,12 @@ export const useGameStore = create<GameStore>()(
         if (baseGameDays <= 0) return;
 
         let newAch: string[] = [];
+        let autoPauseRoomIndex: number | null = null;
+
+        // Snapshot which rooms are already ready_to_harvest BEFORE this tick
+        const alreadyReady = new Set(
+          prev.rooms.filter(r => r.status === "ready_to_harvest").map(r => r.index)
+        );
 
         // Immer produce — mutable draft with structural sharing.
         // Only modified objects get new references, preventing
@@ -832,6 +838,10 @@ export const useGameStore = create<GameStore>()(
                 } else {
                   room.status = "ready_to_harvest";
                   room.rotDays = 0;
+                  // Auto-pause: flag this room if it just became ready
+                  if (!alreadyReady.has(room.index) && autoPauseRoomIndex === null) {
+                    autoPauseRoomIndex = room.index;
+                  }
                 }
               }
             }
@@ -922,12 +932,22 @@ export const useGameStore = create<GameStore>()(
           newAch = checkAchievements(draft as GameState, gd, tickExtras);
         });
 
-        set({
-          state: ns,
-          ui: newAch.length > 0
-            ? { ...ui, achievementQueue: [...ui.achievementQueue, ...newAch] }
-            : ui,
-        });
+        // Build updated UI — merge achievements if any
+        let updatedUI = newAch.length > 0
+          ? { ...ui, achievementQueue: [...ui.achievementQueue, ...newAch] }
+          : { ...ui };
+
+        // Auto-pause on harvest ready: pause the game and open the room modal
+        let finalState = ns;
+        if (autoPauseRoomIndex !== null) {
+          updatedUI.paused = true;
+          updatedUI.selectedRoom = autoPauseRoomIndex;
+          // Record pausedAtMs so resume logic works correctly
+          // (ns is frozen by Immer, so spread a new object)
+          finalState = { ...ns, pausedAtMs: Date.now() };
+        }
+
+        set({ state: finalState, ui: updatedUI });
       },
 
       // ── Achievement Queue ──
