@@ -17,12 +17,13 @@ export function useTickLoop() {
   const tutorialStep = useGameStore((s) => s.state?.tutorialStep);
   const showAchievement = useGameStore((s) => s.ui.showAchievement);
   const showVC = useGameStore((s) => s.ui.showVC);
+  const showEvent = useGameStore((s) => s.ui.showEvent);
 
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Tick interval
   useEffect(() => {
-    if (screen === "game" && !paused && !showVC && !showAchievement && (tutorialStep === undefined || tutorialStep === 0 || tutorialStep >= 5)) {
+    if (screen === "game" && !paused && !showVC && !showAchievement && !showEvent && (tutorialStep === undefined || tutorialStep === 0 || tutorialStep >= 5)) {
       const interval = gameSpeed >= 64 ? 150 : gameSpeed >= 32 ? 300 : 2000;
       tickRef.current = setInterval(() => {
         processTick();
@@ -33,7 +34,7 @@ export function useTickLoop() {
       };
     }
     if (tickRef.current) clearInterval(tickRef.current);
-  }, [screen, paused, showVC, showAchievement, processTick, processNotifications, tutorialStep, gameSpeed]);
+  }, [screen, paused, showVC, showAchievement, showEvent, processTick, processNotifications, tutorialStep, gameSpeed]);
 
   const achievementQueue = useGameStore((s) => s.ui.achievementQueue);
 

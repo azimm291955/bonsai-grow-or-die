@@ -279,7 +279,25 @@ export const useGameStore = create<GameStore>()(
         return { ui: { ...store.ui, selectedRoom: i } };
       }),
       setShowVC: (v) => set((store) => ({ ui: { ...store.ui, showVC: v } })),
-      setShowEvent: (id) => set((store) => ({ ui: { ...store.ui, showEvent: id } })),
+      setShowEvent: (id) => set((store) => {
+        const now = Date.now();
+        const s = store.state;
+        if (id === null && s) {
+          // Dismissing — shift gameStartRealMs forward by the time spent
+          // viewing the event so the game calendar doesn't jump ahead
+          // of plant growth (same approach as achievement dismiss).
+          const shownDuration = now - s.lastTickRealMs;
+          return {
+            ui: { ...store.ui, showEvent: id },
+            state: {
+              ...s,
+              gameStartRealMs: s.gameStartRealMs + shownDuration,
+              lastTickRealMs: now,
+            },
+          };
+        }
+        return { ui: { ...store.ui, showEvent: id } };
+      }),
       setNameInput: (n) => set((store) => ({ ui: { ...store.ui, nameInput: n } })),
       setRoomTypeChoice: (t) => set((store) => ({ ui: { ...store.ui, roomTypeChoice: t } })),
       setShowRoomBuy: (i) => set((store) => ({ ui: { ...store.ui, showRoomBuy: i } })),
