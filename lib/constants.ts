@@ -13,7 +13,7 @@ export const AMR_DATA: Record<number, number[]> = {
   2023: [750, 720, 700, 680],
   2024: [670, 660, 655, 650],
   2025: [649, 649, 649, 649],
-  2026: [648, 648, 648, 648],
+  2026: [648, 607, 607, 607],
 };
 
 export const COVID_DEMAND_MOD: Record<number, number[]> = { 2020: [1, 0.4, 1.4, 1] };
