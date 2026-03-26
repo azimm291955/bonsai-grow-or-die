@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useGameStore } from "@/store/useGameStore";
-import { getVegDaysForRoom, getFlowerDaysForRoom, getRotQuality, getRotSpeedMultiplierForRoom, getCurrentGameDate, msToGameDate, formatDate } from "@/lib/helpers";
+import { getVegDaysForRoom, getFlowerDaysForRoom, getRotQuality, getRotSpeedMultiplierForRoom, msToGameDate, formatDate } from "@/lib/helpers";
 import { MS_PER_GAME_DAY } from "@/lib/constants";
 
 function formatCountdown(ms: number): string {
@@ -142,10 +142,9 @@ export default function RoomDetailModal() {
               </div>
               {(() => {
                 const remainingDays = Math.ceil(daysRemaining);
-                const currentGameDate = getCurrentGameDate(state.gameStartRealMs, state.bonusGameDays || 0);
-                const harvestMs = (remainingDays * MS_PER_GAME_DAY);
-                const currentMs = (currentGameDate.year * 365 + (currentGameDate.month - 1) * 30 + currentGameDate.day - 1) * MS_PER_GAME_DAY;
-                const harvestGameDate = msToGameDate(currentMs + harvestMs);
+                const totalRealMs = Date.now() - state.gameStartRealMs;
+                const currentGameDays = (totalRealMs / MS_PER_GAME_DAY) + (state.bonusGameDays || 0);
+                const harvestGameDate = msToGameDate((currentGameDays + remainingDays) * MS_PER_GAME_DAY);
                 const harvestDateStr = formatDate(harvestGameDate);
 
                 return (
