@@ -191,15 +191,6 @@ function MainGameUI() {
               <span className="text-[11px]">{tab.label.toUpperCase()}</span>
             </button>
           ))}
-          <button
-            onClick={() => useGameStore.getState().setShowResetConfirm(true)}
-            className="px-2.5 py-3 pb-2.5 bg-transparent border-none cursor-pointer text-[12px] transition-all"
-            style={{ color: "#333", borderBottom: "2px solid transparent" }}
-            title="Settings"
-            aria-label="Settings"
-          >
-            ⚙
-          </button>
         </div>
       </div>
 
@@ -211,31 +202,62 @@ function MainGameUI() {
         transform: "translateX(-50%)",
         width: "100%",
         maxWidth: 480,
-        height: 44,
         zIndex: 500,
         display: "flex",
+        flexDirection: "column",
         alignItems: "center",
-        justifyContent: "center",
+        justifyContent: "flex-end",
+        gap: 8,
+        paddingBottom: 10,
+        paddingTop: 16,
         background: "linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.85) 30%, #000 100%)",
-        pointerEvents: "none",
       }}>
+        <button
+          onClick={() => useGameStore.getState().setShowResetConfirm(true)}
+          style={{
+            background: "linear-gradient(135deg, #c0392b 0%, #922b21 100%)",
+            color: "#fff",
+            border: "none",
+            borderRadius: 8,
+            padding: "10px 32px",
+            fontSize: 15,
+            fontWeight: 800,
+            letterSpacing: "0.12em",
+            cursor: "pointer",
+            boxShadow: "0 0 14px rgba(192,57,43,0.5), 0 2px 6px rgba(0,0,0,0.6)",
+            transition: "transform 0.1s, box-shadow 0.1s",
+            textTransform: "uppercase",
+          }}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.05)";
+            (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 22px rgba(192,57,43,0.75), 0 4px 10px rgba(0,0,0,0.7)";
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)";
+            (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 14px rgba(192,57,43,0.5), 0 2px 6px rgba(0,0,0,0.6)";
+          }}
+          aria-label="Reset Game"
+        >
+          🔄 Reset Game
+        </button>
         <img
           src="/Bonsai_Rainbow.png"
           alt="Bonsai Cultivation"
           style={{
-            height: 36,
+            height: 28,
             width: "auto",
-            maxWidth: "85%",
+            maxWidth: "70%",
             objectFit: "contain",
             display: "block",
             userSelect: "none",
+            pointerEvents: "none",
           }}
           draggable={false}
         />
       </div>
 
       {/* ═══ CONTENT ═══ */}
-      <div className="px-3 pb-24 pt-3">
+      <div className="px-3 pb-32 pt-3">
         {activeTab === "facility" && <FacilityTab />}
         {activeTab === "pnl" && <PnLTab />}
         {activeTab === "upgrades" && <UpgradesPanel />}
