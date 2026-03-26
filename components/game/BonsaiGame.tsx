@@ -202,62 +202,64 @@ function MainGameUI() {
         transform: "translateX(-50%)",
         width: "100%",
         maxWidth: 480,
+        height: 44,
         zIndex: 500,
         display: "flex",
-        flexDirection: "column",
         alignItems: "center",
-        justifyContent: "flex-end",
-        gap: 8,
-        paddingBottom: 10,
-        paddingTop: 16,
         background: "linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.85) 30%, #000 100%)",
       }}>
-        <button
-          onClick={() => useGameStore.getState().setShowResetConfirm(true)}
-          style={{
-            background: "linear-gradient(135deg, #c0392b 0%, #922b21 100%)",
-            color: "#fff",
-            border: "none",
-            borderRadius: 8,
-            padding: "10px 32px",
-            fontSize: 15,
-            fontWeight: 800,
-            letterSpacing: "0.12em",
-            cursor: "pointer",
-            boxShadow: "0 0 14px rgba(192,57,43,0.5), 0 2px 6px rgba(0,0,0,0.6)",
-            transition: "transform 0.1s, box-shadow 0.1s",
-            textTransform: "uppercase",
-          }}
-          onMouseEnter={e => {
-            (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.05)";
-            (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 22px rgba(192,57,43,0.75), 0 4px 10px rgba(0,0,0,0.7)";
-          }}
-          onMouseLeave={e => {
-            (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)";
-            (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 14px rgba(192,57,43,0.5), 0 2px 6px rgba(0,0,0,0.6)";
-          }}
-          aria-label="Reset Game"
-        >
-          🔄 Reset Game
-        </button>
-        <img
-          src="/Bonsai_Rainbow.png"
-          alt="Bonsai Cultivation"
-          style={{
-            height: 28,
-            width: "auto",
-            maxWidth: "70%",
-            objectFit: "contain",
-            display: "block",
-            userSelect: "none",
-            pointerEvents: "none",
-          }}
-          draggable={false}
-        />
+        {/* Left: reset button */}
+        <div style={{ width: 72, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <button
+            onClick={() => useGameStore.getState().setShowResetConfirm(true)}
+            style={{
+              background: "rgba(255,255,255,0.06)",
+              color: "#555",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: 5,
+              padding: "4px 10px",
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: "0.1em",
+              cursor: "pointer",
+              textTransform: "uppercase",
+              transition: "color 0.15s, background 0.15s",
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLButtonElement).style.color = "#c0392b";
+              (e.currentTarget as HTMLButtonElement).style.background = "rgba(192,57,43,0.15)";
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLButtonElement).style.color = "#555";
+              (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.06)";
+            }}
+            aria-label="Reset Game"
+          >
+            RESET
+          </button>
+        </div>
+        {/* Center: logo */}
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+          <img
+            src="/Bonsai_Rainbow.png"
+            alt="Bonsai Cultivation"
+            style={{
+              height: 36,
+              width: "auto",
+              maxWidth: "85%",
+              objectFit: "contain",
+              display: "block",
+              userSelect: "none",
+            }}
+            draggable={false}
+          />
+        </div>
+        {/* Right: spacer to balance left side */}
+        <div style={{ width: 72 }} />
       </div>
 
       {/* ═══ CONTENT ═══ */}
-      <div className="px-3 pb-32 pt-3">
+      <div className="px-3 pb-24 pt-3">
         {activeTab === "facility" && <FacilityTab />}
         {activeTab === "pnl" && <PnLTab />}
         {activeTab === "upgrades" && <UpgradesPanel />}
