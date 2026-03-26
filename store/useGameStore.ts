@@ -359,12 +359,16 @@ export const useGameStore = create<GameStore>()(
         const cost = ROOM_COSTS[index];
         if (s.cash < cost) return;
 
+        const roomType = index === 1 ? "flower" : ui.roomTypeChoice;
+        const isVegRoom = roomType === "veg";
+
         const newRooms = [...s.rooms];
         newRooms[index] = {
           ...newRooms[index],
           unlocked: true,
-          type: index === 1 ? "flower" : ui.roomTypeChoice,
-          status: "empty" as const,
+          type: roomType,
+          status: isVegRoom ? ("growing" as const) : ("empty" as const),
+          ...(isVegRoom && { daysGrown: 0, growStartMs: Date.now() }),
         };
 
         set({
