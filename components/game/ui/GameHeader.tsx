@@ -97,7 +97,7 @@ export default function GameHeader() {
 
         {/* ── SECTION 1 (1/3): Hero Cash + Name/Date ── */}
         <div
-          className="flex-1 min-w-0 pr-2 relative overflow-hidden flex flex-col justify-center rounded-lg"
+          className="flex-1 min-w-0 pr-2 relative flex flex-col justify-center rounded-lg"
           style={{
             background: vcTaken ? "rgba(239,83,80,0.06)" : "transparent",
           }}
