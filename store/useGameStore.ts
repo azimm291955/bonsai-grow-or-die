@@ -34,6 +34,7 @@ interface UIState {
   showBurnInfo: boolean;
   gameSpeed: number;
   paused: boolean;
+  autoPaused: boolean;
   showAchievement: string | null;
   achievementQueue: string[];
 }
@@ -106,6 +107,7 @@ const DEFAULT_UI: UIState = {
   showBurnInfo: false,
   gameSpeed: 1,
   paused: false,
+  autoPaused: false,
   showAchievement: null,
   achievementQueue: [],
 };
@@ -258,7 +260,24 @@ export const useGameStore = create<GameStore>()(
       // ── UI Setters ──
       setScreen: (s) => set((store) => ({ ui: { ...store.ui, screen: s } })),
       setActiveTab: (t) => set((store) => ({ ui: { ...store.ui, activeTab: t } })),
-      setSelectedRoom: (i) => set((store) => ({ ui: { ...store.ui, selectedRoom: i } })),
+      setSelectedRoom: (i) => set((store) => {
+        // Auto-resume: when closing the modal after an auto-pause, unpause the game
+        if (i === null && store.ui.autoPaused) {
+          const now = Date.now();
+          const s = store.state;
+          const pauseDuration = s?.pausedAtMs ? now - s.pausedAtMs : 0;
+          return {
+            ui: { ...store.ui, selectedRoom: null, paused: false, autoPaused: false },
+            state: s ? {
+              ...s,
+              pausedAtMs: null,
+              gameStartRealMs: s.gameStartRealMs + pauseDuration,
+              lastTickRealMs: now,
+            } : s,
+          };
+        }
+        return { ui: { ...store.ui, selectedRoom: i } };
+      }),
       setShowVC: (v) => set((store) => ({ ui: { ...store.ui, showVC: v } })),
       setShowEvent: (id) => set((store) => ({ ui: { ...store.ui, showEvent: id } })),
       setNameInput: (n) => set((store) => ({ ui: { ...store.ui, nameInput: n } })),
@@ -283,7 +302,7 @@ export const useGameStore = create<GameStore>()(
           // by the full pause duration so no time appears to have passed
           const pauseDuration = s?.pausedAtMs ? now - s.pausedAtMs : 0;
           return {
-            ui: { ...store.ui, paused: false },
+            ui: { ...store.ui, paused: false, autoPaused: false },
             state: s ? {
               ...s,
               pausedAtMs: null,
@@ -941,6 +960,7 @@ export const useGameStore = create<GameStore>()(
         let finalState = ns;
         if (autoPauseRoomIndex !== null) {
           updatedUI.paused = true;
+          updatedUI.autoPaused = true;
           updatedUI.selectedRoom = autoPauseRoomIndex;
           // Record pausedAtMs so resume logic works correctly
           // (ns is frozen by Immer, so spread a new object)
