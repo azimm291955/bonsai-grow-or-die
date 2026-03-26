@@ -283,15 +283,17 @@ export const useGameStore = create<GameStore>()(
         const now = Date.now();
         const s = store.state;
         if (id === null && s) {
-          // Dismissing — shift gameStartRealMs forward by the time spent
-          // viewing the event so the game calendar doesn't jump ahead
-          // of plant growth (same approach as achievement dismiss).
-          const shownDuration = now - s.lastTickRealMs;
+          // Dismissing — use pausedAtMs (set by processNotifications) to
+          // accurately measure how long the modal was visible, then shift
+          // gameStartRealMs forward so the game calendar doesn't jump ahead.
+          // This matches the manual pause / auto-pause resume pattern.
+          const pauseDuration = s.pausedAtMs ? now - s.pausedAtMs : now - s.lastTickRealMs;
           return {
             ui: { ...store.ui, showEvent: id },
             state: {
               ...s,
-              gameStartRealMs: s.gameStartRealMs + shownDuration,
+              pausedAtMs: null,
+              gameStartRealMs: s.gameStartRealMs + pauseDuration,
               lastTickRealMs: now,
             },
           };
@@ -334,15 +336,17 @@ export const useGameStore = create<GameStore>()(
         const now = Date.now();
         const s = store.state;
         if (id === null && s) {
-          // Dismissing — shift gameStartRealMs forward by the time spent
-          // viewing the achievement so the game calendar doesn't jump ahead
-          // of plant growth (same approach as manual pause resume).
-          const shownDuration = now - s.lastTickRealMs;
+          // Dismissing — use pausedAtMs (set by processAchievementQueue) to
+          // accurately measure how long the modal was visible, then shift
+          // gameStartRealMs forward so the game calendar doesn't jump ahead.
+          // This matches the manual pause / auto-pause resume pattern.
+          const pauseDuration = s.pausedAtMs ? now - s.pausedAtMs : now - s.lastTickRealMs;
           return {
             ui: { ...store.ui, showAchievement: id },
             state: {
               ...s,
-              gameStartRealMs: s.gameStartRealMs + shownDuration,
+              pausedAtMs: null,
+              gameStartRealMs: s.gameStartRealMs + pauseDuration,
               lastTickRealMs: now,
             },
           };
@@ -714,9 +718,10 @@ export const useGameStore = create<GameStore>()(
         // Shift gameStartRealMs forward by time spent viewing the VC modal
         // so the game calendar doesn't jump ahead of plant growth.
         const now = Date.now();
-        const shownDuration = now - ns.lastTickRealMs;
-        ns.gameStartRealMs += shownDuration;
+        const pauseDuration = ns.pausedAtMs ? now - ns.pausedAtMs : now - ns.lastTickRealMs;
+        ns.gameStartRealMs += pauseDuration;
         ns.lastTickRealMs = now;
+        ns.pausedAtMs = null;
         set({ state: ns, ui: { ...ui, showVC: false } });
       },
 
@@ -991,11 +996,15 @@ export const useGameStore = create<GameStore>()(
 
       // ── Achievement Queue ──
       processAchievementQueue: () => {
-        const { ui } = get();
+        const { ui, state: s } = get();
         if (ui.showAchievement) return; // One at a time
         if (ui.achievementQueue.length === 0) return;
         const [next, ...rest] = ui.achievementQueue;
-        set({ ui: { ...ui, showAchievement: next, achievementQueue: rest } });
+        // Record pausedAtMs so dismiss can accurately compensate wall-clock time
+        set({
+          ui: { ...ui, showAchievement: next, achievementQueue: rest },
+          state: s ? { ...s, pausedAtMs: Date.now() } : s,
+        });
       },
 
       // ── Notification Processing ──
@@ -1006,7 +1015,7 @@ export const useGameStore = create<GameStore>()(
         const vcNotif = s.notifications.find(n => n.type === "vc_trigger");
         if (vcNotif && !ui.showVC) {
           set({
-            state: { ...s, notifications: s.notifications.filter(n => n.type !== "vc_trigger") },
+            state: { ...s, notifications: s.notifications.filter(n => n.type !== "vc_trigger"), pausedAtMs: Date.now() },
             ui: { ...ui, showVC: true },
           });
           return;
@@ -1015,7 +1024,7 @@ export const useGameStore = create<GameStore>()(
         const eventNotif = s.notifications.find(n => n.type === "event");
         if (eventNotif && !ui.showVC) {
           set({
-            state: { ...s, notifications: s.notifications.filter(n => n !== eventNotif) },
+            state: { ...s, notifications: s.notifications.filter(n => n !== eventNotif), pausedAtMs: Date.now() },
             ui: { ...ui, showEvent: eventNotif.id ?? null },
           });
         }
