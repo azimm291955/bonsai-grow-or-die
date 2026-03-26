@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useGameStore } from "@/store/useGameStore";
-import { getVegDaysForRoom, getFlowerDaysForRoom, getRotQuality, getRotSpeedMultiplierForRoom } from "@/lib/helpers";
+import { getVegDaysForRoom, getFlowerDaysForRoom, getRotQuality, getRotSpeedMultiplierForRoom, getCurrentGameDate, msToGameDate, formatDate } from "@/lib/helpers";
 import { MS_PER_GAME_DAY } from "@/lib/constants";
 
 function formatCountdown(ms: number): string {
@@ -140,10 +140,21 @@ export default function RoomDetailModal() {
                   }}
                 />
               </div>
-              <div className="flex justify-between mt-1">
-                <span className="text-[9px] text-[#555]" style={{ fontFamily: "var(--font-mono)" }}>{Math.round(progress * 100)}%</span>
-                <span className="text-[9px] text-[#555]" style={{ fontFamily: "var(--font-mono)" }}>{Math.ceil(daysRemaining)}d left</span>
-              </div>
+              {(() => {
+                const remainingDays = Math.ceil(daysRemaining);
+                const currentGameDate = getCurrentGameDate(state.gameStartRealMs, state.bonusGameDays || 0);
+                const harvestMs = (remainingDays * MS_PER_GAME_DAY);
+                const currentMs = (currentGameDate.year * 365 + (currentGameDate.month - 1) * 30 + currentGameDate.day - 1) * MS_PER_GAME_DAY;
+                const harvestGameDate = msToGameDate(currentMs + harvestMs);
+                const harvestDateStr = formatDate(harvestGameDate);
+
+                return (
+                  <div className="flex justify-between mt-1">
+                    <span className="text-sm text-[#888]" style={{ fontFamily: "var(--font-mono)" }}>{Math.round(progress * 100)}%</span>
+                    <span className="text-sm text-[#888]" style={{ fontFamily: "var(--font-mono)" }}>{remainingDays}d - {harvestDateStr}</span>
+                  </div>
+                );
+              })()}
             </div>
           )}
 
