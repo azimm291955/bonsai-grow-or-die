@@ -878,12 +878,13 @@ export const useGameStore = create<GameStore>()(
                   // Auto-pause: flag this room if it just became ready
                   if (!alreadyReady.has(room.index) && autoPauseRoomIndex === null) {
                     autoPauseRoomIndex = room.index;
+                    continue; // Skip rot — pause takes effect immediately
                   }
                 }
               }
             }
 
-            if (room.status === "ready_to_flip" || room.status === "ready_to_harvest") {
+            if ((room.status === "ready_to_flip" || room.status === "ready_to_harvest") && autoPauseRoomIndex === null) {
               room.rotDays += effectiveGameDays;
               const quality = getRotQuality(room.rotDays, rotSpeed);
               if (quality <= 0.5 && quality > 0.45 && !room._rot50warned) {
