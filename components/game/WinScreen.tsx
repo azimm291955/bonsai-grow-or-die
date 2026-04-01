@@ -142,7 +142,7 @@ export default function WinScreen() {
       <div style={{ maxWidth: 480, margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: 24 }}>
           {state.winType === "pure"
-            ? <img src="/bonsai-logo.png" alt="Bonsai" style={{ width: 120, height: 120, objectFit: "contain", marginBottom: 12 }} />
+            ? <img src="/Bonsai_Rainbow.png" alt="Bonsai Cultivation" style={{ width: 160, height: "auto", objectFit: "contain", marginBottom: 12 }} />
             : <div style={{ fontSize: 64, marginBottom: 12 }}>🏅</div>}
           <h1 style={{ color: state.winType === "pure" ? "#8BC34A" : "#FFB74D", fontSize: 32, fontWeight: 700, margin: 0, letterSpacing: 2 }}>
             {state.winType === "pure" ? "YOU MADE IT" : "SURVIVOR"}
@@ -150,8 +150,11 @@ export default function WinScreen() {
           <p style={{ color: "#888", fontSize: 11, letterSpacing: 4, marginTop: 6 }}>
             {state.winType === "pure" ? "PURE RUN — NO VULTURE CAPITAL" : "VULTURE CAPITAL SURVIVOR"}
           </p>
-          <p style={{ color: "#999", fontSize: 13, lineHeight: 1.6, margin: "16px 0 0" }}>
-            12 years. Four crashes. A pandemic. You&apos;re still standing.
+          <p style={{ color: "#999", fontSize: 13, lineHeight: 1.8, margin: "16px 0 0" }}>
+            12 years. Four crashes. A pandemic. You&apos;re still standing.{" "}
+            {state.winType === "pure"
+              ? "Bonsai Cultivation made it too — through market crashes, COVID, and a compression that wiped out half the industry. We're still here, still growing, and grateful for every one of you who came along for the ride."
+              : "So did Bonsai Cultivation — through market crashes, COVID, and a price compression that broke countless operators. We took the hard road and kept going. Thank you for playing."}
           </p>
         </div>
 
@@ -159,22 +162,30 @@ export default function WinScreen() {
           <>
             {winPrizeState === "done" ? (
               <div style={{ background: "#1f2e1a", border: "2px solid #8BC34A", borderRadius: 12, padding: 20, marginBottom: 20, textAlign: "center" }}>
+                <img src="/Space_Jam_Logo.png" alt="Space Jam Dispensary" style={{ width: 90, height: "auto", objectFit: "contain", marginBottom: 10 }} />
                 <p style={{ color: "#8BC34A", fontSize: 16, fontWeight: 700, margin: 0 }}>🎉 5 Joints Claimed!</p>
-                <p style={{ color: "#888", fontSize: 11, marginTop: 6 }}>We&apos;ll be in touch. Redeemable at a partner dispensary.</p>
+                <img src="/Space_Jam_Logo.png" alt="Space Jam Dispensary" style={{ width: 70, height: "auto", objectFit: "contain", marginTop: 10, marginBottom: 4 }} />
+                <p style={{ color: "#666", fontSize: 11, marginTop: 2 }}>1810 S Broadway, Denver, CO 80210</p>
+                <p style={{ color: "#666", fontSize: 11, marginTop: 2 }}>(720) 986-0882</p>
+                <p style={{ color: "#555", fontSize: 10, marginTop: 6, lineHeight: 1.5 }}>We&apos;ll be in touch with redemption details.</p>
               </div>
             ) : winPrizeState === "submitting" ? (
               <div style={{ background: "#2a2a2a", border: "2px solid #555", borderRadius: 12, padding: 20, marginBottom: 20, textAlign: "center" }}>
                 <p style={{ color: "#888", fontSize: 14, margin: 0 }}>Registering your 5-joint prize…</p>
               </div>
             ) : !showJointForm ? (
-              <div style={{ background: "#2a2a2a", border: "2px solid rgba(255,183,77,0.5)", borderRadius: 12, padding: 20, marginBottom: 20, textAlign: "center" }}>
-                <p style={{ color: "#FFB74D", fontSize: 16, fontWeight: 700, margin: 0 }}>🏆 Claim your 5 free joints</p>
-                <p style={{ color: "#888", fontSize: 11, marginTop: 6 }}>Pure run reward — redeemable at a partner dispensary.</p>
+              <div style={{ background: "#1a1a2e", border: "2px solid rgba(100,200,255,0.4)", borderRadius: 12, padding: 20, marginBottom: 20, textAlign: "center" }}>
+                <img src="/Space_Jam_Logo.png" alt="Space Jam Dispensary" style={{ width: 100, height: "auto", objectFit: "contain", marginBottom: 10 }} />
+                <p style={{ color: "#FFB74D", fontSize: 16, fontWeight: 700, margin: 0 }}>🏆 You won 5 free joints!</p>
+                <img src="/Space_Jam_Logo.png" alt="Space Jam Dispensary" style={{ width: 70, height: "auto", objectFit: "contain", marginTop: 10, marginBottom: 4 }} />
+                <a href="https://maps.google.com/?q=1810+S+Broadway+Denver+CO+80210" target="_blank" rel="noopener noreferrer" style={{ color: "#64B5F6", fontSize: 11, marginTop: 4, display: "block", textDecoration: "none" }}>📍 1810 S Broadway, Denver, CO 80210</a>
+                <a href="tel:7209860882" style={{ color: "#64B5F6", fontSize: 11, marginTop: 2, display: "block", textDecoration: "none" }}>📞 (720) 986-0882</a>
+                <p style={{ color: "#777", fontSize: 11, marginTop: 8, lineHeight: 1.5 }}>Pure run reward — register to claim at Space Jam.</p>
                 <button
                   onClick={() => setShowJointForm(true)}
-                  style={{ marginTop: 12, padding: "9px 22px", background: "linear-gradient(135deg, #E65100, #FFB74D)", color: "#fff", border: "none", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer" }}
+                  style={{ marginTop: 12, padding: "10px 26px", background: "linear-gradient(135deg, #1565C0, #42A5F5)", color: "#fff", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: "pointer", letterSpacing: 0.5 }}
                 >
-                  Claim Now
+                  Claim Now →
                 </button>
               </div>
             ) : null}

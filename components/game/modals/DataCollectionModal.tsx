@@ -108,7 +108,12 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
 
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: 22 }}>
-          <div style={{ fontSize: 36, marginBottom: 10 }}>{jointCount === 5 ? "🏆" : "🌿"}</div>
+          {/* Space Jam logo */}
+          <img
+            src="/Space_Jam_Logo.png"
+            alt="Space Jam Dispensary"
+            style={{ width: 90, height: "auto", objectFit: "contain", marginBottom: 10 }}
+          />
           <h2 style={{
             color: jointCount === 5 ? "#FFB74D" : "#8BC34A",
             fontSize: 18, fontWeight: 800, margin: 0, letterSpacing: 1,
@@ -117,10 +122,28 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
           </h2>
           <p style={{ color: "#888", fontSize: 11, marginTop: 8, lineHeight: 1.6, margin: "8px 0 0" }}>
             {jointCount === 5
-              ? "You beat the game on a pure run — no vulture capital. Register below to redeem 5 joints at a partner dispensary."
-              : "Register to claim your free joint at a partner dispensary. Takes 30 seconds."}
+              ? "You beat the game on a pure run — no vulture capital. Redeem 5 joints at Space Jam Dispensary."
+              : "Thanks for playing Bonsai: Grow or Die! Redeem your free joint at Space Jam Dispensary."}
           </p>
-          <p style={{ color: "#555", fontSize: 10, marginTop: 6 }}>
+          {/* Space Jam contact info */}
+          <div style={{ marginTop: 10, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.06)" }}>
+            <img src="/Space_Jam_Logo.png" alt="Space Jam Dispensary" style={{ width: 70, height: "auto", objectFit: "contain", marginBottom: 6 }} />
+            <a
+              href="https://www.google.com/maps/place/Space+Jam+Dispensary/@39.6836826,-104.9898433,594m"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: "#64B5F6", fontSize: 11, marginTop: 4, display: "block", textDecoration: "none" }}
+            >
+              📍 1810 S Broadway, Denver, CO 80210
+            </a>
+            <a
+              href="tel:7209860882"
+              style={{ color: "#64B5F6", fontSize: 11, marginTop: 2, display: "block", textDecoration: "none" }}
+            >
+              📞 (720) 986-0882
+            </a>
+          </div>
+          <p style={{ color: "#555", fontSize: 10, marginTop: 8 }}>
             Must be 21+. Your info is used only for reward redemption.
           </p>
         </div>
