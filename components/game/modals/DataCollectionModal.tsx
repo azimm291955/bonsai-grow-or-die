@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useForm } from "@formspree/react";
+import { useState } from "react";
 import { createClaimAction } from "@/app/actions/claims";
 
 // ─── localStorage keys ───
@@ -40,48 +39,71 @@ interface Props {
 }
 
 export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: Props) {
-  const [formState, handleSubmit] = useForm("xwvwqwqo");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [dob, setDob] = useState("");
   const [ageError, setAgeError] = useState("");
   const [focused, setFocused] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [claimCode, setClaimCode] = useState<string | null>(null);
-  const [claimError, setClaimError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // When Formspree confirms success, create a claim code and persist data
-  useEffect(() => {
-    if (!formState.succeeded) return;
-    localStorage.setItem(LS_FORM_SEEN, "true");
-    localStorage.setItem(LS_FORM_DATA, JSON.stringify({ name, email, phone }));
-    if (jointCount === 5) localStorage.setItem(LS_WIN_SUBMITTED, "true");
-
-    // Create claim code in KV
-    createClaimAction({
-      name,
-      email,
-      phone,
-      jointCount,
-      gameEvent: jointCount === 5 ? "win_pure" : "registration",
-    }).then((result) => {
-      if (result.success) {
-        setClaimCode(result.code);
-      } else {
-        setClaimError("Couldn't generate a claim code. Contact us at Space Jam.");
-        onSuccess();
-      }
-    });
-  }, [formState.succeeded]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (calcAge(dob) < 21) {
       setAgeError("You must be 21 or older to claim your reward.");
       return;
     }
     setAgeError("");
-    handleSubmit(e);
+    setSubmitError(null);
+    setSubmitting(true);
+
+    try {
+      // 1. Generate claim code first (also handles phone deduplication)
+      const claimResult = await createClaimAction({
+        name,
+        email,
+        phone,
+        jointCount,
+        gameEvent: jointCount === 5 ? "win_pure" : "registration",
+      });
+
+      if (!claimResult.success) {
+        setSubmitError("Couldn't generate a claim code. Try again or visit Space Jam directly.");
+        setSubmitting(false);
+        return;
+      }
+
+      const code = claimResult.code;
+
+      // 2. POST to Formspree with claim_code included so the email template fills in
+      const body = new FormData();
+      body.append("name", name);
+      body.append("email", email);
+      body.append("phone", phone);
+      body.append("dob", dob);
+      body.append("joint_count", String(jointCount));
+      body.append("game_event", jointCount === 5 ? "win_pure" : "registration");
+      body.append("claim_code", code);
+
+      await fetch("https://formspree.io/f/xwvwqwqo", {
+        method: "POST",
+        body,
+        headers: { Accept: "application/json" },
+      });
+
+      // 3. Persist to localStorage and show the code
+      localStorage.setItem(LS_FORM_SEEN, "true");
+      localStorage.setItem(LS_FORM_DATA, JSON.stringify({ name, email, phone }));
+      if (jointCount === 5) localStorage.setItem(LS_WIN_SUBMITTED, "true");
+
+      setClaimCode(code);
+    } catch {
+      setSubmitError("Network error — check your connection and try again.");
+    }
+
+    setSubmitting(false);
   };
 
   // ── Claim code success screen ──
@@ -159,9 +181,9 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
               📍 1810 S Broadway, Denver, CO 80210
             </p>
 
-            {claimError && (
+            {submitError && (
               <p style={{ color: "#ef5350", fontSize: 10, marginBottom: 16, fontFamily: "'JetBrains Mono', monospace" }}>
-                {claimError}
+                {submitError}
               </p>
             )}
 
@@ -415,25 +437,34 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
             </div>
           )}
 
+          {submitError && (
+            <div style={{
+              color: "#ef5350", fontSize: 10, marginBottom: 12, textAlign: "center",
+              fontFamily: "'JetBrains Mono', monospace",
+            }}>
+              ⚠ {submitError}
+            </div>
+          )}
+
           <button
             type="submit"
-            disabled={formState.submitting}
+            disabled={submitting}
             style={{
               width: "100%", padding: "13px",
-              background: formState.submitting ? "#141414" : `linear-gradient(135deg, ${btnFrom}, ${btnTo})`,
-              color: formState.submitting ? "#383838" : "#fff",
-              border: formState.submitting ? "1px solid #222" : "none",
+              background: submitting ? "#141414" : `linear-gradient(135deg, ${btnFrom}, ${btnTo})`,
+              color: submitting ? "#383838" : "#fff",
+              border: submitting ? "1px solid #222" : "none",
               borderRadius: 10,
               fontSize: 11, fontWeight: 700,
-              cursor: formState.submitting ? "wait" : "pointer",
+              cursor: submitting ? "wait" : "pointer",
               marginBottom: 10,
               fontFamily: "'JetBrains Mono', monospace",
               letterSpacing: 1.5,
-              boxShadow: formState.submitting ? "none" : `0 4px 24px ${accentGlow}`,
+              boxShadow: submitting ? "none" : `0 4px 24px ${accentGlow}`,
               transition: "all 0.25s",
             }}
           >
-            {formState.submitting ? "Submitting…" : isPure ? "Claim Five Joints →" : "Claim My Joint →"}
+            {submitting ? "Submitting…" : isPure ? "Claim Five Joints →" : "Claim My Joint →"}
           </button>
 
           <button

@@ -29,15 +29,29 @@ function generateCode(): string {
   return `BONSAI-${suffix}`;
 }
 
-/** Create a new claim code and store it in KV. Returns the code. */
+/** Normalize a phone number to digits only for deduplication */
+function normalizePhone(phone: string): string {
+  return phone.replace(/\D/g, "");
+}
+
+/** Create a new claim code and store it in KV. Returns the code.
+ *  If the phone number already has a claim, returns the existing code instead. */
 export async function createClaimAction(data: {
   name: string;
   email: string;
   phone: string;
   jointCount: number;
   gameEvent: string;
-}): Promise<{ success: true; code: string } | { success: false; error: string }> {
+}): Promise<{ success: true; code: string; existing?: boolean } | { success: false; error: string }> {
   try {
+    const phoneKey = `phone:${normalizePhone(data.phone)}`;
+
+    // Check for duplicate phone number
+    const existingCode = await redis.get<string>(phoneKey);
+    if (existingCode) {
+      return { success: true, code: existingCode, existing: true };
+    }
+
     // Generate a unique code (retry on collision)
     let code = generateCode();
     let attempts = 0;
@@ -59,7 +73,10 @@ export async function createClaimAction(data: {
 
     await redis.set(`claim:${code}`, record);
 
-    // Also store an index of all codes for the admin list
+    // Index by phone for deduplication
+    await redis.set(phoneKey, code);
+
+    // Index of all codes for the admin list
     await redis.lpush("claims:all", code);
 
     return { success: true, code };
