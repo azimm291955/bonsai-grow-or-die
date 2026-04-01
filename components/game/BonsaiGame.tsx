@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useGameStore } from "@/store/useGameStore";
 import { useTickLoop } from "@/hooks/useTickLoop";
 import { fetchLeaderboardAction } from "@/app/actions/leaderboard";
@@ -23,6 +23,7 @@ import WinScreen from "./WinScreen";
 import GameOverScreen from "./GameOverScreen";
 
 // Modals
+import DataCollectionModal, { LS_FORM_SEEN } from "./modals/DataCollectionModal";
 import VcOfferModal from "./modals/VcOfferModal";
 import EventModal from "./modals/EventModal";
 import RoomBuyModal from "./modals/RoomBuyModal";
@@ -129,6 +130,19 @@ function MainGameUI() {
   const state = useGameStore((s) => s.state);
   const activeTab = useGameStore((s) => s.ui.activeTab);
   const setActiveTab = useGameStore((s) => s.setActiveTab);
+  const [showDataForm, setShowDataForm] = useState(false);
+
+  // Show data-collection popup once the game date reaches Mar 1, 2016
+  useEffect(() => {
+    if (!state) return;
+    if (typeof window === "undefined") return;
+    if (localStorage.getItem(LS_FORM_SEEN)) return;
+    const gd = getGameDateFromState(state.gameStartRealMs, state.bonusGameDays);
+    // Mar 1, 2016 = year 2016, month 3, day >= 1
+    if (gd.year > 2016 || (gd.year === 2016 && gd.month >= 3)) {
+      setShowDataForm(true);
+    }
+  }, [state]);
 
   if (!state) return null;
 
@@ -279,6 +293,13 @@ function MainGameUI() {
       <BurnInfoModal />
       <Tutorial />
       <SpeedHint />
+      {showDataForm && (
+        <DataCollectionModal
+          jointCount={1}
+          onSkip={() => setShowDataForm(false)}
+          onSuccess={() => setShowDataForm(false)}
+        />
+      )}
     </div>
     </div>
   );

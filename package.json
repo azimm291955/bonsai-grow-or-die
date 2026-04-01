@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@formspree/react": "^3.0.0",
     "@upstash/redis": "^1.34.0",
     "csstype": "^3.2.3",
     "immer": "^10.1.0",

@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useGameStore } from "@/store/useGameStore";
 import { submitScoreAction, getSubmitTokenAction } from "@/app/actions/leaderboard";
 import { formatCash } from "@/lib/helpers";
 import { UPGRADE_TRACKS, ACHIEVEMENTS, MS_PER_GAME_DAY } from "@/lib/constants";
 import { msToGameDate } from "@/lib/helpers";
+import DataCollectionModal, {
+  LS_FORM_DATA, LS_WIN_SUBMITTED, SavedFormData,
+} from "./modals/DataCollectionModal";
 
 /** Generate HMAC-SHA256 using the browser-native Web Crypto API */
 async function generateSignature(
@@ -27,6 +30,51 @@ export default function WinScreen() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [rank, setRank] = useState<number | null>(null);
+
+  // ─── Prize state (pure-win only) ───
+  const [showJointForm, setShowJointForm] = useState(false);
+  const [winPrizeState, setWinPrizeState] = useState<"idle" | "submitting" | "done">("idle");
+
+  // On mount: if pure win, handle 5-joint prize
+  useEffect(() => {
+    if (!state || state.winType !== "pure") return;
+    if (typeof window === "undefined") return;
+
+    const alreadyWinSubmitted = localStorage.getItem(LS_WIN_SUBMITTED);
+    if (alreadyWinSubmitted) {
+      // Already claimed — just show confirmation
+      setWinPrizeState("done");
+      return;
+    }
+
+    const raw = localStorage.getItem(LS_FORM_DATA);
+    if (raw) {
+      // They registered at Mar 1 — auto-submit a win entry with their stored data
+      const data: SavedFormData = JSON.parse(raw);
+      setWinPrizeState("submitting");
+      const body = new FormData();
+      body.append("name", data.name);
+      body.append("email", data.email);
+      body.append("phone", data.phone);
+      body.append("joint_count", "5");
+      body.append("game_event", "win_pure");
+      fetch("https://formspree.io/f/xwvwqwqo", { method: "POST", body, headers: { Accept: "application/json" } })
+        .then(r => r.ok ? r : Promise.reject(r))
+        .then(() => {
+          localStorage.setItem(LS_WIN_SUBMITTED, "true");
+          setWinPrizeState("done");
+        })
+        .catch(() => {
+          // Submission failed silently — show the form as fallback
+          setWinPrizeState("idle");
+          setShowJointForm(true);
+        });
+    } else {
+      // Played anonymous — show form for 5 joints
+      setShowJointForm(true);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
 
   if (!state) return null;
 
@@ -83,6 +131,7 @@ export default function WinScreen() {
   );
 
   return (
+    <>
     <div style={{
       minHeight: "100vh",
       background: state.winType === "pure"
@@ -107,10 +156,29 @@ export default function WinScreen() {
         </div>
 
         {state.winType === "pure" && (
-          <div style={{ background: "#2a2a2a", border: "2px solid #8BC34A", borderRadius: 12, padding: 20, marginBottom: 20, textAlign: "center" }}>
-            <p style={{ color: "#8BC34A", fontSize: 16, fontWeight: 700, margin: 0 }}>🎉 Come claim your free joint</p>
-            <p style={{ color: "#888", fontSize: 11, marginTop: 6 }}>Redeemable at a partner dispensary. Details at bonsaicultivation.com</p>
-          </div>
+          <>
+            {winPrizeState === "done" ? (
+              <div style={{ background: "#1f2e1a", border: "2px solid #8BC34A", borderRadius: 12, padding: 20, marginBottom: 20, textAlign: "center" }}>
+                <p style={{ color: "#8BC34A", fontSize: 16, fontWeight: 700, margin: 0 }}>🎉 5 Joints Claimed!</p>
+                <p style={{ color: "#888", fontSize: 11, marginTop: 6 }}>We&apos;ll be in touch. Redeemable at a partner dispensary.</p>
+              </div>
+            ) : winPrizeState === "submitting" ? (
+              <div style={{ background: "#2a2a2a", border: "2px solid #555", borderRadius: 12, padding: 20, marginBottom: 20, textAlign: "center" }}>
+                <p style={{ color: "#888", fontSize: 14, margin: 0 }}>Registering your 5-joint prize…</p>
+              </div>
+            ) : !showJointForm ? (
+              <div style={{ background: "#2a2a2a", border: "2px solid rgba(255,183,77,0.5)", borderRadius: 12, padding: 20, marginBottom: 20, textAlign: "center" }}>
+                <p style={{ color: "#FFB74D", fontSize: 16, fontWeight: 700, margin: 0 }}>🏆 Claim your 5 free joints</p>
+                <p style={{ color: "#888", fontSize: 11, marginTop: 6 }}>Pure run reward — redeemable at a partner dispensary.</p>
+                <button
+                  onClick={() => setShowJointForm(true)}
+                  style={{ marginTop: 12, padding: "9px 22px", background: "linear-gradient(135deg, #E65100, #FFB74D)", color: "#fff", border: "none", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer" }}
+                >
+                  Claim Now
+                </button>
+              </div>
+            ) : null}
+          </>
         )}
 
         <div style={{ fontSize: 10, color: "#666", fontWeight: 700, letterSpacing: 2, marginBottom: 10 }}>FINANCIAL</div>
@@ -188,5 +256,18 @@ export default function WinScreen() {
         </div>
       </div>
     </div>
+
+    {/* 5-joint claim form for anonymous players who won a pure run */}
+    {showJointForm && state.winType === "pure" && (
+      <DataCollectionModal
+        jointCount={5}
+        onSkip={() => setShowJointForm(false)}
+        onSuccess={() => {
+          setShowJointForm(false);
+          setWinPrizeState("done");
+        }}
+      />
+    )}
+    </>
   );
 }
