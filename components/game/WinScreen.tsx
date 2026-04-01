@@ -32,7 +32,7 @@ export default function WinScreen() {
 
   // ─── Prize state (pure-win only) ───
   const [showJointForm, setShowJointForm] = useState(false);
-  const [winPrizeState, setWinPrizeState] = useState<"idle" | "submitting" | "done">("idle");
+  const [winPrizeState, setWinPrizeState] = useState<"idle" | "submitting" | "done" | "declined">("idle");
 
   useEffect(() => {
     if (!state || state.winType !== "pure") return;
@@ -63,9 +63,11 @@ export default function WinScreen() {
   if (!state) return null;
 
   const isPure = state.winType === "pure";
-  const accent      = isPure ? "#C9A96E" : "#D4871A";
-  const accentGlow  = isPure ? "rgba(201,169,110,0.12)" : "rgba(212,135,26,0.12)";
-  const headlineClr = isPure ? "#8BC34A" : "#FFB74D";
+  const accent     = isPure ? "#8BC34A" : "#D4871A";
+  const accentGlow = isPure ? "rgba(139,195,74,0.12)" : "rgba(212,135,26,0.12)";
+  const accentDim  = isPure ? "rgba(139,195,74,0.06)" : "rgba(212,135,26,0.06)";
+  const accentBorder = isPure ? "rgba(139,195,74,0.18)" : "rgba(212,135,26,0.18)";
+  const shimmerClass = isPure ? "shimmer-text-green" : "shimmer-text";
 
   const totalHarvests  = state.rooms.reduce((s, r) => s + r.harvestCount, 0);
   const unlockedCount  = state.rooms.filter(r => r.unlocked).length;
@@ -106,14 +108,14 @@ export default function WinScreen() {
 
   const SectionLabel = ({ children }: { children: React.ReactNode }) => (
     <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
-      <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg, transparent, #1e1e1e)" }} />
+      <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, transparent, ${accent}30)` }} />
       <div style={{
-        fontSize: 7.5, color: "#303030", fontWeight: 600, letterSpacing: 3,
+        fontSize: 7.5, color: "#666", fontWeight: 600, letterSpacing: 3,
         fontFamily: "'JetBrains Mono', monospace", textTransform: "uppercase",
       }}>
         {children}
       </div>
-      <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg, #1e1e1e, transparent)" }} />
+      <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${accent}30, transparent)` }} />
     </div>
   );
 
@@ -123,16 +125,16 @@ export default function WinScreen() {
     <div
       className="stat-reveal"
       style={{
-        background: "rgba(255,255,255,0.018)",
+        background: accentDim,
         borderRadius: 10,
-        border: "1px solid #161616",
+        border: `1px solid ${accentBorder}`,
         padding: "14px 10px",
         textAlign: "center",
         animationDelay: `${delay}ms`,
       }}
     >
       <div style={{
-        fontSize: 7.5, color: "#2e2e2e", fontWeight: 600, letterSpacing: 2,
+        fontSize: 7.5, color: "#555", fontWeight: 600, letterSpacing: 2,
         marginBottom: 6, fontFamily: "'JetBrains Mono', monospace", textTransform: "uppercase",
       }}>
         {label}
@@ -144,7 +146,7 @@ export default function WinScreen() {
         {value}
       </div>
       {sub && (
-        <div style={{ fontSize: 8, color: "#2a2a2a", marginTop: 3, fontFamily: "'JetBrains Mono', monospace" }}>
+        <div style={{ fontSize: 8, color: "#484848", marginTop: 3, fontFamily: "'JetBrains Mono', monospace" }}>
           {sub}
         </div>
       )}
@@ -164,6 +166,14 @@ export default function WinScreen() {
         padding: "52px 16px 72px",
         overflowY: "auto",
       }}>
+        {/* Top accent bar — matches modal style */}
+        <div style={{
+          position: "fixed", top: 0, left: 0, right: 0,
+          height: 2,
+          background: `linear-gradient(90deg, transparent 0%, ${accent} 30%, ${accent} 70%, transparent 100%)`,
+          zIndex: 10,
+        }} />
+
         <div style={{ maxWidth: 500, margin: "0 auto" }}>
 
           {/* ── Hero ── */}
@@ -183,24 +193,23 @@ export default function WinScreen() {
               background: `linear-gradient(90deg, transparent, ${accent}, transparent)`,
             }} />
 
-            <h1 style={{
+            <div style={{
+              fontSize: 8, letterSpacing: 3.5, color: accent,
+              fontFamily: "'JetBrains Mono', monospace",
+              marginBottom: 12, textTransform: "uppercase",
+            }}>
+              {isPure ? "Pure Run · No Vulture Capital" : "Vulture Capital Survivor"}
+            </div>
+
+            <h1 className={shimmerClass} style={{
               fontFamily: "'Cormorant Garamond', Georgia, serif",
-              color: headlineClr,
               fontSize: 56, fontWeight: 700, margin: "0 0 8px",
               letterSpacing: 4, lineHeight: 1,
-              textShadow: `0 0 80px ${headlineClr}30`,
             }}>
               {isPure ? "You Made It" : "Survivor"}
             </h1>
 
-            <p style={{
-              color: "#2a2a2a", fontSize: 7.5, letterSpacing: 4.5,
-              margin: "10px 0 0", textTransform: "uppercase",
-            }}>
-              {isPure ? "Pure Run · No Vulture Capital" : "Vulture Capital Survivor"}
-            </p>
-
-            <p style={{ color: "#484848", fontSize: 12, lineHeight: 2, margin: "22px 0 0" }}>
+            <p style={{ color: "#888", fontSize: 12, lineHeight: 2, margin: "22px 0 0" }}>
               12 years. Four crashes. A pandemic. You&apos;re still standing.{" "}
               {isPure
                 ? "Bonsai Cultivation made it too — through market crashes, COVID, and a compression that wiped out half the industry. We're still here, still growing, and grateful for every one of you who came along for the ride."
@@ -208,93 +217,94 @@ export default function WinScreen() {
             </p>
           </div>
 
-          {/* ── Prize section (pure win only) ── */}
+          {/* ── Prize confirmation banner (pure win only) ── */}
           {isPure && (
-            <div style={{ marginBottom: 40 }}>
-              {winPrizeState === "done" ? (
+            <div style={{ marginBottom: 36 }}>
+              {winPrizeState === "done" && (
                 <div style={{
-                  background: "rgba(139,195,74,0.04)",
-                  border: "1px solid rgba(139,195,74,0.15)",
-                  borderRadius: 14, padding: "26px 20px", textAlign: "center",
+                  background: "rgba(139,195,74,0.05)",
+                  border: "1px solid rgba(139,195,74,0.18)",
+                  borderRadius: 12, padding: "18px 20px",
                 }}>
-                  <img
-                    src="/Space_Jam_Logo.png"
-                    alt="Space Jam Dispensary"
-                    style={{ width: 76, height: "auto", objectFit: "contain", display: "block", margin: "0 auto 14px" }}
-                  />
-                  <p style={{
-                    color: "#8BC34A", fontSize: 20, fontWeight: 600, margin: "0 0 8px",
-                    fontFamily: "'Cormorant Garamond', Georgia, serif", letterSpacing: 1,
-                  }}>
-                    Five Joints Claimed
-                  </p>
-                  <p style={{ color: "#303030", fontSize: 9, margin: "0 0 4px", fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1 }}>
-                    1810 S Broadway, Denver, CO 80210
-                  </p>
-                  <p style={{ color: "#303030", fontSize: 9, margin: "0 0 8px", fontFamily: "'JetBrains Mono', monospace" }}>
-                    (720) 986-0882
-                  </p>
-                  <p style={{ color: "#252525", fontSize: 9, margin: 0, fontFamily: "'JetBrains Mono', monospace" }}>
-                    We&apos;ll be in touch with redemption details.
-                  </p>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+                    <span style={{ color: "#8BC34A", fontSize: 13, flexShrink: 0 }}>✓</span>
+                    <span style={{
+                      color: "#8BC34A", fontSize: 10, fontFamily: "'JetBrains Mono', monospace",
+                      letterSpacing: 1, fontWeight: 700,
+                    }}>
+                      Five Joints Claimed
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                    <img
+                      src="/Space_Jam_Logo.png"
+                      alt="Space Jam Dispensary"
+                      style={{ width: 52, height: 52, objectFit: "contain", display: "block", flexShrink: 0 }}
+                    />
+                    <div>
+                      <div style={{
+                        fontSize: 11, fontWeight: 700, color: "#bbb", marginBottom: 5,
+                        fontFamily: "'JetBrains Mono', monospace",
+                      }}>
+                        Space Jam Dispensary
+                      </div>
+                      <a
+                        href="https://www.google.com/maps/place/Space+Jam+Dispensary/@39.6836826,-104.9898433,594m"
+                        target="_blank" rel="noopener noreferrer"
+                        style={{ color: "#4d8ab5", fontSize: 10, display: "block", textDecoration: "none", marginBottom: 2, fontFamily: "'JetBrains Mono', monospace" }}
+                      >
+                        📍 1810 S Broadway, Denver, CO 80210
+                      </a>
+                      <a
+                        href="tel:7209860882"
+                        style={{ color: "#4d8ab5", fontSize: 10, display: "block", textDecoration: "none", marginBottom: 6, fontFamily: "'JetBrains Mono', monospace" }}
+                      >
+                        📞 (720) 986-0882
+                      </a>
+                      <div style={{ color: "#555", fontSize: 9, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5 }}>
+                        Collect your victory joints beginning 04/24/2026
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              ) : winPrizeState === "submitting" ? (
+              )}
+              {winPrizeState === "submitting" && (
                 <div style={{
                   background: "#0d0d0d", border: "1px solid #1a1a1a",
-                  borderRadius: 14, padding: 22, textAlign: "center",
+                  borderRadius: 10, padding: 16, textAlign: "center",
                 }}>
-                  <p style={{ color: "#363636", fontSize: 11, margin: 0, fontFamily: "'JetBrains Mono', monospace" }}>
-                    Registering your 5-joint prize…
+                  <p style={{ color: "#555", fontSize: 11, margin: 0, fontFamily: "'JetBrains Mono', monospace" }}>
+                    Registering your prize…
                   </p>
                 </div>
-              ) : !showJointForm ? (
+              )}
+              {winPrizeState === "declined" && (
                 <div style={{
-                  background: `${accent}07`,
-                  border: `1px solid ${accent}20`,
-                  borderRadius: 14, padding: "26px 20px", textAlign: "center",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+                  background: "rgba(255,255,255,0.02)",
+                  border: "1px solid #222",
+                  borderRadius: 10, padding: "13px 20px",
                 }}>
-                  <img
-                    src="/Space_Jam_Logo.png"
-                    alt="Space Jam Dispensary"
-                    style={{ width: 76, height: "auto", objectFit: "contain", display: "block", margin: "0 auto 14px" }}
-                  />
-                  <p style={{
-                    color: accent, fontSize: 20, fontWeight: 600, margin: "0 0 8px",
-                    fontFamily: "'Cormorant Garamond', Georgia, serif", letterSpacing: 1,
+                  <span style={{
+                    color: "#444", fontSize: 10, fontFamily: "'JetBrains Mono', monospace",
+                    letterSpacing: 1,
                   }}>
-                    Five Free Joints
-                  </p>
-                  <a
-                    href="https://maps.google.com/?q=1810+S+Broadway+Denver+CO+80210"
-                    target="_blank" rel="noopener noreferrer"
-                    style={{ color: "#4d8ab5", fontSize: 9, display: "block", textDecoration: "none", marginBottom: 2, fontFamily: "'JetBrains Mono', monospace" }}
-                  >
-                    📍 1810 S Broadway, Denver, CO 80210
-                  </a>
-                  <a
-                    href="tel:7209860882"
-                    style={{ color: "#4d8ab5", fontSize: 9, display: "block", textDecoration: "none", marginBottom: 16, fontFamily: "'JetBrains Mono', monospace" }}
-                  >
-                    📞 (720) 986-0882
-                  </a>
-                  <p style={{ color: "#363636", fontSize: 10, margin: "0 0 18px", lineHeight: 1.7, fontFamily: "'JetBrains Mono', monospace" }}>
-                    Pure run reward — register to claim at Space Jam.
-                  </p>
+                    Spoils declined · The five joints await if you change your mind
+                  </span>
                   <button
                     onClick={() => setShowJointForm(true)}
                     style={{
-                      padding: "11px 30px",
-                      background: `linear-gradient(135deg, #b86812, #F09830)`,
-                      color: "#fff", border: "none", borderRadius: 8,
-                      fontSize: 10, fontWeight: 700, cursor: "pointer",
-                      fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1.5,
-                      boxShadow: `0 4px 20px ${accentGlow}`,
+                      background: "transparent", border: "1px solid #333",
+                      borderRadius: 6, color: "#666", fontSize: 9,
+                      padding: "5px 10px", cursor: "pointer",
+                      fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1,
+                      flexShrink: 0,
                     }}
                   >
-                    Claim Now →
+                    Reclaim →
                   </button>
                 </div>
-              ) : null}
+              )}
             </div>
           )}
 
@@ -302,12 +312,12 @@ export default function WinScreen() {
           <div style={{ marginBottom: 30 }}>
             <SectionLabel>Financial</SectionLabel>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-              <StatCard label="Final Cash"       value={formatCash(state.cash)}                          color="#8BC34A" delay={0}   />
-              <StatCard label="Net Income"        value={formatCash(netIncome)}                           color={netIncome >= 0 ? "#8BC34A" : "#ef5350"} sub="revenue − expenses" delay={60}  />
-              <StatCard label="Wholesale Flower"  value={formatCash(state.totalWholesaleRevenue || 0)}   color="#8BC34A" sub="harvest sales"    delay={120} />
-              <StatCard label="Pre-Roll Sales"    value={formatCash(state.totalPrerollRevenue || 0)}     color="#8BC34A" sub="monthly revenue"  delay={180} />
-              <StatCard label="Peak Cash"         value={formatCash(state.peakCash || state.cash)}       color={accent}  sub="highest balance"  delay={240} />
-              <StatCard label="Lowest Cash"       value={formatCash(state.lowestCash ?? state.cash)}     color={(state.lowestCash ?? 0) < 0 ? "#ef5350" : accent} sub="closest to death" delay={300} />
+              <StatCard label="Final Cash"       value={formatCash(state.cash)}                          color={accent}  delay={0}   />
+              <StatCard label="Net Income"        value={formatCash(netIncome)}                           color={netIncome >= 0 ? accent : "#ef5350"} sub="revenue − expenses" delay={60}  />
+              <StatCard label="Wholesale Flower"  value={formatCash(state.totalWholesaleRevenue || 0)}   color={accent}  sub="harvest sales"   delay={120} />
+              <StatCard label="Pre-Roll Sales"    value={formatCash(state.totalPrerollRevenue || 0)}     color={accent}  sub="monthly revenue" delay={180} />
+              <StatCard label="Peak Cash"         value={formatCash(state.peakCash || state.cash)}       color="#c8c8c8" sub="highest balance"  delay={240} />
+              <StatCard label="Lowest Cash"       value={formatCash(state.lowestCash ?? state.cash)}     color={(state.lowestCash ?? 0) < 0 ? "#ef5350" : "#c8c8c8"} sub="closest to death" delay={300} />
             </div>
           </div>
 
@@ -335,19 +345,19 @@ export default function WinScreen() {
           <div style={{ marginBottom: 30 }}>
             <SectionLabel>Upgrade Tiers</SectionLabel>
             <div style={{
-              background: "rgba(255,255,255,0.015)",
-              borderRadius: 10, border: "1px solid #141414",
+              background: accentDim,
+              borderRadius: 10, border: `1px solid ${accentBorder}`,
               padding: "2px 16px",
             }}>
               {highestTiers.map((t, i) => (
                 <div key={t.key} style={{
                   display: "flex", justifyContent: "space-between", alignItems: "center",
                   padding: "10px 0",
-                  borderBottom: i < highestTiers.length - 1 ? "1px solid rgba(255,255,255,0.022)" : "none",
+                  borderBottom: i < highestTiers.length - 1 ? `1px solid ${accentBorder}` : "none",
                 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <span style={{ fontSize: 15 }}>{t.icon}</span>
-                    <span style={{ fontSize: 11, color: "#484848", fontFamily: "'JetBrains Mono', monospace" }}>{t.name}</span>
+                    <span style={{ fontSize: 11, color: "#888", fontFamily: "'JetBrains Mono', monospace" }}>{t.name}</span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
                     {Array.from({ length: t.totalTiers }).map((_, j) => (
@@ -359,7 +369,7 @@ export default function WinScreen() {
                     <span style={{
                       fontSize: 8, fontWeight: 700, marginLeft: 8,
                       fontFamily: "'JetBrains Mono', monospace",
-                      color: t.maxTier === t.totalTiers ? "#8BC34A" : t.maxTier > 0 ? accent : "#222",
+                      color: t.maxTier === t.totalTiers ? accent : t.maxTier > 0 ? "#666" : "#333",
                     }}>
                       {t.maxTier === t.totalTiers ? "MAX" : t.maxTier > 0 ? `T${t.maxTier}` : "—"}
                     </span>
@@ -373,8 +383,8 @@ export default function WinScreen() {
           <div style={{ marginBottom: 36 }}>
             <SectionLabel>Achievements</SectionLabel>
             <div style={{
-              background: "rgba(255,255,255,0.015)", borderRadius: 10,
-              border: "1px solid #141414", padding: "22px",
+              background: accentDim, borderRadius: 10,
+              border: `1px solid ${accentBorder}`, padding: "22px",
               textAlign: "center",
             }}>
               <div style={{
@@ -383,10 +393,10 @@ export default function WinScreen() {
                 lineHeight: 1, marginBottom: 8,
               }}>
                 {achievementCount}
-                <span style={{ color: "#1e1e1e", fontSize: 30, margin: "0 6px" }}>/</span>
+                <span style={{ color: "#333", fontSize: 30, margin: "0 6px" }}>/</span>
                 {ACHIEVEMENTS.length}
               </div>
-              <div style={{ fontSize: 8, color: "#282828", fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1.5 }}>
+              <div style={{ fontSize: 8, color: "#555", fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1.5 }}>
                 {achievementCount === ACHIEVEMENTS.length
                   ? "🏆 Perfect · 100% Complete"
                   : `${Math.round((achievementCount / ACHIEVEMENTS.length) * 100)}% complete`}
@@ -402,13 +412,13 @@ export default function WinScreen() {
                 disabled={submitting}
                 style={{
                   padding: "15px 42px",
-                  background: submitting ? "#0f0f0f" : "linear-gradient(135deg, #b8720e, #FFB74D)",
-                  color: submitting ? "#282828" : "#0c0c0c",
-                  border: submitting ? "1px solid #1e1e1e" : "none",
+                  background: submitting ? "#0f0f0f" : `linear-gradient(135deg, ${isPure ? "#3d6b10" : "#b8720e"}, ${isPure ? "#8BC34A" : "#FFB74D"})`,
+                  color: submitting ? "#333" : isPure ? "#0a1a04" : "#0c0c0c",
+                  border: submitting ? `1px solid #222` : "none",
                   borderRadius: 10, cursor: submitting ? "wait" : "pointer",
                   fontSize: 11, fontWeight: 700,
                   fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1.5,
-                  boxShadow: submitting ? "none" : "0 4px 32px rgba(255,183,77,0.2)",
+                  boxShadow: submitting ? "none" : `0 4px 32px ${accentGlow}`,
                   transition: "all 0.3s",
                 }}
               >
@@ -417,12 +427,12 @@ export default function WinScreen() {
             ) : (
               <div style={{
                 padding: "14px 26px",
-                background: "rgba(139,195,74,0.05)",
-                border: "1px solid rgba(139,195,74,0.12)",
+                background: accentDim,
+                border: `1px solid ${accentBorder}`,
                 borderRadius: 10, display: "inline-block",
               }}>
                 <span style={{
-                  color: "#8BC34A", fontSize: 11, fontWeight: 700,
+                  color: accent, fontSize: 11, fontWeight: 700,
                   fontFamily: "'JetBrains Mono', monospace",
                 }}>
                   ✓ Submitted{rank ? ` · Rank #${rank}` : ""}
@@ -436,7 +446,7 @@ export default function WinScreen() {
               onClick={resetGame}
               style={{
                 padding: "11px 30px", background: "transparent",
-                color: "#252525", border: "1px solid #161616",
+                color: "#666", border: "1px solid #333",
                 borderRadius: 8, cursor: "pointer", fontSize: 9,
                 fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1.5,
                 textTransform: "uppercase", transition: "color 0.2s",
@@ -453,7 +463,7 @@ export default function WinScreen() {
       {showJointForm && isPure && (
         <DataCollectionModal
           jointCount={5}
-          onSkip={() => setShowJointForm(false)}
+          onSkip={() => { setShowJointForm(false); setWinPrizeState("declined"); }}
           onSuccess={() => { setShowJointForm(false); setWinPrizeState("done"); }}
         />
       )}
