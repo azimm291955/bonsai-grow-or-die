@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useForm } from "@formspree/react";
+import { createClaimAction } from "@/app/actions/claims";
 
 // ─── localStorage keys ───
 export const LS_FORM_SEEN = "bonsai:form_seen";
@@ -46,14 +47,31 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
   const [dob, setDob] = useState("");
   const [ageError, setAgeError] = useState("");
   const [focused, setFocused] = useState<string | null>(null);
+  const [claimCode, setClaimCode] = useState<string | null>(null);
+  const [claimError, setClaimError] = useState<string | null>(null);
 
-  // When Formspree confirms success, persist data and notify parent
+  // When Formspree confirms success, create a claim code and persist data
   useEffect(() => {
     if (!formState.succeeded) return;
     localStorage.setItem(LS_FORM_SEEN, "true");
     localStorage.setItem(LS_FORM_DATA, JSON.stringify({ name, email, phone }));
     if (jointCount === 5) localStorage.setItem(LS_WIN_SUBMITTED, "true");
-    onSuccess();
+
+    // Create claim code in KV
+    createClaimAction({
+      name,
+      email,
+      phone,
+      jointCount,
+      gameEvent: jointCount === 5 ? "win_pure" : "registration",
+    }).then((result) => {
+      if (result.success) {
+        setClaimCode(result.code);
+      } else {
+        setClaimError("Couldn't generate a claim code. Contact us at Space Jam.");
+        onSuccess();
+      }
+    });
   }, [formState.succeeded]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -65,6 +83,109 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
     setAgeError("");
     handleSubmit(e);
   };
+
+  // ── Claim code success screen ──
+  if (claimCode) {
+    const isPureCode = jointCount === 5;
+    const accentCode = isPureCode ? "#D4871A" : "#7AAB3A";
+    return (
+      <div style={{
+        position: "fixed", inset: 0,
+        background: "rgba(4,4,4,0.92)",
+        zIndex: 9999,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: "16px",
+        backdropFilter: "blur(8px)",
+      }}>
+        <div className="modal-enter" style={{
+          background: "linear-gradient(160deg, #141414 0%, #0f0f0f 100%)",
+          border: `1px solid ${accentCode}28`,
+          borderRadius: 20,
+          maxWidth: 390,
+          width: "100%",
+          boxShadow: `0 0 0 1px rgba(255,255,255,0.03), 0 40px 100px rgba(0,0,0,0.8)`,
+          overflow: "hidden",
+          textAlign: "center",
+        }}>
+          <div style={{ height: 2, background: `linear-gradient(90deg, transparent 0%, ${accentCode} 30%, ${accentCode} 70%, transparent 100%)` }} />
+          <div style={{ padding: "36px 28px 32px" }}>
+            <div style={{ fontSize: 40, marginBottom: 16 }}>🌿</div>
+            <div style={{
+              fontSize: 8, letterSpacing: 3.5, color: accentCode,
+              fontFamily: "'JetBrains Mono', monospace",
+              marginBottom: 10, textTransform: "uppercase",
+            }}>
+              Your Claim Code
+            </div>
+            <h2 style={{
+              fontFamily: "'Cormorant Garamond', Georgia, serif",
+              fontSize: 28, fontWeight: 700, margin: "0 0 20px",
+              color: "#e0e0e0",
+            }}>
+              {isPureCode ? "Five Joints Claimed" : "One Joint Claimed"}
+            </h2>
+
+            {/* The code itself */}
+            <div style={{
+              background: `${accentCode}10`,
+              border: `1px solid ${accentCode}40`,
+              borderRadius: 12,
+              padding: "20px 24px",
+              marginBottom: 20,
+            }}>
+              <div style={{
+                fontSize: 28, fontWeight: 700, letterSpacing: 6,
+                color: accentCode,
+                fontFamily: "'JetBrains Mono', monospace",
+              }}>
+                {claimCode}
+              </div>
+            </div>
+
+            <p style={{
+              color: "#888", fontSize: 10, lineHeight: 1.8,
+              fontFamily: "'JetBrains Mono', monospace",
+              margin: "0 0 8px",
+            }}>
+              Write this down or screenshot it. Bring it to Space Jam Dispensary starting{" "}
+              <span style={{ color: accentCode }}>04/24/2026</span> to collect your{" "}
+              {isPureCode ? "five joints" : "joint"}.
+            </p>
+            <p style={{
+              color: "#555", fontSize: 9, lineHeight: 1.6,
+              fontFamily: "'JetBrains Mono', monospace",
+              margin: "0 0 24px",
+            }}>
+              📍 1810 S Broadway, Denver, CO 80210
+            </p>
+
+            {claimError && (
+              <p style={{ color: "#ef5350", fontSize: 10, marginBottom: 16, fontFamily: "'JetBrains Mono', monospace" }}>
+                {claimError}
+              </p>
+            )}
+
+            <button
+              onClick={onSuccess}
+              style={{
+                width: "100%", padding: "13px",
+                background: `linear-gradient(135deg, ${isPureCode ? "#b86812" : "#4a7a22"}, ${isPureCode ? "#F09830" : "#8BC34A"})`,
+                color: "#fff",
+                border: "none",
+                borderRadius: 10,
+                fontSize: 11, fontWeight: 700,
+                cursor: "pointer",
+                fontFamily: "'JetBrains Mono', monospace",
+                letterSpacing: 1.5,
+              }}
+            >
+              Let&apos;s Go →
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const isPure = jointCount === 5;
   const accent = isPure ? "#D4871A" : "#7AAB3A";
