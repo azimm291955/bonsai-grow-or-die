@@ -75,8 +75,8 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
 
   const inputStyle = (field: string, isError = false): React.CSSProperties => ({
     width: "100%",
-    background: focused === field ? "rgba(255,255,255,0.03)" : "#0b0b0b",
-    border: `1px solid ${isError ? "#ef5350" : focused === field ? accent : "#1e1e1e"}`,
+    background: focused === field ? "rgba(255,255,255,0.05)" : "#131313",
+    border: `1px solid ${isError ? "#ef5350" : focused === field ? accent : "#333"}`,
     borderRadius: 8,
     padding: "10px 13px",
     color: "#e0e0e0",
@@ -91,7 +91,7 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
 
   const labelStyle: React.CSSProperties = {
     fontSize: 8,
-    color: "#383838",
+    color: "#888",
     fontWeight: 600,
     letterSpacing: 2.5,
     display: "block",
@@ -139,7 +139,7 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
             fontFamily: "'JetBrains Mono', monospace",
             marginBottom: 10, textTransform: "uppercase",
           }}>
-            {isPure ? "Pure Run Reward" : "Player Registration"}
+            {isPure ? "Winner, Winner, 4/20 Dinner" : "Player Registration"}
           </div>
 
           <h2 className={shimmerClass} style={{
@@ -151,14 +151,49 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
           </h2>
 
           <p style={{
-            color: "#4a4a4a", fontSize: 11, lineHeight: 1.7,
+            color: "#c0c0c0", fontSize: 12, lineHeight: 1.7,
             fontFamily: "'JetBrains Mono', monospace",
-            margin: "0 0 18px",
+            margin: "0 0 6px",
           }}>
             {isPure
               ? "You beat the game on a pure run — no vulture capital."
               : "Thanks for playing Bonsai: Grow or Die!"}
           </p>
+
+          {/* Contest rules */}
+          <div style={{
+            background: `${accent}0d`,
+            border: `1px solid ${accent}22`,
+            borderRadius: 8,
+            padding: "10px 14px",
+            marginBottom: 16,
+            textAlign: "left",
+          }}>
+            {isPure ? (
+              <p style={{
+                color: "#b0b0b0", fontSize: 10, lineHeight: 1.75,
+                fontFamily: "'JetBrains Mono', monospace",
+                margin: 0,
+              }}>
+                <span style={{ color: accent, fontWeight: 700 }}>DECADE OF DOMINANCE.</span>{" "}
+                You survived ten years of market crashes and pricing cliffs that wiped out the competition.
+                Bonsai Cultivation has lived this same grind, and while the work never stops, it is time to celebrate your empire.
+                Head to Space Jam Dispensary on{" "}
+                <span style={{ color: accent, fontWeight: 700 }}>04/24/2026</span>{" "}
+                to claim your victory joints!
+              </p>
+            ) : (
+              <p style={{
+                color: "#b0b0b0", fontSize: 10, lineHeight: 1.75,
+                fontFamily: "'JetBrains Mono', monospace",
+                margin: 0,
+              }}>
+                <span style={{ color: accent, fontWeight: 700 }}>The race to 4/20 is on!</span> You&apos;ve unlocked one free joint for joining the hunt! Now, finish the job: beat the game by{" "}
+                <span style={{ color: accent, fontWeight: 700 }}>April 20th</span> to claim four more for a total of five joints. All prizes can be collected in person at Space Jam Dispensary beginning{" "}
+                <span style={{ color: accent, fontWeight: 700 }}>April 24th</span>.
+              </p>
+            )}
+          </div>
 
           {/* Dispensary card */}
           <div style={{
@@ -197,7 +232,7 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
           </div>
 
           <p style={{
-            color: "#2a2a2a", fontSize: 9, margin: 0,
+            color: "#666", fontSize: 9, margin: 0,
             fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1,
           }}>
             MUST BE 21+ · INFO USED ONLY FOR REWARD REDEMPTION
@@ -285,15 +320,15 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
             onClick={() => { localStorage.setItem(LS_FORM_SEEN, "true"); onSkip(); }}
             style={{
               width: "100%", padding: "10px",
-              background: "transparent", color: "#2c2c2c",
-              border: "1px solid #181818", borderRadius: 8,
+              background: "transparent", color: "#777",
+              border: "1px solid #333", borderRadius: 8,
               fontSize: 9, cursor: "pointer",
               fontFamily: "'JetBrains Mono', monospace",
               letterSpacing: 1.5, textTransform: "uppercase",
-              transition: "color 0.2s",
+              transition: "color 0.2s, border-color 0.2s",
             }}
           >
-            Skip — play anonymous
+            {isPure ? "Decline the Spoils" : "Skip — play anonymous"}
           </button>
         </form>
       </div>
