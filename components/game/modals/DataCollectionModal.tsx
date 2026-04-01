@@ -45,6 +45,7 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
   const [phone, setPhone] = useState("");
   const [dob, setDob] = useState("");
   const [ageError, setAgeError] = useState("");
+  const [focused, setFocused] = useState<string | null>(null);
 
   // When Formspree confirms success, persist data and notify parent
   useEffect(() => {
@@ -65,207 +66,231 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
     handleSubmit(e);
   };
 
-  const inputStyle: React.CSSProperties = {
+  const isPure = jointCount === 5;
+  const accent = isPure ? "#D4871A" : "#7AAB3A";
+  const accentGlow = isPure ? "rgba(212,135,26,0.18)" : "rgba(122,171,58,0.18)";
+  const shimmerClass = isPure ? "shimmer-text" : "shimmer-text-green";
+  const btnFrom = isPure ? "#b86812" : "#4a7a22";
+  const btnTo   = isPure ? "#F09830" : "#8BC34A";
+
+  const inputStyle = (field: string, isError = false): React.CSSProperties => ({
     width: "100%",
-    background: "#111",
-    border: "1px solid #2a2a2a",
-    borderRadius: 6,
-    padding: "9px 11px",
-    color: "#fff",
+    background: focused === field ? "rgba(255,255,255,0.03)" : "#0b0b0b",
+    border: `1px solid ${isError ? "#ef5350" : focused === field ? accent : "#1e1e1e"}`,
+    borderRadius: 8,
+    padding: "10px 13px",
+    color: "#e0e0e0",
     fontSize: 13,
     outline: "none",
     boxSizing: "border-box",
-    fontFamily: "inherit",
-  };
+    fontFamily: "'JetBrains Mono', monospace",
+    boxShadow: focused === field ? `0 0 0 3px ${accentGlow}` : "none",
+    transition: "border-color 0.2s, box-shadow 0.2s, background 0.2s",
+    colorScheme: "dark",
+  });
 
   const labelStyle: React.CSSProperties = {
-    fontSize: 9,
-    color: "#555",
-    fontWeight: 700,
-    letterSpacing: 1.5,
+    fontSize: 8,
+    color: "#383838",
+    fontWeight: 600,
+    letterSpacing: 2.5,
     display: "block",
-    marginBottom: 4,
-    textTransform: "uppercase" as const,
+    marginBottom: 5,
+    textTransform: "uppercase",
+    fontFamily: "'JetBrains Mono', monospace",
   };
 
   return (
     <div style={{
-      position: "fixed", inset: 0, background: "rgba(0,0,0,0.88)",
-      zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center",
+      position: "fixed", inset: 0,
+      background: "rgba(4,4,4,0.92)",
+      zIndex: 9999,
+      display: "flex", alignItems: "center", justifyContent: "center",
       padding: "16px",
+      backdropFilter: "blur(8px)",
     }}>
-      <div style={{
-        background: "#1a1a1a",
-        border: `2px solid ${jointCount === 5 ? "rgba(255,183,77,0.4)" : "rgba(139,195,74,0.3)"}`,
-        borderRadius: 16,
-        padding: "28px 24px",
-        maxWidth: 380,
+      <div className="modal-enter" style={{
+        background: "linear-gradient(160deg, #141414 0%, #0f0f0f 100%)",
+        border: `1px solid ${accent}28`,
+        borderRadius: 20,
+        maxWidth: 390,
         width: "100%",
-        boxShadow: jointCount === 5
-          ? "0 0 40px rgba(255,183,77,0.1)"
-          : "0 0 40px rgba(139,195,74,0.08)",
+        boxShadow: `0 0 0 1px rgba(255,255,255,0.03), 0 40px 100px rgba(0,0,0,0.8), 0 0 80px ${accentGlow}`,
+        overflow: "hidden",
+        position: "relative",
       }}>
 
+        {/* Top accent bar */}
+        <div style={{
+          height: 2,
+          background: `linear-gradient(90deg, transparent 0%, ${accent} 30%, ${accent} 70%, transparent 100%)`,
+        }} />
+
         {/* Header */}
-        <div style={{ textAlign: "center", marginBottom: 22 }}>
-          {/* Space Jam logo */}
+        <div style={{ padding: "28px 26px 20px", textAlign: "center" }}>
           <img
             src="/Space_Jam_Logo.png"
             alt="Space Jam Dispensary"
-            style={{ width: 90, height: "auto", objectFit: "contain", marginBottom: 10 }}
+            style={{ width: 72, height: "auto", objectFit: "contain", display: "block", margin: "0 auto 16px" }}
           />
-          <h2 style={{
-            color: jointCount === 5 ? "#FFB74D" : "#8BC34A",
-            fontSize: 18, fontWeight: 800, margin: 0, letterSpacing: 1,
+
+          <div style={{
+            fontSize: 8, letterSpacing: 3.5, color: accent,
+            fontFamily: "'JetBrains Mono', monospace",
+            marginBottom: 10, textTransform: "uppercase",
           }}>
-            {jointCount === 5 ? "CLAIM YOUR 5 FREE JOINTS" : "CLAIM YOUR FREE JOINT"}
-          </h2>
-          <p style={{ color: "#888", fontSize: 11, marginTop: 8, lineHeight: 1.6, margin: "8px 0 0" }}>
-            {jointCount === 5
-              ? "You beat the game on a pure run — no vulture capital. Redeem 5 joints at Space Jam Dispensary."
-              : "Thanks for playing Bonsai: Grow or Die! Redeem your free joint at Space Jam Dispensary."}
-          </p>
-          {/* Space Jam contact info */}
-          <div style={{ marginTop: 10, padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.06)" }}>
-            <img src="/Space_Jam_Logo.png" alt="Space Jam Dispensary" style={{ width: 70, height: "auto", objectFit: "contain", marginBottom: 6 }} />
-            <a
-              href="https://www.google.com/maps/place/Space+Jam+Dispensary/@39.6836826,-104.9898433,594m"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: "#64B5F6", fontSize: 11, marginTop: 4, display: "block", textDecoration: "none" }}
-            >
-              📍 1810 S Broadway, Denver, CO 80210
-            </a>
-            <a
-              href="tel:7209860882"
-              style={{ color: "#64B5F6", fontSize: 11, marginTop: 2, display: "block", textDecoration: "none" }}
-            >
-              📞 (720) 986-0882
-            </a>
+            {isPure ? "Pure Run Reward" : "Player Registration"}
           </div>
-          <p style={{ color: "#555", fontSize: 10, marginTop: 8 }}>
-            Must be 21+. Your info is used only for reward redemption.
+
+          <h2 className={shimmerClass} style={{
+            fontFamily: "'Cormorant Garamond', Georgia, serif",
+            fontSize: 30, fontWeight: 700, margin: "0 0 10px",
+            letterSpacing: 0.5, lineHeight: 1.1,
+          }}>
+            {isPure ? "Claim Five Free Joints" : "Claim Your Free Joint"}
+          </h2>
+
+          <p style={{
+            color: "#4a4a4a", fontSize: 11, lineHeight: 1.7,
+            fontFamily: "'JetBrains Mono', monospace",
+            margin: "0 0 18px",
+          }}>
+            {isPure
+              ? "You beat the game on a pure run — no vulture capital."
+              : "Thanks for playing Bonsai: Grow or Die!"}
+          </p>
+
+          {/* Dispensary card */}
+          <div style={{
+            display: "flex", alignItems: "center", gap: 14,
+            padding: "12px 14px",
+            background: `${accent}0c`,
+            border: `1px solid ${accent}20`,
+            borderRadius: 10,
+            textAlign: "left",
+            marginBottom: 14,
+          }}>
+            <img src="/Space_Jam_Logo.png" alt="Space Jam" style={{
+              width: 42, height: 42, objectFit: "contain", flexShrink: 0, display: "block",
+            }} />
+            <div>
+              <div style={{
+                fontSize: 11, fontWeight: 700, color: "#bbb", marginBottom: 4,
+                fontFamily: "'JetBrains Mono', monospace",
+              }}>
+                Space Jam Dispensary
+              </div>
+              <a
+                href="https://www.google.com/maps/place/Space+Jam+Dispensary/@39.6836826,-104.9898433,594m"
+                target="_blank" rel="noopener noreferrer"
+                style={{ color: "#4d8ab5", fontSize: 10, display: "block", textDecoration: "none", marginBottom: 2, fontFamily: "'JetBrains Mono', monospace" }}
+              >
+                📍 1810 S Broadway, Denver, CO 80210
+              </a>
+              <a
+                href="tel:7209860882"
+                style={{ color: "#4d8ab5", fontSize: 10, display: "block", textDecoration: "none", fontFamily: "'JetBrains Mono', monospace" }}
+              >
+                📞 (720) 986-0882
+              </a>
+            </div>
+          </div>
+
+          <p style={{
+            color: "#2a2a2a", fontSize: 9, margin: 0,
+            fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1,
+          }}>
+            MUST BE 21+ · INFO USED ONLY FOR REWARD REDEMPTION
           </p>
         </div>
 
         {/* Form */}
-        <form onSubmit={onSubmit}>
-          {/* Hidden fields */}
+        <form onSubmit={onSubmit} style={{ padding: "0 26px 26px" }}>
           <input type="hidden" name="joint_count" value={jointCount} />
-          <input type="hidden" name="game_event" value={jointCount === 5 ? "win_pure" : "registration"} />
+          <input type="hidden" name="game_event" value={isPure ? "win_pure" : "registration"} />
 
-          {/* Full Name */}
           <div style={{ marginBottom: 12 }}>
             <label style={labelStyle}>Full Name</label>
             <input
-              type="text"
-              name="name"
-              value={name}
+              type="text" name="name" value={name}
               onChange={e => setName(e.target.value)}
-              required
-              style={inputStyle}
-              placeholder="Jane Doe"
+              onFocus={() => setFocused("name")} onBlur={() => setFocused(null)}
+              required style={inputStyle("name")} placeholder="Jane Doe"
             />
           </div>
 
-          {/* Email */}
           <div style={{ marginBottom: 12 }}>
             <label style={labelStyle}>Email Address</label>
             <input
-              type="email"
-              name="email"
-              value={email}
+              type="email" name="email" value={email}
               onChange={e => setEmail(e.target.value)}
-              required
-              style={inputStyle}
-              placeholder="jane@example.com"
+              onFocus={() => setFocused("email")} onBlur={() => setFocused(null)}
+              required style={inputStyle("email")} placeholder="jane@example.com"
             />
           </div>
 
-          {/* Telephone (unique identifier) */}
           <div style={{ marginBottom: 12 }}>
             <label style={labelStyle}>Telephone Number</label>
             <input
-              type="tel"
-              name="phone"
-              value={phone}
+              type="tel" name="phone" value={phone}
               onChange={e => setPhone(e.target.value)}
-              required
-              style={inputStyle}
-              placeholder="(303) 555-0100"
+              onFocus={() => setFocused("phone")} onBlur={() => setFocused(null)}
+              required style={inputStyle("phone")} placeholder="(303) 555-0100"
             />
           </div>
 
-          {/* Date of Birth */}
-          <div style={{ marginBottom: ageError ? 6 : 18 }}>
+          <div style={{ marginBottom: ageError ? 6 : 20 }}>
             <label style={labelStyle}>Date of Birth (must be 21+)</label>
             <input
-              type="date"
-              name="dob"
-              value={dob}
+              type="date" name="dob" value={dob}
               onChange={e => { setDob(e.target.value); setAgeError(""); }}
-              required
-              max={maxDob()}
-              style={{
-                ...inputStyle,
-                border: `1px solid ${ageError ? "#ef5350" : "#2a2a2a"}`,
-                colorScheme: "dark",
-              }}
+              onFocus={() => setFocused("dob")} onBlur={() => setFocused(null)}
+              required max={maxDob()}
+              style={inputStyle("dob", !!ageError)}
             />
           </div>
 
           {ageError && (
-            <div style={{ color: "#ef5350", fontSize: 11, marginBottom: 14, textAlign: "center" }}>
-              ⚠️ {ageError}
+            <div style={{
+              color: "#ef5350", fontSize: 10, marginBottom: 16, textAlign: "center",
+              fontFamily: "'JetBrains Mono', monospace",
+            }}>
+              ⚠ {ageError}
             </div>
           )}
 
-          {/* Submit */}
           <button
             type="submit"
             disabled={formState.submitting}
             style={{
-              width: "100%",
-              padding: "13px",
-              background: jointCount === 5
-                ? "linear-gradient(135deg, #E65100, #FFB74D)"
-                : "linear-gradient(135deg, #33691E, #8BC34A)",
-              color: "#fff",
-              border: "none",
-              borderRadius: 8,
-              fontSize: 13,
-              fontWeight: 700,
+              width: "100%", padding: "13px",
+              background: formState.submitting ? "#141414" : `linear-gradient(135deg, ${btnFrom}, ${btnTo})`,
+              color: formState.submitting ? "#383838" : "#fff",
+              border: formState.submitting ? "1px solid #222" : "none",
+              borderRadius: 10,
+              fontSize: 11, fontWeight: 700,
               cursor: formState.submitting ? "wait" : "pointer",
               marginBottom: 10,
-              opacity: formState.submitting ? 0.6 : 1,
-              letterSpacing: 0.5,
-              transition: "opacity 0.2s",
+              fontFamily: "'JetBrains Mono', monospace",
+              letterSpacing: 1.5,
+              boxShadow: formState.submitting ? "none" : `0 4px 24px ${accentGlow}`,
+              transition: "all 0.25s",
             }}
           >
-            {formState.submitting
-              ? "Submitting…"
-              : jointCount === 5
-                ? "🏆 Claim My 5 Free Joints"
-                : "🌿 Claim My Free Joint"}
+            {formState.submitting ? "Submitting…" : isPure ? "Claim Five Joints →" : "Claim My Joint →"}
           </button>
 
-          {/* Skip */}
           <button
             type="button"
-            onClick={() => {
-              localStorage.setItem(LS_FORM_SEEN, "true");
-              onSkip();
-            }}
+            onClick={() => { localStorage.setItem(LS_FORM_SEEN, "true"); onSkip(); }}
             style={{
-              width: "100%",
-              padding: "10px",
-              background: "transparent",
-              color: "#444",
-              border: "1px solid #2a2a2a",
-              borderRadius: 8,
-              fontSize: 11,
-              cursor: "pointer",
-              letterSpacing: 0.5,
+              width: "100%", padding: "10px",
+              background: "transparent", color: "#2c2c2c",
+              border: "1px solid #181818", borderRadius: 8,
+              fontSize: 9, cursor: "pointer",
+              fontFamily: "'JetBrains Mono', monospace",
+              letterSpacing: 1.5, textTransform: "uppercase",
+              transition: "color 0.2s",
             }}
           >
             Skip — play anonymous
