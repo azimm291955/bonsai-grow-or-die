@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Winner Info Form</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0a0a0a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .card {
+      background: #111;
+      border: 1px solid #2a2a2a;
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 0 40px rgba(0, 200, 80, 0.08);
+    }
+
+    .badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #00c850, #00ff80);
+      color: #000;
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.75rem;
+      border-radius: 999px;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      color: #ffffff;
+      font-size: 1.75rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      color: #888;
+      font-size: 0.9rem;
+      margin-bottom: 2rem;
+      line-height: 1.5;
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    label {
+      display: block;
+      color: #ccc;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+      letter-spacing: 0.02em;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"] {
+      width: 100%;
+      background: #1a1a1a;
+      border: 1px solid #2e2e2e;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 1rem;
+      padding: 0.75rem 1rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus {
+      border-color: #00c850;
+      box-shadow: 0 0 0 3px rgba(0, 200, 80, 0.15);
+    }
+
+    input::placeholder { color: #555; }
+
+    .submit-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #00c850, #00a840);
+      color: #000;
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      border: none;
+      border-radius: 10px;
+      padding: 0.85rem;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .submit-btn:hover { opacity: 0.9; }
+    .submit-btn:active { transform: scale(0.98); }
+
+    .divider {
+      border: none;
+      border-top: 1px solid #222;
+      margin: 2rem 0 1.5rem;
+    }
+
+    .sponsor {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .sponsor-label {
+      color: #555;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      white-space: nowrap;
+    }
+
+    .sponsor-name {
+      color: #e8c94b;
+      font-size: 0.95rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+
+    .sponsor-blaze {
+      font-size: 1.1rem;
+    }
+
+    .rewards {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .reward-pill {
+      flex: 1;
+      border-radius: 10px;
+      padding: 0.75rem 0.5rem;
+      text-align: center;
+      border: 1px solid #2a2a2a;
+      background: #161616;
+    }
+
+    .reward-pill .reward-icon { font-size: 1.4rem; display: block; margin-bottom: 0.25rem; }
+    .reward-pill .reward-qty { font-size: 1.1rem; font-weight: 800; color: #e8c94b; display: block; }
+    .reward-pill .reward-desc { font-size: 0.7rem; color: #777; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+
+    .claim-code-display {
+      background: #0d1f10;
+      border: 1px solid #00c85044;
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .claim-code-label {
+      color: #666;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      white-space: nowrap;
+    }
+
+    .claim-code-value {
+      color: #00ff80;
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      font-family: 'Courier New', monospace;
+    }
+
+    .success-msg {
+      display: none;
+      text-align: center;
+      color: #00c850;
+      font-size: 1.1rem;
+      font-weight: 700;
+      padding: 1rem 0;
+    }
+
+    @media (max-width: 480px) {
+      .card { padding: 2rem 1.25rem; }
+      h1 { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="badge">🏆 Congratulations, Winner!</div>
+    <h1>Claim Your Prize</h1>
+    <p class="subtitle">Fill out your info below so we can get your prize to you. All fields are required.</p>
+
+    <div class="rewards">
+      <div class="reward-pill">
+        <span class="reward-icon">🚬</span>
+        <span class="reward-qty">1 Joint — $0.01</span>
+        <span class="reward-desc">Just for playing</span>
+      </div>
+      <div class="reward-pill" style="border-color: #e8c94b33; background: #1a1800;">
+        <span class="reward-icon">🏆</span>
+        <span class="reward-qty">5 Joints — $0.05</span>
+        <span class="reward-desc">For winning</span>
+      </div>
+    </div>
+
+    <!-- Claim code display — generated before submit -->
+    <div class="claim-code-display">
+      <span class="claim-code-label">🎫 Your Claim Code</span>
+      <span class="claim-code-value" id="claim-code-display">—</span>
+    </div>
+
+    <!-- ✏️ Replace YOUR_FORM_ID with your Formspree form ID -->
+    <form
+      id="winner-form"
+      action="https://formspree.io/f/xwvwqwqo"
+      method="POST"
+    >
+      <!-- Hidden field — Formspree will capture this and include in auto-response email -->
+      <input type="hidden" name="claim_code" id="claim-code-field" />
+      <div class="form-group">
+        <label for="name">Full Name</label>
+        <input
+          id="name"
+          type="text"
+          name="name"
+          placeholder="Your full name"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input
+          id="email"
+          type="email"
+          name="email"
+          placeholder="you@example.com"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="phone">Phone Number</label>
+        <input
+          id="phone"
+          type="tel"
+          name="phone"
+          placeholder="(555) 000-0000"
+          required
+        />
+      </div>
+
+      <button type="submit" class="submit-btn">Submit My Info →</button>
+      <p class="success-msg" id="success-msg">✅ Got it! We'll be in touch soon.</p>
+    </form>
+
+    <hr class="divider" />
+
+    <div class="sponsor">
+      <span class="sponsor-label">Sponsored by</span>
+      <span class="sponsor-blaze">🔥</span>
+      <span class="sponsor-name">Space Jam Dispensary</span>
+    </div>
+  </div>
+
+  <script>
+    // --- Claim code generation ---
+    function generateClaimCode() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I to avoid confusion
+      let code = 'SPJAM-';
+      for (let i = 0; i < 6; i++) {
+        code += chars[Math.floor(Math.random() * chars.length)];
+      }
+      return code;
+    }
+
+    const claimCode = generateClaimCode();
+    document.getElementById('claim-code-display').textContent = claimCode;
+    document.getElementById('claim-code-field').value = claimCode;
+
+    // --- Form submission ---
+    const form = document.getElementById('winner-form');
+    const successMsg = document.getElementById('success-msg');
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const btn = form.querySelector('.submit-btn');
+      btn.textContent = 'Sending…';
+      btn.disabled = true;
+
+      const data = new FormData(form);
+      const response = await fetch(form.action, {
+        method: 'POST',
+        body: data,
+        headers: { Accept: 'application/json' }
+      });
+
+      if (response.ok) {
+        form.style.display = 'none';
+        successMsg.style.display = 'block';
+      } else {
+        btn.textContent = 'Submit My Info →';
+        btn.disabled = false;
+        alert('Something went wrong. Please try again.');
+      }
+    });
+  </script>
+
+</body>
+</html>
