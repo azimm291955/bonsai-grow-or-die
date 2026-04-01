@@ -1,11 +1,56 @@
 "use server";
 
 import { Redis } from "@upstash/redis";
+import { Resend } from "resend";
 
 const redis = new Redis({
   url: process.env.KV_REST_API_URL!,
   token: process.env.KV_REST_API_TOKEN!,
 });
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+async function sendClaimEmail(data: {
+  name: string;
+  email: string;
+  code: string;
+  jointCount: number;
+}) {
+  const joints = data.jointCount === 5 ? "Five Joints" : "One Joint";
+  const blurb =
+    data.jointCount === 5
+      ? "You beat the game on a pure run — no vulture capital. That's the real win."
+      : "You registered for the hunt. Finish the game by April 20th to unlock four more joints.";
+
+  await resend.emails.send({
+    from: "Bonsai Cultivation <bot@bonsaicultivation.com>",
+    to: data.email,
+    subject: "Your Claim Code is Ready",
+    html: `
+      <div style="font-family: 'Courier New', monospace; background: #0a0a0a; color: #e0e0e0; padding: 48px 32px; max-width: 480px; margin: 0 auto;">
+        <div style="border-top: 2px solid #8BC34A; margin-bottom: 32px;"></div>
+
+        <p style="font-size: 10px; letter-spacing: 3px; color: #8BC34A; text-transform: uppercase; margin: 0 0 8px;">Bonsai Cultivation</p>
+        <h1 style="font-size: 28px; font-weight: 700; color: #e0e0e0; margin: 0 0 8px;">${joints} Claimed</h1>
+        <p style="color: #888; font-size: 13px; line-height: 1.7; margin: 0 0 32px;">Hey ${data.name} — ${blurb}</p>
+
+        <p style="font-size: 10px; letter-spacing: 2px; color: #555; text-transform: uppercase; margin: 0 0 10px;">Your Claim Code</p>
+        <div style="background: #111; border: 1px solid #8BC34A44; border-radius: 10px; padding: 24px; text-align: center; margin-bottom: 32px;">
+          <span style="font-size: 26px; font-weight: 700; letter-spacing: 6px; color: #8BC34A;">${data.code}</span>
+        </div>
+
+        <p style="color: #888; font-size: 12px; line-height: 1.8; margin: 0 0 8px;">
+          Screenshot this email or write the code down. Bring it to Space Jam Dispensary starting <strong style="color: #e0e0e0;">April 24th, 2026</strong>.
+        </p>
+        <p style="color: #555; font-size: 11px; margin: 0 0 32px;">📍 1810 S Broadway, Denver, CO 80210 &nbsp;·&nbsp; 📞 (720) 986-0882</p>
+
+        <div style="border-top: 1px solid #1a1a1a; padding-top: 20px;">
+          <p style="color: #444; font-size: 10px; margin: 0;">— Bonsai Cultivation &nbsp;·&nbsp; bonsaicultivation.com</p>
+        </div>
+      </div>
+    `,
+  });
+}
 
 export interface ClaimRecord {
   code: string;
@@ -49,6 +94,7 @@ export async function createClaimAction(data: {
     // Check for duplicate phone number
     const existingCode = await redis.get<string>(phoneKey);
     if (existingCode) {
+      await sendClaimEmail({ name: data.name, email: data.email, code: existingCode, jointCount: data.jointCount });
       return { success: true, code: existingCode, existing: true };
     }
 
@@ -78,6 +124,14 @@ export async function createClaimAction(data: {
 
     // Index of all codes for the admin list
     await redis.lpush("claims:all", code);
+
+    // Send claim code email via Resend
+    await sendClaimEmail({
+      name: data.name,
+      email: data.email,
+      code,
+      jointCount: data.jointCount,
+    });
 
     return { success: true, code };
   } catch (err) {
