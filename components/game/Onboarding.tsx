@@ -104,7 +104,7 @@ export default function Onboarding() {
           </div>
           <p style={{ color: "#3a3a3a", fontSize: 10, margin: "0 0 12px" }}>Built by the people who actually did it.</p>
           <p style={{
-            color: "#4a2a2a", fontSize: 9, margin: 0, letterSpacing: 0.5, lineHeight: 1.6,
+            color: "#ff2222", fontSize: 9, margin: 0, letterSpacing: 0.5, lineHeight: 1.6,
             fontFamily: "'JetBrains Mono', monospace",
           }}>
             ⚠ MUST BE 21+ TO CLAIM PRIZES — Do not break the law and try to collect your winnings if you are under the legal age.
