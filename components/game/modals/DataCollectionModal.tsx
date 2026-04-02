@@ -200,8 +200,8 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
               fontFamily: "'JetBrains Mono', monospace",
               margin: "0 0 8px",
             }}>
-              Write this down or screenshot it. Bring it to Space Jam Dispensary starting{" "}
-              <span style={{ color: accentCode }}>04/24/2026</span> to collect your{" "}
+              Write this down or screenshot it. Bring it to Space Jam Dispensary{" "}
+              <span style={{ color: accentCode }}>04/24 – 04/30/2026</span> to collect your{" "}
               {isPureCode ? "five penny joints" : "penny joint"}.
             </p>
             <p style={{
@@ -454,7 +454,7 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
                 You survived ten years of market crashes and pricing cliffs that wiped out the competition.
                 Bonsai Cultivation has lived this same grind, and while the work never stops, it is time to celebrate your empire.
                 Head to Space Jam Dispensary on{" "}
-                <span style={{ color: accent, fontWeight: 700 }}>04/24/2026</span>{" "}
+                <span style={{ color: accent, fontWeight: 700 }}>04/24 – 04/30/2026</span>{" "}
                 to claim your victory joints!
               </p>
             ) : (
@@ -464,8 +464,8 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
                 margin: 0,
               }}>
                 <span style={{ color: accent, fontWeight: 700 }}>The race to 4/20 is on!</span> You&apos;ve unlocked one penny joint for joining the hunt! Now, finish the job: beat the game by{" "}
-                <span style={{ color: accent, fontWeight: 700 }}>April 20th</span> to claim four more for a total of five joints. All prizes can be collected in person at Space Jam Dispensary beginning{" "}
-                <span style={{ color: accent, fontWeight: 700 }}>April 24th</span>.
+                <span style={{ color: accent, fontWeight: 700 }}>April 20th</span> to claim four more for a total of five joints. All prizes can be collected in person at Space Jam Dispensary{" "}
+                <span style={{ color: accent, fontWeight: 700 }}>April 24th – April 30th</span>.
               </p>
             )}
           </div>

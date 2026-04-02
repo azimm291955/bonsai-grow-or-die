@@ -69,7 +69,7 @@ async function sendClaimEmail(data: {
         <!-- Instructions -->
         <div style="padding:0 40px 32px;">
           <p style="color:#5a6a5a; font-size:13px; line-height:1.85; margin:0;">
-            Screenshot this email or write the code down. Bring it to Space Jam Dispensary starting <strong style="color:#c8d8c8; font-weight:500;">April 24th, 2026</strong>.
+            Screenshot this email or write the code down. Bring it to Space Jam Dispensary between <strong style="color:#c8d8c8; font-weight:500;">April 24th – April 30th, 2026</strong>. Unclaimed prizes expire after April 30th.
           </p>
         </div>
 

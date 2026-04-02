@@ -262,7 +262,7 @@ export default function WinScreen() {
                         📞 (720) 986-0882
                       </a>
                       <div style={{ color: "#555", fontSize: 9, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5 }}>
-                        Collect your victory joints beginning 04/24/2026
+                        Collect your victory joints 04/24 – 04/30/2026
                       </div>
                     </div>
                   </div>
