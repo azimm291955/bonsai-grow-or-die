@@ -236,11 +236,13 @@ export default function WinScreen() {
                     </span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                    <img
-                      src="/Space_Jam_Logo.png"
-                      alt="Space Jam Dispensary"
-                      style={{ width: 52, height: 52, objectFit: "contain", display: "block", flexShrink: 0 }}
-                    />
+                    <a href="https://share.google/Q0DuaCgJf87dNF4hi" target="_blank" rel="noopener noreferrer" style={{ display: "block", flexShrink: 0 }}>
+                      <img
+                        src="/Space_Jam_Logo.png"
+                        alt="Space Jam Dispensary"
+                        style={{ width: 52, height: 52, objectFit: "contain", display: "block" }}
+                      />
+                    </a>
                     <div>
                       <div style={{
                         fontSize: 11, fontWeight: 700, color: "#bbb", marginBottom: 5,
@@ -249,7 +251,7 @@ export default function WinScreen() {
                         Space Jam Dispensary
                       </div>
                       <a
-                        href="https://www.google.com/maps/place/Space+Jam+Dispensary/@39.6836826,-104.9898433,594m"
+                        href="https://share.google/Q0DuaCgJf87dNF4hi"
                         target="_blank" rel="noopener noreferrer"
                         style={{ color: "#4d8ab5", fontSize: 10, display: "block", textDecoration: "none", marginBottom: 2, fontFamily: "'JetBrains Mono', monospace" }}
                       >
