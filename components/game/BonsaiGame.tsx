@@ -141,8 +141,10 @@ function MainGameUI() {
     const gd = getGameDateFromState(state.gameStartRealMs, state.bonusGameDays);
     // Mar 1, 2016 = year 2016, month 3, day >= 1
     if (gd.year > 2016 || (gd.year === 2016 && gd.month >= 3)) {
-      setShowDataForm(true);
-      setPaused(true); // Pause the game while the data collection modal is open
+      setShowDataForm((prev) => {
+        if (!prev) setPaused(true); // Pause the game only on first open
+        return true;
+      });
     }
   }, [state, setPaused]);
 
