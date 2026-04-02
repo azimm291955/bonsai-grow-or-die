@@ -507,10 +507,10 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
           </div>
 
           <p style={{
-            color: "#666", fontSize: 9, margin: 0,
+            color: "#ff2222", fontSize: 9, margin: 0,
             fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1,
           }}>
-            MUST BE 21+ · INFO USED ONLY FOR REWARD REDEMPTION
+            MUST BE 21+
           </p>
         </div>
 
