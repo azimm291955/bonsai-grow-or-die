@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { getClaimStatusAction } from "@/app/actions/claims";
 
 const AGE_VERIFIED_KEY = "bonsai_age_verified";
 
@@ -11,11 +12,20 @@ export default function AgeVerification({
   children: React.ReactNode;
 }) {
   const [verified, setVerified] = useState<boolean | null>(null);
+  const [claimCount, setClaimCount] = useState<number | null>(null);
+  const capacity = 2000;
 
   useEffect(() => {
     const stored = localStorage.getItem(AGE_VERIFIED_KEY);
     setVerified(stored === "true");
   }, []);
+
+  useEffect(() => {
+    // Only fetch when the gate is actually showing (don't bother for verified users)
+    if (verified === false) {
+      getClaimStatusAction().then(({ count }) => setClaimCount(count));
+    }
+  }, [verified]);
 
   const handleYes = () => {
     localStorage.setItem(AGE_VERIFIED_KEY, "true");
@@ -88,6 +98,31 @@ export default function AgeVerification({
         >
           We have to ask, are you at least 21 years of age?
         </p>
+
+        {/* Prestige capacity line */}
+        <div style={{
+          display: "flex", alignItems: "center", gap: 8,
+          background: "rgba(26,77,46,0.08)",
+          border: "1px solid rgba(26,77,46,0.2)",
+          borderRadius: 20, padding: "5px 16px",
+        }}>
+          <span style={{
+            width: 5, height: 5, borderRadius: "50%",
+            background: "#1a4d2e", display: "inline-block", flexShrink: 0,
+          }} />
+          <span style={{
+            fontSize: "10px", letterSpacing: "0.12em", color: "#1a4d2e",
+            fontFamily: "'JetBrains Mono', 'Courier New', monospace",
+            textTransform: "uppercase", fontWeight: 700,
+          }}>
+            {claimCount === null
+              ? "Limited to 2,000 players"
+              : claimCount < capacity
+                ? `Limited to 2,000 · ${(capacity - claimCount).toLocaleString()} spots remaining`
+                : "2,000 of 2,000 · Sold Out"}
+          </span>
+        </div>
+
         <button
           onClick={handleYes}
           style={{

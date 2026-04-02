@@ -1,11 +1,19 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useGameStore } from "@/store/useGameStore";
+import { getClaimStatusAction } from "@/app/actions/claims";
 
 export default function Onboarding() {
   const nameInput = useGameStore((s) => s.ui.nameInput);
   const setNameInput = useGameStore((s) => s.setNameInput);
   const startGame = useGameStore((s) => s.startGame);
+
+  const [claimCount, setClaimCount] = useState<number | null>(null);
+  const capacity = 2000;
+  useEffect(() => {
+    getClaimStatusAction().then(({ count }) => setClaimCount(count));
+  }, []);
 
   return (
     <div style={{
@@ -51,11 +59,37 @@ export default function Onboarding() {
             </div>
           ))}
         </div>
-        <p style={{ color: "#999", fontSize: 13, lineHeight: 1.8, marginBottom: 28, maxWidth: 360, margin: "0 auto 28px", animation: "fade-up 0.8s ease-out 0.5s both" }}>
+        <p style={{ color: "#999", fontSize: 13, lineHeight: 1.8, marginBottom: 12, maxWidth: 360, margin: "0 auto 12px", animation: "fade-up 0.8s ease-out 0.5s both" }}>
           It&apos;s <span style={{ color: "#fff", fontWeight: 600 }}>December 2015</span>. Rec cannabis has been legal for two years and the gold rush is on.
           You&apos;re the new operator of <span style={{ color: "#8BC34A", fontWeight: 600 }}>Bonsai Cultivation</span> — a scrappy Denver wholesale grow with $1M and one room.
           <br /><br /><span style={{ color: "#888" }}>Survive to <span style={{ color: "#FFB74D", fontWeight: 700 }}>4/20/2026</span> and earn a penny joint.</span>
         </p>
+
+        {/* Prestige capacity badge */}
+        <div style={{
+          display: "inline-flex", alignItems: "center", gap: 8,
+          background: "rgba(255,183,77,0.08)",
+          border: "1px solid rgba(255,183,77,0.25)",
+          borderRadius: 20, padding: "5px 14px",
+          marginBottom: 28, animation: "fade-up 0.8s ease-out 0.55s both",
+        }}>
+          <span style={{
+            width: 5, height: 5, borderRadius: "50%",
+            background: "#FFB74D",
+            display: "inline-block", flexShrink: 0,
+          }} />
+          <span style={{
+            fontSize: 8, letterSpacing: 2, color: "#FFB74D",
+            fontFamily: "'JetBrains Mono', monospace",
+            textTransform: "uppercase", fontWeight: 700,
+          }}>
+            {claimCount === null
+              ? "Limited to 2,000 players"
+              : claimCount < capacity
+                ? `Limited to 2,000 · ${(capacity - claimCount).toLocaleString()} spots remaining`
+                : "2,000 of 2,000 · Sold Out"}
+          </span>
+        </div>
         <div style={{ animation: "fade-up 0.8s ease-out 0.6s both" }}>
           <input type="text" value={nameInput} onChange={e => setNameInput(e.target.value)} onKeyDown={e => e.key === "Enter" && startGame()} placeholder="Enter your name, grower" maxLength={24} style={{ width: "100%", padding: "14px 20px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(139,195,74,0.2)", borderRadius: 12, color: "#fff", fontSize: 16, outline: "none", boxSizing: "border-box", marginBottom: 12, textAlign: "center", letterSpacing: 1, transition: "border-color 0.3s, box-shadow 0.3s" }} onFocus={e => { e.currentTarget.style.borderColor = "rgba(139,195,74,0.5)"; e.currentTarget.style.boxShadow = "0 0 20px rgba(139,195,74,0.1)"; }} onBlur={e => { e.currentTarget.style.borderColor = "rgba(139,195,74,0.2)"; e.currentTarget.style.boxShadow = "none"; }} />
         </div>

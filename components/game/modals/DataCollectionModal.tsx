@@ -60,9 +60,13 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
 
   // ── Check if registration is still open ──
   const [regStatus, setRegStatus] = useState<"loading" | "open" | "deadline" | "capacity">("loading");
+  const [claimCount, setClaimCount] = useState<number>(0);
+  const [claimCapacity] = useState<number>(2000);
   useEffect(() => {
-    getClaimStatusAction().then(({ isOpen, reason }) => {
+    getClaimStatusAction().then(({ isOpen, reason, count, capacity: cap }) => {
       setRegStatus(isOpen ? "open" : (reason ?? "deadline"));
+      setClaimCount(count);
+      if (cap) setClaimCount(count); // capacity is constant, keep as 2000
     });
   }, []);
 
@@ -391,11 +395,35 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
 
           <h2 className={shimmerClass} style={{
             fontFamily: "'Cormorant Garamond', Georgia, serif",
-            fontSize: 30, fontWeight: 700, margin: "0 0 10px",
+            fontSize: 30, fontWeight: 700, margin: "0 0 12px",
             letterSpacing: 0.5, lineHeight: 1.1,
           }}>
             {isPure ? "Claim Five Penny Joints" : "Claim Your Penny Joint"}
           </h2>
+
+          {/* Prestige / capacity badge */}
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            background: `${accent}12`,
+            border: `1px solid ${accent}35`,
+            borderRadius: 20, padding: "5px 14px",
+            marginBottom: 14,
+          }}>
+            <span style={{
+              width: 5, height: 5, borderRadius: "50%",
+              background: claimCount < claimCapacity ? accent : "#ef5350",
+              display: "inline-block", flexShrink: 0,
+            }} />
+            <span style={{
+              fontSize: 8, letterSpacing: 2, color: accent,
+              fontFamily: "'JetBrains Mono', monospace",
+              textTransform: "uppercase", fontWeight: 700,
+            }}>
+              {claimCount < claimCapacity
+                ? `Limited to 2,000 · ${(claimCapacity - claimCount).toLocaleString()} spots remaining`
+                : "2,000 of 2,000 · Sold Out"}
+            </span>
+          </div>
 
           <p style={{
             color: "#c0c0c0", fontSize: 12, lineHeight: 1.7,
