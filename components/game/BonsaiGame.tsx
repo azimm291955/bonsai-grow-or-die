@@ -131,6 +131,7 @@ function MainGameUI() {
   const activeTab = useGameStore((s) => s.ui.activeTab);
   const setActiveTab = useGameStore((s) => s.setActiveTab);
   const [showDataForm, setShowDataForm] = useState(false);
+  const setPaused = useGameStore((s) => s.setPaused);
 
   // Show data-collection popup once the game date reaches Mar 1, 2016
   useEffect(() => {
@@ -141,8 +142,9 @@ function MainGameUI() {
     // Mar 1, 2016 = year 2016, month 3, day >= 1
     if (gd.year > 2016 || (gd.year === 2016 && gd.month >= 3)) {
       setShowDataForm(true);
+      setPaused(true); // Pause the game while the data collection modal is open
     }
-  }, [state]);
+  }, [state, setPaused]);
 
   if (!state) return null;
 
@@ -296,8 +298,8 @@ function MainGameUI() {
       {showDataForm && (
         <DataCollectionModal
           jointCount={1}
-          onSkip={() => setShowDataForm(false)}
-          onSuccess={() => setShowDataForm(false)}
+          onSkip={() => { setShowDataForm(false); setPaused(false); }}
+          onSuccess={() => { setShowDataForm(false); setPaused(false); }}
         />
       )}
     </div>

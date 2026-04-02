@@ -115,9 +115,11 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
         position: "fixed", inset: 0,
         background: "rgba(4,4,4,0.92)",
         zIndex: 9999,
-        display: "flex", alignItems: "center", justifyContent: "center",
+        display: "flex", alignItems: "flex-start", justifyContent: "center",
         padding: "16px",
         backdropFilter: "blur(8px)",
+        overflowY: "auto",
+        WebkitOverflowScrolling: "touch",
       }}>
         <div className="modal-enter" style={{
           background: "linear-gradient(160deg, #141414 0%, #0f0f0f 100%)",
@@ -128,6 +130,8 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
           boxShadow: `0 0 0 1px rgba(255,255,255,0.03), 0 40px 100px rgba(0,0,0,0.8)`,
           overflow: "hidden",
           textAlign: "center",
+          margin: "auto 0",
+          flexShrink: 0,
         }}>
           <div style={{ height: 2, background: `linear-gradient(90deg, transparent 0%, ${accentCode} 30%, ${accentCode} 70%, transparent 100%)` }} />
           <div style={{ padding: "36px 28px 32px" }}>
@@ -248,9 +252,11 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
       position: "fixed", inset: 0,
       background: "rgba(4,4,4,0.92)",
       zIndex: 9999,
-      display: "flex", alignItems: "center", justifyContent: "center",
+      display: "flex", alignItems: "flex-start", justifyContent: "center",
       padding: "16px",
       backdropFilter: "blur(8px)",
+      overflowY: "auto",
+      WebkitOverflowScrolling: "touch",
     }}>
       <div className="modal-enter" style={{
         background: "linear-gradient(160deg, #141414 0%, #0f0f0f 100%)",
@@ -261,6 +267,8 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
         boxShadow: `0 0 0 1px rgba(255,255,255,0.03), 0 40px 100px rgba(0,0,0,0.8), 0 0 80px ${accentGlow}`,
         overflow: "hidden",
         position: "relative",
+        margin: "auto 0",
+        flexShrink: 0,
       }}>
 
         {/* Top accent bar */}
