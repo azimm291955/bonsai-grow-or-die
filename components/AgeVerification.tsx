@@ -99,27 +99,23 @@ export default function AgeVerification({
           We have to ask, are you at least 21 years of age?
         </p>
 
-        {/* Prestige capacity line */}
+        {/* Contest urgency line */}
         <div style={{
-          display: "flex", alignItems: "center", gap: 8,
-          background: "rgba(26,77,46,0.08)",
-          border: "1px solid rgba(26,77,46,0.2)",
-          borderRadius: 20, padding: "5px 16px",
+          background: "rgba(26,77,46,0.07)",
+          border: "1px solid rgba(26,77,46,0.18)",
+          borderRadius: 10, padding: "10px 18px",
+          textAlign: "center",
         }}>
           <span style={{
-            width: 5, height: 5, borderRadius: "50%",
-            background: "#1a4d2e", display: "inline-block", flexShrink: 0,
-          }} />
-          <span style={{
-            fontSize: "10px", letterSpacing: "0.12em", color: "#1a4d2e",
-            fontFamily: "'JetBrains Mono', 'Courier New', monospace",
-            textTransform: "uppercase", fontWeight: 700,
+            fontSize: "12px", color: "#1a4d2e",
+            fontFamily: "'Inter', sans-serif",
+            fontWeight: 600, lineHeight: 1.5,
           }}>
             {claimCount === null
-              ? "Limited to 2,000 players"
+              ? "Final Cuts: securing your spot…"
               : claimCount < capacity
-                ? `Limited to 2,000 · ${(capacity - claimCount).toLocaleString()} spots remaining`
-                : "2,000 of 2,000 · Sold Out"}
+                ? `Final Cuts: ${(capacity - claimCount).toLocaleString()} / 2,000 spots remain. Secure your winnings before it's too late!`
+                : "Final Cuts: 0 / 2,000 spots remain. All claimed!"}
           </span>
         </div>
 
