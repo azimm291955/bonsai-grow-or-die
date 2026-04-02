@@ -76,13 +76,15 @@ async function sendClaimEmail(data: {
         <!-- Space Jam pickup card -->
         <div style="margin:0 40px 44px; border-radius:12px; overflow:hidden; border:1px solid rgba(0,170,255,0.18);">
           <div style="background:#040d15; padding:30px 24px 26px; text-align:center; border-bottom:1px solid rgba(0,170,255,0.12);">
-            <img src="https://bonsai-game.vercel.app/Space_Jam_Logo.png" alt="Space Jam Dispensary" width="108" style="display:block; margin:0 auto; width:108px; height:auto;">
+            <a href="https://share.google/Q0DuaCgJf87dNF4hi" target="_blank" style="display:block;">
+              <img src="https://bonsai-game.vercel.app/Space_Jam_Logo.png" alt="Space Jam Dispensary" width="108" style="display:block; margin:0 auto; width:108px; height:auto;">
+            </a>
           </div>
           <div style="background:#050d14; padding:22px 24px; text-align:center;">
             <p style="font-family:'Courier New',Courier,monospace; font-size:9px; letter-spacing:3px; color:#0088bb; text-transform:uppercase; margin:0 0 12px;">Pickup Location</p>
             <p style="color:#6a8a8a; font-size:13px; line-height:2; margin:0;">
-              📍 1810 S Broadway, Denver, CO 80210<br>
-              📞 (720) 986-0882
+              <a href="https://share.google/Q0DuaCgJf87dNF4hi" target="_blank" style="color:#6a8a8a; text-decoration:none;">📍 1810 S Broadway, Denver, CO 80210</a><br>
+              <a href="tel:7209860882" style="color:#6a8a8a; text-decoration:none;">📞 (720) 986-0882</a>
             </p>
           </div>
         </div>
