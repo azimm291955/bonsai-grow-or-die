@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { createClaimAction } from "@/app/actions/claims";
+import { useState, useEffect } from "react";
+import { createClaimAction, getClaimStatusAction } from "@/app/actions/claims";
 
 // ─── localStorage keys ───
 export const LS_FORM_SEEN = "bonsai:form_seen";
@@ -57,6 +57,14 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
   const [submitting, setSubmitting] = useState(false);
   const [claimCode, setClaimCode] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // ── Check if registration is still open ──
+  const [regStatus, setRegStatus] = useState<"loading" | "open" | "deadline" | "capacity">("loading");
+  useEffect(() => {
+    getClaimStatusAction().then(({ isOpen, reason }) => {
+      setRegStatus(isOpen ? "open" : (reason ?? "deadline"));
+    });
+  }, []);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -163,7 +171,7 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
               fontSize: 28, fontWeight: 700, margin: "0 0 20px",
               color: "#e0e0e0",
             }}>
-              {isPureCode ? "Five Joints Claimed" : "One Joint Claimed"}
+              {isPureCode ? "Five Penny Joints Claimed" : "One Penny Joint Claimed"}
             </h2>
 
             {/* The code itself */}
@@ -190,7 +198,7 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
             }}>
               Write this down or screenshot it. Bring it to Space Jam Dispensary starting{" "}
               <span style={{ color: accentCode }}>04/24/2026</span> to collect your{" "}
-              {isPureCode ? "five joints" : "joint"}.
+              {isPureCode ? "five penny joints" : "penny joint"}.
             </p>
             <p style={{
               color: "#555", fontSize: 9, lineHeight: 1.6,
@@ -221,6 +229,79 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
               }}
             >
               Let&apos;s Go →
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Loading / Closed states ──
+  if (regStatus === "loading") {
+    return (
+      <div style={{
+        position: "fixed", inset: 0, background: "rgba(4,4,4,0.92)",
+        zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center",
+        backdropFilter: "blur(8px)",
+      }}>
+        <p style={{ color: "#555", fontSize: 11, fontFamily: "'JetBrains Mono', monospace" }}>
+          Checking registration status…
+        </p>
+      </div>
+    );
+  }
+
+  if (regStatus === "deadline" || regStatus === "capacity") {
+    const closedAccent = "#7AAB3A";
+    const closedMsg = regStatus === "deadline"
+      ? { headline: "Contest Closed", body: "The Bonsai: Grow or Die contest ended at midnight on 4/20/2026. Thank you for playing!" }
+      : { headline: "Sold Out", body: "All 2,000 penny joints have been claimed. Thank you for playing — the hunt was real." };
+    return (
+      <div style={{
+        position: "fixed", inset: 0, background: "rgba(4,4,4,0.92)",
+        zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center",
+        padding: "16px", backdropFilter: "blur(8px)",
+      }}>
+        <div style={{
+          background: "linear-gradient(160deg, #141414 0%, #0f0f0f 100%)",
+          border: `1px solid ${closedAccent}28`,
+          borderRadius: 20, maxWidth: 390, width: "100%",
+          boxShadow: "0 0 0 1px rgba(255,255,255,0.03), 0 40px 100px rgba(0,0,0,0.8)",
+          overflow: "hidden", textAlign: "center",
+        }}>
+          <div style={{ height: 2, background: `linear-gradient(90deg, transparent 0%, ${closedAccent} 30%, ${closedAccent} 70%, transparent 100%)` }} />
+          <div style={{ padding: "40px 28px 36px" }}>
+            <div style={{ fontSize: 40, marginBottom: 16 }}>{regStatus === "capacity" ? "🌿" : "🏁"}</div>
+            <div style={{
+              fontSize: 8, letterSpacing: 3.5, color: closedAccent,
+              fontFamily: "'JetBrains Mono', monospace",
+              marginBottom: 10, textTransform: "uppercase",
+            }}>
+              Bonsai: Grow or Die
+            </div>
+            <h2 style={{
+              fontFamily: "'Cormorant Garamond', Georgia, serif",
+              fontSize: 28, fontWeight: 700, margin: "0 0 16px", color: "#e0e0e0",
+            }}>
+              {closedMsg.headline}
+            </h2>
+            <p style={{
+              color: "#888", fontSize: 11, lineHeight: 1.8,
+              fontFamily: "'JetBrains Mono', monospace", margin: "0 0 28px",
+            }}>
+              {closedMsg.body}
+            </p>
+            <button
+              onClick={() => { localStorage.setItem(LS_FORM_SEEN, "true"); onSkip(); }}
+              style={{
+                width: "100%", padding: "13px",
+                background: `linear-gradient(135deg, #4a7a22, #8BC34A)`,
+                color: "#fff", border: "none", borderRadius: 10,
+                fontSize: 11, fontWeight: 700, cursor: "pointer",
+                fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1.5,
+              }}
+            >
+              Keep Playing →
             </button>
           </div>
         </div>
@@ -313,7 +394,7 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
             fontSize: 30, fontWeight: 700, margin: "0 0 10px",
             letterSpacing: 0.5, lineHeight: 1.1,
           }}>
-            {isPure ? "Claim Five Free Joints" : "Claim Your Free Joint"}
+            {isPure ? "Claim Five Penny Joints" : "Claim Your Penny Joint"}
           </h2>
 
           <p style={{
@@ -354,7 +435,7 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
                 fontFamily: "'JetBrains Mono', monospace",
                 margin: 0,
               }}>
-                <span style={{ color: accent, fontWeight: 700 }}>The race to 4/20 is on!</span> You&apos;ve unlocked one free joint for joining the hunt! Now, finish the job: beat the game by{" "}
+                <span style={{ color: accent, fontWeight: 700 }}>The race to 4/20 is on!</span> You&apos;ve unlocked one penny joint for joining the hunt! Now, finish the job: beat the game by{" "}
                 <span style={{ color: accent, fontWeight: 700 }}>April 20th</span> to claim four more for a total of five joints. All prizes can be collected in person at Space Jam Dispensary beginning{" "}
                 <span style={{ color: accent, fontWeight: 700 }}>April 24th</span>.
               </p>
@@ -495,7 +576,7 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
               transition: "all 0.25s",
             }}
           >
-            {submitting ? "Submitting…" : isPure ? "Claim Five Joints →" : "Claim My Joint →"}
+            {submitting ? "Submitting…" : isPure ? "Claim Five Penny Joints →" : "Claim My Penny Joint →"}
           </button>
 
           <button

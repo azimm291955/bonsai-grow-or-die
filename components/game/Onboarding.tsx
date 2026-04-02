@@ -54,7 +54,7 @@ export default function Onboarding() {
         <p style={{ color: "#999", fontSize: 13, lineHeight: 1.8, marginBottom: 28, maxWidth: 360, margin: "0 auto 28px", animation: "fade-up 0.8s ease-out 0.5s both" }}>
           It&apos;s <span style={{ color: "#fff", fontWeight: 600 }}>December 2015</span>. Rec cannabis has been legal for two years and the gold rush is on.
           You&apos;re the new operator of <span style={{ color: "#8BC34A", fontWeight: 600 }}>Bonsai Cultivation</span> — a scrappy Denver wholesale grow with $1M and one room.
-          <br /><br /><span style={{ color: "#888" }}>Survive to <span style={{ color: "#FFB74D", fontWeight: 700 }}>4/20/2026</span> and earn a free joint.</span>
+          <br /><br /><span style={{ color: "#888" }}>Survive to <span style={{ color: "#FFB74D", fontWeight: 700 }}>4/20/2026</span> and earn a penny joint.</span>
         </p>
         <div style={{ animation: "fade-up 0.8s ease-out 0.6s both" }}>
           <input type="text" value={nameInput} onChange={e => setNameInput(e.target.value)} onKeyDown={e => e.key === "Enter" && startGame()} placeholder="Enter your name, grower" maxLength={24} style={{ width: "100%", padding: "14px 20px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(139,195,74,0.2)", borderRadius: 12, color: "#fff", fontSize: 16, outline: "none", boxSizing: "border-box", marginBottom: 12, textAlign: "center", letterSpacing: 1, transition: "border-color 0.3s, box-shadow 0.3s" }} onFocus={e => { e.currentTarget.style.borderColor = "rgba(139,195,74,0.5)"; e.currentTarget.style.boxShadow = "0 0 20px rgba(139,195,74,0.1)"; }} onBlur={e => { e.currentTarget.style.borderColor = "rgba(139,195,74,0.2)"; e.currentTarget.style.boxShadow = "none"; }} />

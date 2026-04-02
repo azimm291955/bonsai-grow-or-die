@@ -8,6 +8,11 @@ const redis = new Redis({
   token: process.env.KV_REST_API_TOKEN!,
 });
 
+// ─── Contest rules ───────────────────────────────────────────────────────────
+// Midnight MDT (UTC-6) at the end of 4/20/2026 = 2026-04-21T06:00:00Z
+const GAME_END = new Date("2026-04-21T06:00:00Z");
+const CLAIM_CAPACITY = 2000;
+
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 async function sendClaimEmail(data: {
@@ -119,6 +124,30 @@ function normalizePhone(phone: string): string {
   return phone.replace(/\D/g, "");
 }
 
+/** Returns whether registration is currently open and how many entries have been claimed */
+export async function getClaimStatusAction(): Promise<{
+  isOpen: boolean;
+  reason?: "deadline" | "capacity";
+  count: number;
+  capacity: number;
+}> {
+  try {
+    const now = new Date();
+    if (now >= GAME_END) {
+      const count = await redis.llen("claims:all");
+      return { isOpen: false, reason: "deadline", count, capacity: CLAIM_CAPACITY };
+    }
+    const count = await redis.llen("claims:all");
+    if (count >= CLAIM_CAPACITY) {
+      return { isOpen: false, reason: "capacity", count, capacity: CLAIM_CAPACITY };
+    }
+    return { isOpen: true, count, capacity: CLAIM_CAPACITY };
+  } catch {
+    // On error, default to open so we don't block legitimate players
+    return { isOpen: true, count: 0, capacity: CLAIM_CAPACITY };
+  }
+}
+
 /** Create a new claim code and store it in KV. Returns the code.
  *  If the phone number already has a claim, returns the existing code instead. */
 export async function createClaimAction(data: {
@@ -127,15 +156,26 @@ export async function createClaimAction(data: {
   phone: string;
   jointCount: number;
   gameEvent: string;
-}): Promise<{ success: true; code: string; existing?: boolean } | { success: false; error: string }> {
+}): Promise<{ success: true; code: string; existing?: boolean } | { success: false; error: string; reason?: "deadline" | "capacity" }> {
   try {
     const phoneKey = `phone:${normalizePhone(data.phone)}`;
 
-    // Check for duplicate phone number
+    // Check for duplicate phone number first — existing entries are always allowed
     const existingCode = await redis.get<string>(phoneKey);
     if (existingCode) {
       await sendClaimEmail({ name: data.name, email: data.email, code: existingCode, jointCount: data.jointCount });
       return { success: true, code: existingCode, existing: true };
+    }
+
+    // Deadline check — new entries not allowed after game end
+    if (new Date() >= GAME_END) {
+      return { success: false, error: "Registration closed — the contest ended at midnight on 4/20/2026.", reason: "deadline" };
+    }
+
+    // Capacity check — no more than 2,000 entries
+    const currentCount = await redis.llen("claims:all");
+    if (currentCount >= CLAIM_CAPACITY) {
+      return { success: false, error: "All 2,000 penny joints have been claimed. Thank you for playing!", reason: "capacity" };
     }
 
     // Generate a unique code (retry on collision)
