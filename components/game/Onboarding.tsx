@@ -102,7 +102,13 @@ export default function Onboarding() {
               <span key={tag} style={{ fontSize: 9, color: "#555", letterSpacing: 1, fontWeight: 600, padding: "3px 8px", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 6 }}>{tag}</span>
             ))}
           </div>
-          <p style={{ color: "#3a3a3a", fontSize: 10, margin: 0 }}>Built by the people who actually did it.</p>
+          <p style={{ color: "#3a3a3a", fontSize: 10, margin: "0 0 12px" }}>Built by the people who actually did it.</p>
+          <p style={{
+            color: "#4a2a2a", fontSize: 9, margin: 0, letterSpacing: 0.5, lineHeight: 1.6,
+            fontFamily: "'JetBrains Mono', monospace",
+          }}>
+            ⚠ MUST BE 21+ TO CLAIM PRIZES — Do not break the law and try to collect your winnings if you are under the legal age.
+          </p>
         </div>
       </div>
     </div>
