@@ -27,26 +27,66 @@ async function sendClaimEmail(data: {
     to: data.email,
     subject: "Your Claim Code is Ready",
     html: `
-      <div style="font-family: 'Courier New', monospace; background: #0a0a0a; color: #e0e0e0; padding: 48px 32px; max-width: 480px; margin: 0 auto;">
-        <div style="border-top: 2px solid #8BC34A; margin-bottom: 32px;"></div>
+      <div style="background:#080c08; max-width:520px; margin:0 auto; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
 
-        <p style="font-size: 10px; letter-spacing: 3px; color: #8BC34A; text-transform: uppercase; margin: 0 0 8px;">Bonsai Cultivation</p>
-        <h1 style="font-size: 28px; font-weight: 700; color: #e0e0e0; margin: 0 0 8px;">${joints} Claimed</h1>
-        <p style="color: #888; font-size: 13px; line-height: 1.7; margin: 0 0 32px;">Hey ${data.name} — ${blurb}</p>
+        <!-- Top accent bar -->
+        <div style="height:3px; background:#7ec725;"></div>
 
-        <p style="font-size: 10px; letter-spacing: 2px; color: #555; text-transform: uppercase; margin: 0 0 10px;">Your Claim Code</p>
-        <div style="background: #111; border: 1px solid #8BC34A44; border-radius: 10px; padding: 24px; text-align: center; margin-bottom: 32px;">
-          <span style="font-size: 26px; font-weight: 700; letter-spacing: 6px; color: #8BC34A;">${data.code}</span>
+        <!-- Header -->
+        <div style="padding:26px 40px 22px; border-bottom:1px solid #141f14;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+            <tr>
+              <td><span style="font-family:'Courier New',Courier,monospace; font-size:9px; letter-spacing:4px; color:#7ec725; text-transform:uppercase;">Bonsai Cultivation</span></td>
+              <td align="right"><span style="font-size:16px; opacity:0.5;">🌿</span></td>
+            </tr>
+          </table>
         </div>
 
-        <p style="color: #888; font-size: 12px; line-height: 1.8; margin: 0 0 8px;">
-          Screenshot this email or write the code down. Bring it to Space Jam Dispensary starting <strong style="color: #e0e0e0;">April 24th, 2026</strong>.
-        </p>
-        <p style="color: #555; font-size: 11px; margin: 0 0 32px;">📍 1810 S Broadway, Denver, CO 80210 &nbsp;·&nbsp; 📞 (720) 986-0882</p>
-
-        <div style="border-top: 1px solid #1a1a1a; padding-top: 20px;">
-          <p style="color: #444; font-size: 10px; margin: 0;">— Bonsai Cultivation &nbsp;·&nbsp; bonsaicultivation.com</p>
+        <!-- Hero -->
+        <div style="padding:44px 40px 36px;">
+          <p style="font-family:'Courier New',Courier,monospace; font-size:9px; letter-spacing:3px; color:#3d5c3d; text-transform:uppercase; margin:0 0 14px;">Prize Confirmed</p>
+          <h1 style="font-family:Georgia,'Times New Roman',serif; font-size:50px; font-weight:900; color:#eef5ee; line-height:1.05; margin:0 0 20px; letter-spacing:-1px;">${joints}<br>Claimed.</h1>
+          <p style="color:#6a7a6a; font-size:14px; line-height:1.8; margin:0; max-width:360px;">Hey ${data.name} — ${blurb}</p>
         </div>
+
+        <!-- Divider -->
+        <div style="height:1px; background:#141f14; margin:0 40px;"></div>
+
+        <!-- Claim code -->
+        <div style="padding:36px 40px;">
+          <p style="font-family:'Courier New',Courier,monospace; font-size:9px; letter-spacing:3px; color:#3d5c3d; text-transform:uppercase; margin:0 0 14px;">Your Claim Code</p>
+          <div style="background:#040a04; border:1px solid rgba(126,199,37,0.22); border-radius:10px; padding:32px 24px; text-align:center;">
+            <span style="font-family:'Courier New',Courier,monospace; font-size:26px; font-weight:bold; letter-spacing:7px; color:#a8e040;">${data.code}</span>
+          </div>
+          <p style="font-family:'Courier New',Courier,monospace; font-size:9px; letter-spacing:2px; color:#2d3d2d; text-align:center; margin:10px 0 0;">One-time use &nbsp;·&nbsp; Non-transferable</p>
+        </div>
+
+        <!-- Instructions -->
+        <div style="padding:0 40px 32px;">
+          <p style="color:#5a6a5a; font-size:13px; line-height:1.85; margin:0;">
+            Screenshot this email or write the code down. Bring it to Space Jam Dispensary starting <strong style="color:#c8d8c8; font-weight:500;">April 24th, 2026</strong>.
+          </p>
+        </div>
+
+        <!-- Space Jam pickup card -->
+        <div style="margin:0 40px 44px; border-radius:12px; overflow:hidden; border:1px solid rgba(0,170,255,0.18);">
+          <div style="background:#040d15; padding:30px 24px 26px; text-align:center; border-bottom:1px solid rgba(0,170,255,0.12);">
+            <img src="https://bonsaicultivation.com/Space_Jam_Logo.png" alt="Space Jam Dispensary" width="108" style="display:block; margin:0 auto; width:108px; height:auto;">
+          </div>
+          <div style="background:#050d14; padding:22px 24px; text-align:center;">
+            <p style="font-family:'Courier New',Courier,monospace; font-size:9px; letter-spacing:3px; color:#0088bb; text-transform:uppercase; margin:0 0 12px;">Pickup Location</p>
+            <p style="color:#6a8a8a; font-size:13px; line-height:2; margin:0;">
+              📍 1810 S Broadway, Denver, CO 80210<br>
+              📞 (720) 986-0882
+            </p>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="margin:0 40px; padding:20px 0 36px; border-top:1px solid #0f180f;">
+          <p style="font-family:'Courier New',Courier,monospace; color:#2a3a2a; font-size:10px; margin:0;">— Bonsai Cultivation &nbsp;·&nbsp; bonsaicultivation.com</p>
+        </div>
+
       </div>
     `,
   });
