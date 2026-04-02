@@ -76,7 +76,7 @@ async function sendClaimEmail(data: {
         <!-- Space Jam pickup card -->
         <div style="margin:0 40px 44px; border-radius:12px; overflow:hidden; border:1px solid rgba(0,170,255,0.18);">
           <div style="background:#040d15; padding:30px 24px 26px; text-align:center; border-bottom:1px solid rgba(0,170,255,0.12);">
-            <img src="https://bonsaicultivation.com/Space_Jam_Logo.png" alt="Space Jam Dispensary" width="108" style="display:block; margin:0 auto; width:108px; height:auto;">
+            <img src="https://bonsai-game.vercel.app/Space_Jam_Logo.png" alt="Space Jam Dispensary" width="108" style="display:block; margin:0 auto; width:108px; height:auto;">
           </div>
           <div style="background:#050d14; padding:22px 24px; text-align:center;">
             <p style="font-family:'Courier New',Courier,monospace; font-size:9px; letter-spacing:3px; color:#0088bb; text-transform:uppercase; margin:0 0 12px;">Pickup Location</p>
@@ -85,6 +85,12 @@ async function sendClaimEmail(data: {
               📞 (720) 986-0882
             </p>
           </div>
+        </div>
+
+        <!-- 21+ warning -->
+        <div style="margin:0 40px 28px; background:#1a0a0a; border:1px solid rgba(200,50,50,0.25); border-radius:10px; padding:16px 20px; text-align:center;">
+          <p style="font-family:'Courier New',Courier,monospace; font-size:9px; letter-spacing:2px; color:#c03030; text-transform:uppercase; font-weight:bold; margin:0 0 6px;">Must Be 21+ To Claim</p>
+          <p style="color:#7a4a4a; font-size:11px; line-height:1.7; margin:0;">Do not break the law and try to collect your winnings if you are under the legal age!</p>
         </div>
 
         <!-- Footer -->
