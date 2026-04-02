@@ -24,6 +24,14 @@ function calcAge(dob: string): number {
   return age;
 }
 
+/** Format a phone number string to (XXX) XXX-XXXX as the user types */
+function formatPhone(raw: string): string {
+  const digits = raw.replace(/\D/g, "").slice(0, 10);
+  if (digits.length <= 3) return digits.length ? `(${digits}` : "";
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
 /** Max allowable DOB = 21 years ago today */
 function maxDob(): string {
   const d = new Date();
@@ -45,12 +53,19 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
   const [dob, setDob] = useState("");
   const [ageError, setAgeError] = useState("");
   const [focused, setFocused] = useState<string | null>(null);
+  const [phoneError, setPhoneError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [claimCode, setClaimCode] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length !== 10) {
+      setPhoneError("Enter a valid 10-digit US phone number.");
+      return;
+    }
+    setPhoneError("");
     if (calcAge(dob) < 21) {
       setAgeError("You must be 21 or older to claim your reward.");
       return;
@@ -415,15 +430,23 @@ export default function DataCollectionModal({ jointCount, onSkip, onSuccess }: P
             />
           </div>
 
-          <div style={{ marginBottom: 12 }}>
+          <div style={{ marginBottom: phoneError ? 6 : 12 }}>
             <label style={labelStyle}>Telephone Number</label>
             <input
               type="tel" name="phone" value={phone}
-              onChange={e => setPhone(e.target.value)}
+              onChange={e => { setPhone(formatPhone(e.target.value)); setPhoneError(""); }}
               onFocus={() => setFocused("phone")} onBlur={() => setFocused(null)}
-              required style={inputStyle("phone")} placeholder="(303) 555-0100"
+              required style={inputStyle("phone", !!phoneError)} placeholder="(303) 555-0100"
             />
           </div>
+          {phoneError && (
+            <div style={{
+              color: "#ef5350", fontSize: 10, marginBottom: 12, textAlign: "center",
+              fontFamily: "'JetBrains Mono', monospace",
+            }}>
+              ⚠ {phoneError}
+            </div>
+          )}
 
           <div style={{ marginBottom: ageError ? 6 : 20 }}>
             <label style={labelStyle}>Date of Birth (must be 21+)</label>
