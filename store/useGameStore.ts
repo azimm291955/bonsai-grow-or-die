@@ -84,6 +84,7 @@ interface GameStore {
 
   // Tick
   processTick: () => void;
+  catchUpOfflineTime: () => void;
 
   // Achievements
   processAchievementQueue: () => void;
@@ -367,6 +368,8 @@ export const useGameStore = create<GameStore>()(
           if (ui.screen === "loading") {
             set((store) => ({ ui: { ...store.ui, screen: "game" } }));
           }
+          // Catch up any offline time since last session
+          get().catchUpOfflineTime();
           return;
         }
 
@@ -379,6 +382,8 @@ export const useGameStore = create<GameStore>()(
             const saved = parsed?.state ? migrateSavedState(parsed.state) : null;
             if (saved && saved.playerName) {
               set({ state: saved, ui: { ...get().ui, screen: "game" } });
+              // Catch up any offline time since last session
+              get().catchUpOfflineTime();
               return;
             }
           }
@@ -401,6 +406,8 @@ export const useGameStore = create<GameStore>()(
                   const recovered = migrateSavedState(result.gameState as GameState);
                   if (recovered && recovered.playerName) {
                     set({ state: recovered, ui: { ...nowUI, screen: "game" } });
+                    // Catch up any offline time since last session
+                    get().catchUpOfflineTime();
                     return;
                   }
                 }
@@ -846,6 +853,220 @@ export const useGameStore = create<GameStore>()(
       loadCloudSave: (gameState: GameState) => {
         const migrated = migrateSavedState(gameState);
         set({ state: migrated, ui: { ...get().ui, screen: "game" } });
+        // Catch up any offline time since the cloud save was made
+        get().catchUpOfflineTime();
+      },
+
+      // ── Offline Catch-Up ──────────────────────────────────────────────
+      // Runs once on load when there's a large time gap. Simulates game
+      // time chronologically in 1-game-day steps, stopping at the first
+      // event that would have paused the game (harvest ready, narrative
+      // event, VC trigger, etc.). No rot accumulates during offline time.
+      // Remaining real time is treated as if the game was paused.
+      // Cap: 24 hours of real time.
+      catchUpOfflineTime: () => {
+        const { state: s, ui } = get();
+        if (!s || s.gameOver || s.gameWon) return;
+        if (s.tutorialStep < 5) return; // don't catch up during tutorial
+
+        // If the game was paused when the player left, just update pausedAtMs
+        // so the resume logic can compensate correctly — no simulation needed.
+        if (s.pausedAtMs !== null) {
+          // pausedAtMs stays as-is; the existing resume logic in setPaused()
+          // will shift gameStartRealMs forward by (now - pausedAtMs) when
+          // the player hits play. Nothing to catch up.
+          return;
+        }
+
+        const now = Date.now();
+        const totalGapMs = now - s.lastTickRealMs;
+
+        // Only run catch-up for gaps > 1 minute
+        if (totalGapMs < 60_000) return;
+
+        // Cap at 24 hours of real time
+        const MAX_OFFLINE_MS = 24 * 60 * 60 * 1000;
+        const cappedGapMs = Math.min(totalGapMs, MAX_OFFLINE_MS);
+        const excessMs = totalGapMs - cappedGapMs;
+
+        // Convert capped gap to game days (at 1x speed — offline is always 1x)
+        const cappedGapGameDays = cappedGapMs / MS_PER_GAME_DAY;
+
+        // Track pause triggers outside the produce
+        let autoPauseRoomIndex: number | null = null;
+        let narrativeEventId: string | null = null;
+        let vcTriggered = false;
+
+        // Calculate what the game date was BEFORE catch-up
+        const preGapTotalRealMs = s.lastTickRealMs - s.gameStartRealMs;
+        const preGapTotalGameDays = (preGapTotalRealMs / MS_PER_GAME_DAY) + (s.bonusGameDays || 0);
+
+        const STEP_DAYS = 1; // simulate in 1-game-day steps
+        let simulatedDays = 0;
+
+        const ns = produce(s, (draft) => {
+          while (simulatedDays < cappedGapGameDays) {
+            const stepDays = Math.min(STEP_DAYS, cappedGapGameDays - simulatedDays);
+            simulatedDays += stepDays;
+
+            // Current game date at this point in the simulation
+            const simTotalGameDays = preGapTotalGameDays + simulatedDays;
+            const gd = msToGameDate(simTotalGameDays * MS_PER_GAME_DAY);
+
+            // ── Win/loss check ──
+            const pastWinDate = gd.year > 2026 || (gd.year === 2026 && (gd.month > 4 || (gd.month === 4 && gd.day >= 20)));
+            if (pastWinDate) {
+              const activeRooms = draft.rooms.filter(r => r.unlocked).length;
+              if (draft.cash > 0 && activeRooms >= 4) {
+                draft.gameWon = true;
+                draft.winType = draft.vcTaken ? "vc" : "pure";
+                break;
+              } else if (gd.year > 2026 || (gd.year === 2026 && gd.month > 4)) {
+                draft.gameOver = true;
+                draft.deathCause = draft.cash <= 0 ? "Ran out of cash" : "Not enough active rooms (need 4+)";
+                break;
+              }
+            }
+
+            // ── Process rooms (growth only, NO rot) ──
+            for (const room of draft.rooms) {
+              if (!room.unlocked || room.status !== "growing") continue;
+
+              room.daysGrown += stepDays;
+              const targetDays = room.type === "veg"
+                ? getVegDaysForRoom(draft.upgrades, room.index)
+                : getFlowerDaysForRoom(draft.upgrades, room.index);
+
+              if (room.daysGrown >= targetDays) {
+                if (room.type === "veg") {
+                  // Try auto-flip
+                  if (hasAutoFlipForRoom(draft.upgrades, room.index)) {
+                    const availFlower = draft.rooms.find(r =>
+                      r.unlocked && r.type === "flower" && r.status === "empty" && r.harvestCount > 0
+                    );
+                    if (availFlower) {
+                      const rawVegQ = getRotQuality(0, getRotSpeedMultiplierForRoom(draft.upgrades, room.index));
+                      const autoVegBonus = getVegQualityBonus(draft.upgrades, room.index);
+                      availFlower.status = "growing";
+                      availFlower.daysGrown = 0;
+                      availFlower.growStartMs = null;
+                      availFlower.vegQuality = Math.min(rawVegQ * (1 + autoVegBonus), 1 + autoVegBonus);
+                      room.status = "growing";
+                      room.daysGrown = 0;
+                      room.growStartMs = null;
+                      continue;
+                    }
+                  }
+                  room.status = "ready_to_flip";
+                  room.stalled = true;
+                  room.rotDays = 0;
+                  // Veg ready_to_flip doesn't auto-pause, but it stalls
+                } else {
+                  // Flower done → harvest ready → AUTO-PAUSE
+                  room.status = "ready_to_harvest";
+                  room.rotDays = 0;
+                  if (autoPauseRoomIndex === null) {
+                    autoPauseRoomIndex = room.index;
+                  }
+                }
+              }
+            }
+
+            // If a harvest is ready, stop simulation here
+            if (autoPauseRoomIndex !== null) break;
+
+            // ── Monthly overhead ──
+            const currentMonth = (gd.year - GAME_START_DATE.year) * 12 + gd.month;
+            if (currentMonth > draft.lastProcessedMonth) {
+              const monthsToProcess = Math.min(currentMonth - draft.lastProcessedMonth, 12);
+              for (let m = 0; m < monthsToProcess; m++) {
+                const processMonth = draft.lastProcessedMonth + m + 1;
+                const pYear = GAME_START_DATE.year + Math.floor((processMonth - 1) / 12);
+                const pMonth = ((processMonth - 1) % 12) + 1;
+                let totalOverhead = 0;
+                for (const r of draft.rooms) {
+                  if (r.unlocked) totalOverhead += getMonthlyOverheadForRoom(pYear, draft.upgrades, r.index, r.status).total;
+                }
+                if (draft.vcOverheadCredit > 0) totalOverhead *= (1 - draft.vcOverheadCredit);
+                draft.cash -= totalOverhead;
+                draft.totalCosts += totalOverhead;
+                if (draft.cash > (draft.peakCash || 0)) draft.peakCash = draft.cash;
+                if (draft.cash < (draft.lowestCash ?? draft.cash)) draft.lowestCash = draft.cash;
+                if (draft.monthlyPnL.length > 200) draft.monthlyPnL.shift();
+                const monthNet = -totalOverhead;
+                draft.monthlyPnL.push({
+                  year: pYear, month: pMonth,
+                  overhead: totalOverhead, preroll: 0, harvestRevenue: 0,
+                  net: monthNet, cash: draft.cash,
+                });
+                if (monthNet < 0) {
+                  if (pYear > 2016 || (pYear === 2016 && pMonth >= 4)) draft._achRedMonth = true;
+                  draft.consecutiveProfitMonths = 0;
+                } else {
+                  draft.consecutiveProfitMonths = (draft.consecutiveProfitMonths || 0) + 1;
+                }
+              }
+              draft.lastProcessedMonth = currentMonth;
+            }
+
+            // ── Narrative events ──
+            const quarter = getQuarter(gd.month);
+            for (const ec of [
+              { year: 2018, quarter: 0, id: "amr_2018_crash" },
+              { year: 2020, quarter: 0, id: "covid_2020" },
+              { year: 2022, quarter: 0, id: "amr_2022_cliff" },
+            ]) {
+              if (gd.year === ec.year && quarter >= ec.quarter && !draft.eventsShown[ec.id]) {
+                draft.eventsShown[ec.id] = true;
+                draft.notifications.push({ type: "event", id: ec.id });
+                narrativeEventId = ec.id;
+              }
+            }
+
+            // Narrative event → stop simulation
+            if (narrativeEventId) break;
+
+            // ── VC trigger ──
+            if (draft.cash <= 0 && !draft.vcTaken && !draft.gameOver && !draft.vcTriggered) {
+              draft.vcTriggered = true;
+              draft.notifications.push({ type: "vc_trigger" });
+              vcTriggered = true;
+              break;
+            } else if (draft.cash <= 0 && draft.vcTaken) {
+              draft.gameOver = true;
+              draft.deathCause = "Second bankruptcy. Vulture Capital already used.";
+              break;
+            }
+          }
+
+          // ── Time adjustment ──
+          // We simulated `simulatedDays` game days out of `cappedGapGameDays`.
+          // The remaining gap (un-simulated + excess beyond 24h cap) should be
+          // treated as pause time — shift gameStartRealMs forward to eat it.
+          const unprocessedGameDays = cappedGapGameDays - simulatedDays;
+          const unprocessedMs = unprocessedGameDays * MS_PER_GAME_DAY;
+          draft.gameStartRealMs += excessMs + unprocessedMs;
+          draft.lastTickRealMs = now;
+        });
+
+        // ── Apply state + trigger appropriate UI ──
+        let updatedUI = { ...ui };
+
+        if (autoPauseRoomIndex !== null) {
+          updatedUI.paused = true;
+          updatedUI.autoPaused = true;
+          updatedUI.selectedRoom = autoPauseRoomIndex;
+          set({
+            state: { ...ns, pausedAtMs: Date.now() },
+            ui: updatedUI,
+          });
+        } else if (narrativeEventId || vcTriggered) {
+          // processNotifications will pick up the event/VC notification
+          // and show the appropriate modal
+          set({ state: ns, ui: updatedUI });
+        } else {
+          set({ state: ns, ui: updatedUI });
+        }
       },
 
       // ── Process Tick (hot path) ──
@@ -855,7 +1076,9 @@ export const useGameStore = create<GameStore>()(
         if (ui.paused || prev.pausedAtMs !== null) return; // safety guard
 
         const now = Date.now();
-        const elapsedMs = Math.min(now - prev.lastTickRealMs, 30000);
+        // Cap single-tick elapsed time at 5 minutes. Big gaps are handled
+        // by catchUpOfflineTime() which runs on load before the tick loop.
+        const elapsedMs = Math.min(now - prev.lastTickRealMs, 5 * 60 * 1000);
         const baseGameDays = elapsedMs / MS_PER_GAME_DAY;
         if (baseGameDays <= 0) return;
 
