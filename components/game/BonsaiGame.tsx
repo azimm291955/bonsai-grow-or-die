@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useGameStore } from "@/store/useGameStore";
 import { useTickLoop } from "@/hooks/useTickLoop";
+import { useCloudSave } from "@/hooks/useCloudSave";
 import { fetchLeaderboardAction } from "@/app/actions/leaderboard";
 import { ACHIEVEMENTS } from "@/lib/constants";
 import { getGameDateFromState, getQuarter, getAMR } from "@/lib/helpers";
@@ -272,8 +273,43 @@ function MainGameUI() {
             draggable={false}
           />
         </div>
-        {/* Right: spacer to balance left side */}
-        <div style={{ width: 72 }} />
+        {/* Right: recovery code */}
+        <div style={{ width: 72, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {state.playerId && (
+            <button
+              onClick={() => {
+                if (navigator.clipboard) {
+                  navigator.clipboard.writeText(state.playerId!);
+                }
+              }}
+              title={`Recovery code: ${state.playerId}\nTap to copy`}
+              style={{
+                background: "rgba(255,255,255,0.06)",
+                color: "#555",
+                border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: 5,
+                padding: "4px 6px",
+                fontSize: 8,
+                fontWeight: 700,
+                letterSpacing: "0.05em",
+                cursor: "pointer",
+                fontFamily: "var(--font-mono)",
+                transition: "color 0.15s, background 0.15s",
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLButtonElement).style.color = "#8BC34A";
+                (e.currentTarget as HTMLButtonElement).style.background = "rgba(139,195,74,0.1)";
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLButtonElement).style.color = "#555";
+                (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.06)";
+              }}
+              aria-label="Copy recovery code"
+            >
+              {state.playerId}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ═══ CONTENT ═══ */}
@@ -317,6 +353,9 @@ function GameRouter() {
 
   // Mount tick loop exactly once here
   useTickLoop();
+
+  // Mount cloud save — auto-syncs to KV every 30s + on tab hide
+  useCloudSave();
 
   // Init on mount
   useEffect(() => {

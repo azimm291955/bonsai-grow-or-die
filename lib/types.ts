@@ -52,6 +52,7 @@ export interface HarvestLogEntry {
 }
 
 export interface GameState {
+  playerId: string | null;
   playerName: string;
   cash: number;
   totalRevenue: number;

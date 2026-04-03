@@ -288,6 +288,7 @@ export function createInitialState(playerName: string): GameState {
     rooms.push(createRoom(i, i === 0));
   }
   return {
+    playerId: null, // Set async after game start via generatePlayerIdAction
     playerName,
     cash: STARTING_CASH,
     totalRevenue: 0,

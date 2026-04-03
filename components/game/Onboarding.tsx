@@ -3,17 +3,55 @@
 import { useState, useEffect } from "react";
 import { useGameStore } from "@/store/useGameStore";
 import { getClaimStatusAction } from "@/app/actions/claims";
+import { loadGameAction } from "@/app/actions/saves";
+import type { GameState } from "@/lib/types";
 
 export default function Onboarding() {
   const nameInput = useGameStore((s) => s.ui.nameInput);
   const setNameInput = useGameStore((s) => s.setNameInput);
   const startGame = useGameStore((s) => s.startGame);
+  const loadCloudSave = useGameStore((s) => s.loadCloudSave);
 
   const [claimCount, setClaimCount] = useState<number | null>(null);
   const capacity = 2000;
   useEffect(() => {
     getClaimStatusAction().then(({ count }) => setClaimCount(count));
   }, []);
+
+  // ── Recovery flow state ──
+  const [showRecover, setShowRecover] = useState(false);
+  const [recoveryInput, setRecoveryInput] = useState("");
+  const [recoverError, setRecoverError] = useState<string | null>(null);
+  const [recoverLoading, setRecoverLoading] = useState(false);
+
+  async function handleRecover() {
+    const code = recoveryInput.trim().toUpperCase();
+    // Normalize: accept with or without "BG-" prefix
+    const playerId = code.startsWith("BG-") ? code : `BG-${code}`;
+
+    if (playerId.length < 5) {
+      setRecoverError("Enter your recovery code (e.g. BG-7kX9mP)");
+      return;
+    }
+
+    setRecoverLoading(true);
+    setRecoverError(null);
+
+    try {
+      const result = await loadGameAction(playerId);
+      if (result.ok && result.gameState) {
+        loadCloudSave(result.gameState as GameState);
+      } else {
+        setRecoverError(result.error === "No save found"
+          ? "No save found for that code. Check it and try again."
+          : "Something went wrong. Try again.");
+      }
+    } catch {
+      setRecoverError("Connection error. Try again.");
+    } finally {
+      setRecoverLoading(false);
+    }
+  }
 
   return (
     <div style={{
@@ -96,6 +134,80 @@ export default function Onboarding() {
         <div style={{ animation: "fade-up 0.8s ease-out 0.7s both" }}>
           <button onClick={startGame} disabled={!nameInput.trim()} style={{ width: "100%", padding: "16px 24px", background: nameInput.trim() ? "linear-gradient(135deg, #7CB342 0%, #8BC34A 50%, #9CCC65 100%)" : "rgba(255,255,255,0.05)", color: nameInput.trim() ? "#1a1a1a" : "#555", border: "none", borderRadius: 12, fontSize: 16, fontWeight: 800, cursor: nameInput.trim() ? "pointer" : "default", letterSpacing: 2, boxShadow: nameInput.trim() ? "0 4px 20px rgba(139,195,74,0.3), 0 0 40px rgba(139,195,74,0.1)" : "none", transition: "all 0.3s" }}>START GROWING</button>
         </div>
+
+        {/* ── Recovery code section ── */}
+        <div style={{ marginTop: 20, animation: "fade-up 0.8s ease-out 0.8s both" }}>
+          {!showRecover ? (
+            <button
+              onClick={() => setShowRecover(true)}
+              style={{
+                background: "none", border: "none", color: "#555",
+                fontSize: 11, cursor: "pointer", letterSpacing: 1,
+                fontWeight: 600, padding: "6px 12px",
+                transition: "color 0.2s",
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = "#8BC34A"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = "#555"; }}
+            >
+              Have a recovery code? Restore your game
+            </button>
+          ) : (
+            <div style={{
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(139,195,74,0.15)",
+              borderRadius: 12, padding: "16px 16px 12px",
+            }}>
+              <div style={{ fontSize: 11, color: "#888", marginBottom: 10, letterSpacing: 0.5 }}>
+                Enter the code from your previous game to recover your save.
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  type="text"
+                  value={recoveryInput}
+                  onChange={e => { setRecoveryInput(e.target.value); setRecoverError(null); }}
+                  onKeyDown={e => e.key === "Enter" && handleRecover()}
+                  placeholder="BG-XXXXXXXX"
+                  maxLength={16}
+                  style={{
+                    flex: 1, padding: "10px 12px",
+                    background: "rgba(255,255,255,0.05)",
+                    border: "1px solid rgba(139,195,74,0.2)",
+                    borderRadius: 8, color: "#fff", fontSize: 14,
+                    outline: "none", fontFamily: "'JetBrains Mono', monospace",
+                    letterSpacing: 2, textAlign: "center",
+                  }}
+                />
+                <button
+                  onClick={handleRecover}
+                  disabled={recoverLoading || !recoveryInput.trim()}
+                  style={{
+                    padding: "10px 16px",
+                    background: recoveryInput.trim() ? "rgba(139,195,74,0.2)" : "rgba(255,255,255,0.05)",
+                    border: "1px solid rgba(139,195,74,0.3)",
+                    borderRadius: 8, color: recoveryInput.trim() ? "#8BC34A" : "#555",
+                    fontSize: 12, fontWeight: 700, cursor: recoveryInput.trim() ? "pointer" : "default",
+                    letterSpacing: 1,
+                  }}
+                >
+                  {recoverLoading ? "..." : "LOAD"}
+                </button>
+              </div>
+              {recoverError && (
+                <div style={{ fontSize: 11, color: "#ef5350", marginTop: 8 }}>{recoverError}</div>
+              )}
+              <button
+                onClick={() => { setShowRecover(false); setRecoverError(null); setRecoveryInput(""); }}
+                style={{
+                  background: "none", border: "none", color: "#555",
+                  fontSize: 10, cursor: "pointer", marginTop: 8,
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+        </div>
+
         <div style={{ marginTop: 32, animation: "fade-up 0.8s ease-out 0.9s both" }}>
           <div style={{ display: "flex", justifyContent: "center", gap: 16, marginBottom: 10 }}>
             {["Real P&L", "Real AMR Data", "Real Wage Inflation"].map(tag => (

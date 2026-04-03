@@ -79,6 +79,8 @@ interface GameStore {
   declineVC: () => void;
   resetGame: () => void;
   advanceTutorial: (toStep: number) => void;
+  setPlayerId: (id: string) => void;
+  loadCloudSave: (gameState: GameState) => void;
 
   // Tick
   processTick: () => void;
@@ -237,6 +239,7 @@ function migrateSavedState(saved: GameState): GameState {
   if (saved.vcTriggered === undefined) saved.vcTriggered = false;
   if (!saved.harvestLog) saved.harvestLog = [];
   if (saved.pausedAtMs === undefined) saved.pausedAtMs = null;
+  if (saved.playerId === undefined) saved.playerId = null;
   return saved;
 }
 
@@ -354,7 +357,7 @@ export const useGameStore = create<GameStore>()(
         return { ui: { ...store.ui, showAchievement: id } };
       }),
 
-      // ── Init from localStorage ──
+      // ── Init from localStorage (with cloud fallback) ──
       initFromStorage: () => {
         const { state: current, ui } = get();
 
@@ -380,6 +383,41 @@ export const useGameStore = create<GameStore>()(
             }
           }
         } catch { /* noop */ }
+
+        // localStorage empty — check cookie for playerId and try cloud recovery
+        try {
+          const cookieMatch = document.cookie.match(/(?:^|; )bonsai_pid=([^;]+)/);
+          if (cookieMatch && cookieMatch[1]) {
+            const playerId = cookieMatch[1];
+            // Show loading while we try cloud recovery
+            // Dynamic import to avoid pulling server action into client bundle eagerly
+            import("@/app/actions/saves").then(({ loadGameAction }) => {
+              loadGameAction(playerId).then((result) => {
+                // Only proceed if we're still on loading/onboarding (user hasn't started a new game)
+                const { state: nowState, ui: nowUI } = get();
+                if (nowState && nowState.playerName) return; // user already loaded something
+
+                if (result.ok && result.gameState) {
+                  const recovered = migrateSavedState(result.gameState as GameState);
+                  if (recovered && recovered.playerName) {
+                    set({ state: recovered, ui: { ...nowUI, screen: "game" } });
+                    return;
+                  }
+                }
+                // Cloud recovery failed — go to onboarding
+                if (!get().state?.playerName) {
+                  set((store) => ({ ui: { ...store.ui, screen: "onboarding" } }));
+                }
+              }).catch(() => {
+                // Network error — go to onboarding
+                if (!get().state?.playerName) {
+                  set((store) => ({ ui: { ...store.ui, screen: "onboarding" } }));
+                }
+              });
+            });
+            return; // stay on loading screen while cloud recovery runs
+          }
+        } catch { /* noop — cookies unavailable */ }
 
         // No saved game found — go to onboarding
         set((store) => ({ ui: { ...store.ui, screen: "onboarding" } }));
@@ -739,6 +777,8 @@ export const useGameStore = create<GameStore>()(
       // ── Reset Game ──
       resetGame: () => {
         localStorage.removeItem("bonsai_grow_or_die");
+        // Clear recovery cookie so cloud save won't auto-restore the wiped game
+        document.cookie = "bonsai_pid=; path=/; max-age=0";
         set({ state: null, ui: { ...DEFAULT_UI, screen: "onboarding" } });
       },
 
@@ -794,6 +834,18 @@ export const useGameStore = create<GameStore>()(
           ];
         }
         set({ state: ns });
+      },
+
+      // ── Cloud save helpers ──
+      setPlayerId: (id: string) => {
+        const { state: s } = get();
+        if (!s) return;
+        set({ state: { ...s, playerId: id } });
+      },
+
+      loadCloudSave: (gameState: GameState) => {
+        const migrated = migrateSavedState(gameState);
+        set({ state: migrated, ui: { ...get().ui, screen: "game" } });
       },
 
       // ── Process Tick (hot path) ──
