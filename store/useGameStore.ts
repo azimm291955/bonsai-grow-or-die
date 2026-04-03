@@ -1076,9 +1076,18 @@ export const useGameStore = create<GameStore>()(
         if (ui.paused || prev.pausedAtMs !== null) return; // safety guard
 
         const now = Date.now();
-        // Cap single-tick elapsed time at 5 minutes. Big gaps are handled
-        // by catchUpOfflineTime() which runs on load before the tick loop.
-        const elapsedMs = Math.min(now - prev.lastTickRealMs, 5 * 60 * 1000);
+        const rawElapsedMs = now - prev.lastTickRealMs;
+
+        // If the gap is > 1 minute, this is an offline return — delegate to
+        // the chronological catch-up simulation instead of processing a big
+        // chunk in one tick (which skips events/auto-pauses).
+        if (rawElapsedMs > 60_000 && prev.tutorialStep >= 5) {
+          get().catchUpOfflineTime();
+          return;
+        }
+
+        // Normal tick: cap at 10 seconds for frame jitter
+        const elapsedMs = Math.min(rawElapsedMs, 10_000);
         const baseGameDays = elapsedMs / MS_PER_GAME_DAY;
         if (baseGameDays <= 0) return;
 
