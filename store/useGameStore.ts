@@ -251,6 +251,24 @@ function updateRoom(rooms: Room[], index: number, changes: Partial<Room>): Room[
   return newRooms;
 }
 
+/**
+ * resumeFromPause — single source of truth for compensating wall-clock time
+ * spent in any paused state (manual pause, auto-pause, achievement/event/VC
+ * modals). Shifts gameStartRealMs forward by the pause duration so the game
+ * calendar doesn't jump, and resets lastTickRealMs + pausedAtMs.
+ *
+ * Returns a partial GameState to spread into the existing state.
+ */
+function resumeFromPause(s: GameState): Partial<GameState> {
+  const now = Date.now();
+  const pauseDuration = s.pausedAtMs != null ? now - s.pausedAtMs : 0;
+  return {
+    pausedAtMs: null,
+    gameStartRealMs: s.gameStartRealMs + pauseDuration,
+    lastTickRealMs: now,
+  };
+}
+
 // ============================================================
 // THE STORE
 // ============================================================
@@ -267,39 +285,34 @@ export const useGameStore = create<GameStore>()(
       setSelectedRoom: (i) => set((store) => {
         // Auto-resume: when closing the modal after an auto-pause, unpause the game
         if (i === null && store.ui.autoPaused) {
-          const now = Date.now();
           const s = store.state;
-          const pauseDuration = s?.pausedAtMs ? now - s.pausedAtMs : 0;
           return {
             ui: { ...store.ui, selectedRoom: null, paused: false, autoPaused: false },
-            state: s ? {
-              ...s,
-              pausedAtMs: null,
-              gameStartRealMs: s.gameStartRealMs + pauseDuration,
-              lastTickRealMs: now,
-            } : s,
+            state: s ? { ...s, ...resumeFromPause(s) } : s,
           };
         }
         return { ui: { ...store.ui, selectedRoom: i } };
       }),
-      setShowVC: (v) => set((store) => ({ ui: { ...store.ui, showVC: v } })),
+      setShowVC: (v) => set((store) => {
+        const s = store.state;
+        // Safety net: if VC modal is dismissed without accept/decline (shouldn't
+        // happen in normal UI, but guards against stale state restoration),
+        // compensate wall-clock time so the game doesn't freeze.
+        if (!v && s?.pausedAtMs != null) {
+          return {
+            ui: { ...store.ui, showVC: false },
+            state: { ...s, ...resumeFromPause(s) },
+          };
+        }
+        return { ui: { ...store.ui, showVC: v } };
+      }),
       setShowEvent: (id) => set((store) => {
-        const now = Date.now();
         const s = store.state;
         if (id === null && s) {
-          // Dismissing — use pausedAtMs (set by processNotifications) to
-          // accurately measure how long the modal was visible, then shift
-          // gameStartRealMs forward so the game calendar doesn't jump ahead.
-          // This matches the manual pause / auto-pause resume pattern.
-          const pauseDuration = s.pausedAtMs ? now - s.pausedAtMs : now - s.lastTickRealMs;
+          // Dismissing — compensate wall-clock time the modal was visible
           return {
             ui: { ...store.ui, showEvent: id },
-            state: {
-              ...s,
-              pausedAtMs: null,
-              gameStartRealMs: s.gameStartRealMs + pauseDuration,
-              lastTickRealMs: now,
-            },
+            state: { ...s, ...resumeFromPause(s) },
           };
         }
         return { ui: { ...store.ui, showEvent: id } };
@@ -313,46 +326,28 @@ export const useGameStore = create<GameStore>()(
       setShowBurnInfo: (v) => set((store) => ({ ui: { ...store.ui, showBurnInfo: v } })),
       setGameSpeed: (s) => set((store) => ({ ui: { ...store.ui, gameSpeed: s } })),
       setPaused: (p) => set((store) => {
-        const now = Date.now();
         const s = store.state;
         if (p) {
           // Pausing — record when we paused
           return {
             ui: { ...store.ui, paused: true },
-            state: s ? { ...s, pausedAtMs: now } : s,
+            state: s ? { ...s, pausedAtMs: Date.now() } : s,
           };
         } else {
-          // Resuming — shift gameStartRealMs and lastTickRealMs forward
-          // by the full pause duration so no time appears to have passed
-          const pauseDuration = s?.pausedAtMs ? now - s.pausedAtMs : 0;
+          // Resuming — compensate wall-clock time spent paused
           return {
             ui: { ...store.ui, paused: false, autoPaused: false },
-            state: s ? {
-              ...s,
-              pausedAtMs: null,
-              gameStartRealMs: s.gameStartRealMs + pauseDuration,
-              lastTickRealMs: now,
-            } : s,
+            state: s ? { ...s, ...resumeFromPause(s) } : s,
           };
         }
       }),
       setShowAchievement: (id) => set((store) => {
-        const now = Date.now();
         const s = store.state;
         if (id === null && s) {
-          // Dismissing — use pausedAtMs (set by processAchievementQueue) to
-          // accurately measure how long the modal was visible, then shift
-          // gameStartRealMs forward so the game calendar doesn't jump ahead.
-          // This matches the manual pause / auto-pause resume pattern.
-          const pauseDuration = s.pausedAtMs ? now - s.pausedAtMs : now - s.lastTickRealMs;
+          // Dismissing — compensate wall-clock time the toast was visible
           return {
             ui: { ...store.ui, showAchievement: id },
-            state: {
-              ...s,
-              pausedAtMs: null,
-              gameStartRealMs: s.gameStartRealMs + pauseDuration,
-              lastTickRealMs: now,
-            },
+            state: { ...s, ...resumeFromPause(s) },
           };
         }
         return { ui: { ...store.ui, showAchievement: id } };
@@ -760,13 +755,8 @@ export const useGameStore = create<GameStore>()(
         ns.vcOverheadCredit = 0.05;
         ns.notifications = [];
 
-        // Shift gameStartRealMs forward by time spent viewing the VC modal
-        // so the game calendar doesn't jump ahead of plant growth.
-        const now = Date.now();
-        const pauseDuration = ns.pausedAtMs ? now - ns.pausedAtMs : now - ns.lastTickRealMs;
-        ns.gameStartRealMs += pauseDuration;
-        ns.lastTickRealMs = now;
-        ns.pausedAtMs = null;
+        // Compensate wall-clock time spent viewing the VC modal
+        Object.assign(ns, resumeFromPause(ns));
         set({ state: ns, ui: { ...ui, showVC: false } });
       },
 
@@ -774,9 +764,9 @@ export const useGameStore = create<GameStore>()(
       declineVC: () => {
         const { state: s, ui } = get();
         if (!s) return;
-        // Game over — no need to shift gameStartRealMs since time stops anyway
+        // Game over — clear pausedAtMs for clean state even though time stops
         set({
-          state: { ...s, gameOver: true, deathCause: "Declined Vulture Capital. Cash hit $0." },
+          state: { ...s, gameOver: true, deathCause: "Declined Vulture Capital. Cash hit $0.", pausedAtMs: null },
           ui: { ...ui, showVC: false },
         });
       },
@@ -1284,10 +1274,11 @@ export const useGameStore = create<GameStore>()(
         if (ui.showAchievement) return; // One at a time
         if (ui.achievementQueue.length === 0) return;
         const [next, ...rest] = ui.achievementQueue;
-        // Record pausedAtMs so dismiss can accurately compensate wall-clock time
+        // Record pausedAtMs so dismiss can accurately compensate wall-clock time.
+        // Only set if not already set (another modal may have set it first).
         set({
           ui: { ...ui, showAchievement: next, achievementQueue: rest },
-          state: s ? { ...s, pausedAtMs: Date.now() } : s,
+          state: s ? { ...s, pausedAtMs: s.pausedAtMs ?? Date.now() } : s,
         });
       },
 
@@ -1295,11 +1286,16 @@ export const useGameStore = create<GameStore>()(
       processNotifications: () => {
         const { state: s, ui } = get();
         if (!s?.notifications?.length) return;
+        // Don't process notifications while another modal is pausing the game
+        if (ui.showAchievement || ui.showEvent) return;
+
+        // Preserve existing pausedAtMs if already set; only stamp if null
+        const pauseStamp = s.pausedAtMs ?? Date.now();
 
         const vcNotif = s.notifications.find(n => n.type === "vc_trigger");
         if (vcNotif && !ui.showVC) {
           set({
-            state: { ...s, notifications: s.notifications.filter(n => n.type !== "vc_trigger"), pausedAtMs: Date.now() },
+            state: { ...s, notifications: s.notifications.filter(n => n.type !== "vc_trigger"), pausedAtMs: pauseStamp },
             ui: { ...ui, showVC: true },
           });
           return;
@@ -1308,7 +1304,7 @@ export const useGameStore = create<GameStore>()(
         const eventNotif = s.notifications.find(n => n.type === "event");
         if (eventNotif && !ui.showVC) {
           set({
-            state: { ...s, notifications: s.notifications.filter(n => n !== eventNotif), pausedAtMs: Date.now() },
+            state: { ...s, notifications: s.notifications.filter(n => n !== eventNotif), pausedAtMs: pauseStamp },
             ui: { ...ui, showEvent: eventNotif.id ?? null },
           });
         }
