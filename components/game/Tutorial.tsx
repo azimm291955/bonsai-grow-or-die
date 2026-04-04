@@ -341,11 +341,16 @@ export default function Tutorial() {
       {/* ── SPOTLIGHT STEPS ── */}
       {isSpotlight && rect && !modalOpen && (
         <>
-          {/* Click-blocking backdrop — intercepts all clicks outside the spotlight hole */}
-          <div
-            style={{ position: "fixed", inset: 0, zIndex: 399, pointerEvents: "auto" }}
-            onClick={(e) => e.stopPropagation()}
-          />
+          {/* Click-blocking backdrop — four rects framing the spotlight hole so clicks
+              outside are blocked but clicks ON the target pass through */}
+          {/* Top */}
+          <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: Math.max(0, rect.top - PAD), zIndex: 399, pointerEvents: "auto" }} />
+          {/* Bottom */}
+          <div style={{ position: "fixed", top: rect.top + rect.height + PAD, left: 0, right: 0, bottom: 0, zIndex: 399, pointerEvents: "auto" }} />
+          {/* Left */}
+          <div style={{ position: "fixed", top: Math.max(0, rect.top - PAD), left: 0, width: Math.max(0, rect.left - PAD), height: rect.height + PAD * 2, zIndex: 399, pointerEvents: "auto" }} />
+          {/* Right */}
+          <div style={{ position: "fixed", top: Math.max(0, rect.top - PAD), left: rect.left + rect.width + PAD, right: 0, height: rect.height + PAD * 2, zIndex: 399, pointerEvents: "auto" }} />
 
           {/* Dark mask with hole (visual only) */}
           <svg
