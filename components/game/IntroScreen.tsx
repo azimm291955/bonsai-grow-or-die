@@ -57,6 +57,12 @@ function CycleStage({ bgColor, borderColor, labelColor, label, sublabel, childre
 
 export default function IntroScreen() {
   const setScreen = useGameStore((s) => s.setScreen);
+  const advanceTutorial = useGameStore((s) => s.advanceTutorial);
+
+  const handleSkipTutorial = () => {
+    advanceTutorial(5);
+    setScreen("game");
+  };
 
   return (
     <div style={{
@@ -108,6 +114,30 @@ export default function IntroScreen() {
           onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.opacity = "1"; }}
         >
           Learn the ropes →
+        </button>
+        <button
+          onClick={handleSkipTutorial}
+          style={{
+            width: "100%", padding: 12, marginTop: 10,
+            background: "rgba(255,255,255,0.04)",
+            color: "#666",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: 8, fontWeight: 700, fontSize: 12,
+            cursor: "pointer", letterSpacing: 1.5,
+            transition: "all 0.2s",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.color = "#8BC34A";
+            (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(139,195,74,0.25)";
+            (e.currentTarget as HTMLButtonElement).style.background = "rgba(139,195,74,0.06)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.color = "#666";
+            (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.08)";
+            (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.04)";
+          }}
+        >
+          SKIP TUTORIAL
         </button>
       </div>
     </div>

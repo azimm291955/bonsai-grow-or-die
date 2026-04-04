@@ -131,6 +131,8 @@ function MainGameUI() {
   const state = useGameStore((s) => s.state);
   const activeTab = useGameStore((s) => s.ui.activeTab);
   const setActiveTab = useGameStore((s) => s.setActiveTab);
+  const tutorialStep = useGameStore((s) => s.state?.tutorialStep ?? 0);
+  const inTutorial = tutorialStep < 5;
   const [showDataForm, setShowDataForm] = useState(false);
   const setPaused = useGameStore((s) => s.setPaused);
 
@@ -197,11 +199,13 @@ function MainGameUI() {
             <button
               key={tab.id}
               data-tutorial={tab.id === "pnl" ? "tab-pnl" : tab.id === "upgrades" ? "tab-upgrades" : undefined}
-              onClick={() => setActiveTab(tab.id)}
-              className="flex-1 py-3 pb-2.5 bg-transparent border-none cursor-pointer text-[12px] font-bold tracking-widest transition-all"
+              onClick={() => { if (!inTutorial) setActiveTab(tab.id); }}
+              disabled={inTutorial}
+              className={`flex-1 py-3 pb-2.5 bg-transparent border-none text-[12px] font-bold tracking-widest transition-all ${inTutorial ? "cursor-not-allowed" : "cursor-pointer"}`}
               style={{
-                color: activeTab === tab.id ? "#8BC34A" : "#444",
+                color: activeTab === tab.id ? "#8BC34A" : inTutorial ? "#333" : "#444",
                 borderBottom: activeTab === tab.id ? "2px solid #8BC34A" : "2px solid transparent",
+                opacity: inTutorial && activeTab !== tab.id ? 0.4 : 1,
               }}
               aria-selected={activeTab === tab.id}
               role="tab"
@@ -227,35 +231,37 @@ function MainGameUI() {
         alignItems: "center",
         background: "linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.85) 30%, #000 100%)",
       }}>
-        {/* Left: reset button */}
+        {/* Left: reset button (hidden during tutorial) */}
         <div style={{ width: 72, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <button
-            onClick={() => useGameStore.getState().setShowResetConfirm(true)}
-            style={{
-              background: "rgba(255,255,255,0.06)",
-              color: "#555",
-              border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: 5,
-              padding: "4px 10px",
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: "0.1em",
-              cursor: "pointer",
-              textTransform: "uppercase",
-              transition: "color 0.15s, background 0.15s",
-            }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLButtonElement).style.color = "#c0392b";
-              (e.currentTarget as HTMLButtonElement).style.background = "rgba(192,57,43,0.15)";
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLButtonElement).style.color = "#555";
-              (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.06)";
-            }}
-            aria-label="Reset Game"
-          >
-            RESET
-          </button>
+          {!inTutorial && (
+            <button
+              onClick={() => useGameStore.getState().setShowResetConfirm(true)}
+              style={{
+                background: "rgba(255,255,255,0.06)",
+                color: "#555",
+                border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: 5,
+                padding: "4px 10px",
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: "0.1em",
+                cursor: "pointer",
+                textTransform: "uppercase",
+                transition: "color 0.15s, background 0.15s",
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLButtonElement).style.color = "#c0392b";
+                (e.currentTarget as HTMLButtonElement).style.background = "rgba(192,57,43,0.15)";
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLButtonElement).style.color = "#555";
+                (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.06)";
+              }}
+              aria-label="Reset Game"
+            >
+              RESET
+            </button>
+          )}
         </div>
         {/* Center: logo */}
         <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>

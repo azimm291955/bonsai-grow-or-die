@@ -341,7 +341,13 @@ export default function Tutorial() {
       {/* ── SPOTLIGHT STEPS ── */}
       {isSpotlight && rect && !modalOpen && (
         <>
-          {/* Dark mask with hole */}
+          {/* Click-blocking backdrop — intercepts all clicks outside the spotlight hole */}
+          <div
+            style={{ position: "fixed", inset: 0, zIndex: 399, pointerEvents: "auto" }}
+            onClick={(e) => e.stopPropagation()}
+          />
+
+          {/* Dark mask with hole (visual only) */}
           <svg
             style={{ position: "fixed", inset: 0, width: "100%", height: "100%", zIndex: 400, pointerEvents: "none", opacity: visible ? 1 : 0, transition: "opacity 0.3s" }}
           >

@@ -299,14 +299,20 @@ export default function RoomCard({ room, roomIndex }: RoomCardProps) {
   ];
   const hasUpgrades = trackIcons.some(([t]) => getRoomUpgradeTier(upgrades, t as keyof typeof UPGRADE_TRACKS, i) > 0);
 
+  // During tutorial, only allow clicking the room that the current step targets
+  // Room 1 (i=0) is only clickable during flip_veg; Room 2 (i=1) opens via buy modal
+  // All other rooms are locked during tutorial anyway
+  const unlockedBlockedDuringTutorial = tutorialStep < 5 && i !== 0 && i !== 1;
+
   return (
     <button
-      onClick={() => setSelectedRoom(i)}
-      className="rounded-[14px] px-2 pb-3 pt-2.5 cursor-pointer text-center relative min-h-[150px] flex flex-col items-center justify-end transition-all duration-300"
+      onClick={() => { if (!unlockedBlockedDuringTutorial) setSelectedRoom(i); }}
+      disabled={unlockedBlockedDuringTutorial}
+      className={`rounded-[14px] px-2 pb-3 pt-2.5 text-center relative min-h-[150px] flex flex-col items-center justify-end transition-all duration-300 ${unlockedBlockedDuringTutorial ? "cursor-not-allowed opacity-30" : "cursor-pointer"}`}
       style={{
         background: cardBg,
         border: `${genColor ? 2 : 1}px solid ${borderColor}`,
-        animation: glowAnim || undefined,
+        animation: unlockedBlockedDuringTutorial ? undefined : (glowAnim || undefined),
         boxShadow: genColor && isActionRequired ? `0 0 28px ${genColor.glow}, inset 0 0 20px ${genColor.glow}` : genColor ? `inset 0 0 12px ${genColor.bg}` : undefined,
       }}
       data-tutorial={i === 0 ? "room-1" : i === 1 ? "room-2" : undefined}

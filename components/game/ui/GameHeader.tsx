@@ -13,6 +13,7 @@ function SpeedControls() {
   const setGameSpeed = useGameStore((s) => s.setGameSpeed);
   const setPaused = useGameStore((s) => s.setPaused);
   const hasState = useGameStore((s) => !!s.state);
+  const inTutorial = useGameStore((s) => (s.state?.tutorialStep ?? 0) < 5);
 
   const resetTickTime = () => {
     useGameStore.setState((store) => ({
@@ -33,12 +34,14 @@ function SpeedControls() {
           <button
             key={s}
             onClick={() => {
+              if (inTutorial) return;
               setGameSpeed(s);
               if (paused && hasState) resetTickTime();
               setPaused(false);
             }}
-            className="flex-1 h-[32px] flex items-center justify-center text-[14px] font-extrabold rounded-md cursor-pointer transition-all"
-            style={btn(!paused && gameSpeed === s)}
+            disabled={inTutorial}
+            className={`flex-1 h-[32px] flex items-center justify-center text-[14px] font-extrabold rounded-md transition-all ${inTutorial ? "cursor-not-allowed" : "cursor-pointer"}`}
+            style={{ ...btn(!paused && gameSpeed === s), ...(inTutorial ? { opacity: 0.3 } : {}) }}
           >
             {s}×
           </button>
@@ -46,11 +49,13 @@ function SpeedControls() {
       </div>
       <button
         onClick={() => {
+          if (inTutorial) return;
           if (paused && hasState) resetTickTime();
           setPaused(!paused);
         }}
-        className="w-full h-[32px] flex items-center justify-center text-[12px] font-bold tracking-wider rounded-md cursor-pointer transition-all"
-        style={btn(paused)}
+        disabled={inTutorial}
+        className={`w-full h-[32px] flex items-center justify-center text-[12px] font-bold tracking-wider rounded-md transition-all ${inTutorial ? "cursor-not-allowed" : "cursor-pointer"}`}
+        style={{ ...btn(paused), ...(inTutorial ? { opacity: 0.3 } : {}) }}
         title={paused ? "Resume" : "Pause"}
       >
         {paused ? "▶  PLAY" : "⏸  PAUSE"}
@@ -76,6 +81,7 @@ export default function GameHeader() {
   const setShowAMRInfo = useGameStore((s) => s.setShowAMRInfo);
   const setShowRunwayInfo = useGameStore((s) => s.setShowRunwayInfo);
   const setShowBurnInfo = useGameStore((s) => s.setShowBurnInfo);
+  const inTutorial = useGameStore((s) => (s.state?.tutorialStep ?? 0) < 5);
 
   if (!playerName || !rooms.length) return null;
 
@@ -132,11 +138,12 @@ export default function GameHeader() {
         >
           <div className="flex justify-between items-center">
             <button
-              onClick={() => setShowRunwayInfo(true)}
-              className="flex items-center gap-0.5 cursor-pointer bg-transparent border-none p-0"
+              onClick={() => { if (!inTutorial) setShowRunwayInfo(true); }}
+              disabled={inTutorial}
+              className={`flex items-center gap-0.5 bg-transparent border-none p-0 ${inTutorial ? "cursor-not-allowed" : "cursor-pointer"}`}
             >
               <span className="text-[9px] text-[#888] font-bold tracking-widest">RUNWAY</span>
-              <span className="text-[8px] text-[#666]">ⓘ</span>
+              {!inTutorial && <span className="text-[8px] text-[#666]">ⓘ</span>}
             </button>
             <span
               className="text-[17px] font-extrabold"
@@ -147,11 +154,12 @@ export default function GameHeader() {
           </div>
           <div className="flex justify-between items-center">
             <button
-              onClick={() => setShowAMRInfo(true)}
-              className="flex items-center gap-0.5 cursor-pointer bg-transparent border-none p-0"
+              onClick={() => { if (!inTutorial) setShowAMRInfo(true); }}
+              disabled={inTutorial}
+              className={`flex items-center gap-0.5 bg-transparent border-none p-0 ${inTutorial ? "cursor-not-allowed" : "cursor-pointer"}`}
             >
               <span className="text-[9px] text-[#888] font-bold tracking-widest">AMR</span>
-              <span className="text-[8px] text-[#666]">ⓘ</span>
+              {!inTutorial && <span className="text-[8px] text-[#666]">ⓘ</span>}
             </button>
             <span className="text-[17px] font-bold" style={{ fontFamily: "var(--font-mono)", color: "#8BC34A" }}>
               ${currentAMR}
@@ -159,11 +167,12 @@ export default function GameHeader() {
           </div>
           <div className="flex justify-between items-center">
             <button
-              onClick={() => setShowBurnInfo(true)}
-              className="flex items-center gap-0.5 cursor-pointer bg-transparent border-none p-0"
+              onClick={() => { if (!inTutorial) setShowBurnInfo(true); }}
+              disabled={inTutorial}
+              className={`flex items-center gap-0.5 bg-transparent border-none p-0 ${inTutorial ? "cursor-not-allowed" : "cursor-pointer"}`}
             >
               <span className="text-[9px] text-[#888] font-bold tracking-widest">BURN</span>
-              <span className="text-[8px] text-[#666]">ⓘ</span>
+              {!inTutorial && <span className="text-[8px] text-[#666]">ⓘ</span>}
             </button>
             <span className="text-[17px] font-bold" style={{ fontFamily: "var(--font-mono)", color: "#ef5350" }}>
               {formatCash(grossBurn)}<span className="text-[10px] text-[#666] font-normal">/mo</span>
