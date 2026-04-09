@@ -5,9 +5,7 @@ import { useGameStore } from "@/store/useGameStore";
 import { submitScoreAction, getSubmitTokenAction } from "@/app/actions/leaderboard";
 import { formatCash } from "@/lib/helpers";
 import { UPGRADE_TRACKS, ACHIEVEMENTS } from "@/lib/constants";
-import DataCollectionModal, {
-  LS_FORM_DATA, LS_WIN_SUBMITTED, SavedFormData,
-} from "./modals/DataCollectionModal";
+import DataCollectionModal, { LS_WIN_SUBMITTED } from "./modals/DataCollectionModal";
 
 /** Generate HMAC-SHA256 using the browser-native Web Crypto API */
 async function generateSignature(
@@ -30,33 +28,19 @@ export default function WinScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [rank, setRank] = useState<number | null>(null);
 
-  // ─── Prize state (pure-win only) ───
-  const [showJointForm, setShowJointForm] = useState(false);
-  const [winPrizeState, setWinPrizeState] = useState<"idle" | "submitting" | "done" | "declined">("idle");
+  // ─── Prize state (all win types) ───
+  const [showPrizeForm, setShowPrizeForm] = useState(false);
+  const [winPrizeState, setWinPrizeState] = useState<"idle" | "done" | "declined">("idle");
 
   useEffect(() => {
-    if (!state || state.winType !== "pure") return;
+    if (!state || !state.winType) return;
     if (typeof window === "undefined") return;
 
-    const alreadyWinSubmitted = localStorage.getItem(LS_WIN_SUBMITTED);
-    if (alreadyWinSubmitted) { setWinPrizeState("done"); return; }
-
-    const raw = localStorage.getItem(LS_FORM_DATA);
-    if (raw) {
-      const data: SavedFormData = JSON.parse(raw);
-      setWinPrizeState("submitting");
-      const body = new FormData();
-      body.append("name", data.name);
-      body.append("email", data.email);
-      body.append("phone", data.phone);
-      body.append("joint_count", "5");
-      body.append("game_event", "win_pure");
-      fetch("https://formspree.io/f/xwvwqwqo", { method: "POST", body, headers: { Accept: "application/json" } })
-        .then(r => r.ok ? r : Promise.reject(r))
-        .then(() => { localStorage.setItem(LS_WIN_SUBMITTED, "true"); setWinPrizeState("done"); })
-        .catch(() => { setWinPrizeState("idle"); setShowJointForm(true); });
+    const alreadyDone = localStorage.getItem(LS_WIN_SUBMITTED);
+    if (alreadyDone) {
+      setWinPrizeState("done");
     } else {
-      setShowJointForm(true);
+      setShowPrizeForm(true);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -217,98 +201,62 @@ export default function WinScreen() {
             </p>
           </div>
 
-          {/* ── Prize confirmation banner (pure win only) ── */}
-          {isPure && (
-            <div style={{ marginBottom: 36 }}>
-              {winPrizeState === "done" && (
-                <div style={{
-                  background: "rgba(139,195,74,0.05)",
-                  border: "1px solid rgba(139,195,74,0.18)",
-                  borderRadius: 12, padding: "18px 20px",
-                }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-                    <span style={{ color: "#8BC34A", fontSize: 13, flexShrink: 0 }}>✓</span>
-                    <span style={{
-                      color: "#8BC34A", fontSize: 10, fontFamily: "'JetBrains Mono', monospace",
-                      letterSpacing: 1, fontWeight: 700,
-                    }}>
-                      Five Joints Claimed
-                    </span>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                    <a href="https://share.google/Q0DuaCgJf87dNF4hi" target="_blank" rel="noopener noreferrer" style={{ display: "block", flexShrink: 0 }}>
-                      <img
-                        src="/Space_Jam_Logo.png"
-                        alt="Space Jam Dispensary"
-                        style={{ width: 52, height: 52, objectFit: "contain", display: "block" }}
-                      />
-                    </a>
-                    <div>
-                      <div style={{
-                        fontSize: 11, fontWeight: 700, color: "#bbb", marginBottom: 5,
-                        fontFamily: "'JetBrains Mono', monospace",
-                      }}>
-                        Space Jam Dispensary
-                      </div>
-                      <a
-                        href="https://share.google/Q0DuaCgJf87dNF4hi"
-                        target="_blank" rel="noopener noreferrer"
-                        style={{ color: "#4d8ab5", fontSize: 10, display: "block", textDecoration: "none", marginBottom: 2, fontFamily: "'JetBrains Mono', monospace" }}
-                      >
-                        📍 1810 S Broadway, Denver, CO 80210
-                      </a>
-                      <a
-                        href="tel:7209860882"
-                        style={{ color: "#4d8ab5", fontSize: 10, display: "block", textDecoration: "none", marginBottom: 6, fontFamily: "'JetBrains Mono', monospace" }}
-                      >
-                        📞 (720) 986-0882
-                      </a>
-                      <div style={{ color: "#555", fontSize: 9, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5 }}>
-                        Collect your victory joints 04/24 – 04/30/2026
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              {winPrizeState === "submitting" && (
-                <div style={{
-                  background: "#0d0d0d", border: "1px solid #1a1a1a",
-                  borderRadius: 10, padding: 16, textAlign: "center",
-                }}>
-                  <p style={{ color: "#555", fontSize: 11, margin: 0, fontFamily: "'JetBrains Mono', monospace" }}>
-                    Registering your prize…
-                  </p>
-                </div>
-              )}
-              {winPrizeState === "declined" && (
-                <div style={{
-                  display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-                  background: "rgba(255,255,255,0.02)",
-                  border: "1px solid #222",
-                  borderRadius: 10, padding: "13px 20px",
-                }}>
+          {/* ── Prize confirmation banner ── */}
+          <div style={{ marginBottom: 36 }}>
+            {winPrizeState === "done" && (
+              <div style={{
+                background: "rgba(139,195,74,0.05)",
+                border: "1px solid rgba(139,195,74,0.18)",
+                borderRadius: 12, padding: "18px 20px",
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                  <span style={{ color: "#8BC34A", fontSize: 13, flexShrink: 0 }}>✓</span>
                   <span style={{
-                    color: "#444", fontSize: 10, fontFamily: "'JetBrains Mono', monospace",
-                    letterSpacing: 1,
+                    color: "#8BC34A", fontSize: 10, fontFamily: "'JetBrains Mono', monospace",
+                    letterSpacing: 1, fontWeight: 700,
                   }}>
-                    Spoils declined · The five joints await if you change your mind
+                    T-Shirt Claimed
                   </span>
-                  <button
-                    onClick={() => setShowJointForm(true)}
-                    style={{
-                      background: "transparent", border: "1px solid #333",
-                      borderRadius: 6, color: "#666", fontSize: 9,
-                      padding: "5px 10px", cursor: "pointer",
-                      fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1,
-                      flexShrink: 0,
-                    }}
-                  >
-                    Reclaim →
-                  </button>
                 </div>
-              )}
-            </div>
-          )}
+                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                  <div style={{ fontSize: 32, flexShrink: 0 }}>👕</div>
+                  <div style={{
+                    color: "#6a8a6a", fontSize: 10, lineHeight: 1.7,
+                    fontFamily: "'JetBrains Mono', monospace",
+                  }}>
+                    Your free Bonsai t-shirt is on its way. Check your email for your claim code and shipping confirmation.
+                  </div>
+                </div>
+              </div>
+            )}
+            {winPrizeState === "declined" && (
+              <div style={{
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+                background: "rgba(255,255,255,0.02)",
+                border: "1px solid #222",
+                borderRadius: 10, padding: "13px 20px",
+              }}>
+                <span style={{
+                  color: "#444", fontSize: 10, fontFamily: "'JetBrains Mono', monospace",
+                  letterSpacing: 1,
+                }}>
+                  Spoils declined · Your t-shirt awaits if you change your mind
+                </span>
+                <button
+                  onClick={() => setShowPrizeForm(true)}
+                  style={{
+                    background: "transparent", border: "1px solid #333",
+                    borderRadius: 6, color: "#666", fontSize: 9,
+                    padding: "5px 10px", cursor: "pointer",
+                    fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1,
+                    flexShrink: 0,
+                  }}
+                >
+                  Reclaim →
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* ── Financial ── */}
           <div style={{ marginBottom: 30 }}>
@@ -461,12 +409,13 @@ export default function WinScreen() {
         </div>
       </div>
 
-      {/* 5-joint claim form for anonymous players who won a pure run */}
-      {showJointForm && isPure && (
+      {/* T-shirt claim form — shown for all win types */}
+      {showPrizeForm && (
         <DataCollectionModal
-          jointCount={5}
-          onSkip={() => { setShowJointForm(false); setWinPrizeState("declined"); }}
-          onSuccess={() => { setShowJointForm(false); setWinPrizeState("done"); }}
+          mode="claim"
+          gameEvent={isPure ? "win_pure" : "win_vc"}
+          onSkip={() => { setShowPrizeForm(false); setWinPrizeState("declined"); }}
+          onSuccess={() => { setShowPrizeForm(false); setWinPrizeState("done"); }}
         />
       )}
     </>

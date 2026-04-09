@@ -19,18 +19,16 @@ async function sendClaimEmail(data: {
   name: string;
   email: string;
   code: string;
-  jointCount: number;
+  shirtSize: string;
+  address: string;
+  city: string;
+  state: string;
+  zip: string;
 }) {
-  const joints = data.jointCount === 5 ? "Five Joints" : "One Joint";
-  const blurb =
-    data.jointCount === 5
-      ? "You beat the game on a pure run — no vulture capital. That's the real win."
-      : "You registered for the hunt. Finish the game by April 20th to unlock four more joints.";
-
   await resend.emails.send({
     from: "Bonsai Cultivation <bot@bonsaicultivation.com>",
     to: data.email,
-    subject: "Your Claim Code is Ready",
+    subject: "Your Bonsai Swag Claim Code",
     html: `
       <div style="background:#080c08; max-width:520px; margin:0 auto; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
 
@@ -50,8 +48,8 @@ async function sendClaimEmail(data: {
         <!-- Hero -->
         <div style="padding:44px 40px 36px;">
           <p style="font-family:'Courier New',Courier,monospace; font-size:9px; letter-spacing:3px; color:#3d5c3d; text-transform:uppercase; margin:0 0 14px;">Prize Confirmed</p>
-          <h1 style="font-family:Georgia,'Times New Roman',serif; font-size:50px; font-weight:900; color:#eef5ee; line-height:1.05; margin:0 0 20px; letter-spacing:-1px;">${joints}<br>Claimed.</h1>
-          <p style="color:#6a7a6a; font-size:14px; line-height:1.8; margin:0; max-width:360px;">Hey ${data.name} — ${blurb}</p>
+          <h1 style="font-family:Georgia,'Times New Roman',serif; font-size:50px; font-weight:900; color:#eef5ee; line-height:1.05; margin:0 0 20px; letter-spacing:-1px;">T-Shirt<br>Claimed.</h1>
+          <p style="color:#6a7a6a; font-size:14px; line-height:1.8; margin:0; max-width:360px;">Hey ${data.name} — You survived to 4/20/2026. That&apos;s the real win. We&apos;ll mail your free Bonsai t-shirt to the address below.</p>
         </div>
 
         <!-- Divider -->
@@ -66,33 +64,27 @@ async function sendClaimEmail(data: {
           <p style="font-family:'Courier New',Courier,monospace; font-size:9px; letter-spacing:2px; color:#2d3d2d; text-align:center; margin:10px 0 0;">One-time use &nbsp;·&nbsp; Non-transferable</p>
         </div>
 
-        <!-- Instructions -->
-        <div style="padding:0 40px 32px;">
-          <p style="color:#5a6a5a; font-size:13px; line-height:1.85; margin:0;">
-            Screenshot this email or write the code down. Bring it to Space Jam Dispensary between <strong style="color:#c8d8c8; font-weight:500;">April 24th – April 30th, 2026</strong>. Unclaimed prizes expire after April 30th.
-          </p>
-        </div>
-
-        <!-- Space Jam pickup card -->
-        <div style="margin:0 40px 44px; border-radius:12px; overflow:hidden; border:1px solid rgba(0,170,255,0.18);">
-          <div style="background:#040d15; padding:30px 24px 26px; text-align:center; border-bottom:1px solid rgba(0,170,255,0.12);">
-            <a href="https://share.google/Q0DuaCgJf87dNF4hi" target="_blank" style="display:block;">
-              <img src="https://bonsai-game.vercel.app/Space_Jam_Logo.png" alt="Space Jam Dispensary" width="108" style="display:block; margin:0 auto; width:108px; height:auto;">
-            </a>
-          </div>
-          <div style="background:#050d14; padding:22px 24px; text-align:center;">
-            <p style="font-family:'Courier New',Courier,monospace; font-size:9px; letter-spacing:3px; color:#0088bb; text-transform:uppercase; margin:0 0 12px;">Pickup Location</p>
-            <p style="color:#6a8a8a; font-size:13px; line-height:2; margin:0;">
-              <a href="https://share.google/Q0DuaCgJf87dNF4hi" target="_blank" style="color:#6a8a8a; text-decoration:none;">📍 1810 S Broadway, Denver, CO 80210</a><br>
-              <a href="tel:7209860882" style="color:#6a8a8a; text-decoration:none;">📞 (720) 986-0882</a>
+        <!-- Shipping details -->
+        <div style="margin:0 40px 44px; border-radius:12px; overflow:hidden; border:1px solid rgba(126,199,37,0.18);">
+          <div style="background:#040a04; padding:18px 24px; border-bottom:1px solid rgba(126,199,37,0.10);">
+            <p style="font-family:'Courier New',Courier,monospace; font-size:9px; letter-spacing:3px; color:#5a8a2a; text-transform:uppercase; margin:0 0 14px;">Shipping To</p>
+            <p style="color:#8aaa6a; font-size:13px; line-height:2; margin:0;">
+              ${data.name}<br>
+              ${data.address}<br>
+              ${data.city}, ${data.state} ${data.zip}
             </p>
           </div>
+          <div style="background:#040a04; padding:14px 24px;">
+            <p style="font-family:'Courier New',Courier,monospace; font-size:9px; letter-spacing:3px; color:#5a8a2a; text-transform:uppercase; margin:0 0 8px;">Shirt Size</p>
+            <p style="color:#8aaa6a; font-size:16px; font-weight:700; margin:0; letter-spacing:2px;">${data.shirtSize}</p>
+          </div>
         </div>
 
-        <!-- 21+ warning -->
-        <div style="margin:0 40px 28px; background:#1a0a0a; border:1px solid rgba(200,50,50,0.25); border-radius:10px; padding:16px 20px; text-align:center;">
-          <p style="font-family:'Courier New',Courier,monospace; font-size:9px; letter-spacing:2px; color:#c03030; text-transform:uppercase; font-weight:bold; margin:0 0 6px;">Must Be 21+ To Claim</p>
-          <p style="color:#7a4a4a; font-size:11px; line-height:1.7; margin:0;">Do not break the law and try to collect your winnings if you are under the legal age!</p>
+        <!-- Note -->
+        <div style="padding:0 40px 32px;">
+          <p style="color:#5a6a5a; font-size:13px; line-height:1.85; margin:0;">
+            Keep this code for your records. If you have any questions, reply to this email or reach us at <strong style="color:#c8d8c8; font-weight:500;">bonsaicultivation.com</strong>. Please allow 4–6 weeks for delivery.
+          </p>
         </div>
 
         <!-- Footer -->
@@ -110,7 +102,11 @@ export interface ClaimRecord {
   name: string;
   email: string;
   phone: string;
-  jointCount: number;
+  shirtSize: string;
+  address: string;
+  city: string;
+  state: string;
+  zip: string;
   gameEvent: string;
   createdAt: string;
   redeemed: boolean;
@@ -162,7 +158,11 @@ export async function createClaimAction(data: {
   name: string;
   email: string;
   phone: string;
-  jointCount: number;
+  shirtSize: string;
+  address: string;
+  city: string;
+  state: string;
+  zip: string;
   gameEvent: string;
 }): Promise<{ success: true; code: string; existing?: boolean } | { success: false; error: string; reason?: "deadline" | "capacity" }> {
   try {
@@ -171,7 +171,16 @@ export async function createClaimAction(data: {
     // Check for duplicate phone number first — existing entries are always allowed
     const existingCode = await redis.get<string>(phoneKey);
     if (existingCode) {
-      await sendClaimEmail({ name: data.name, email: data.email, code: existingCode, jointCount: data.jointCount });
+      await sendClaimEmail({
+        name: data.name,
+        email: data.email,
+        code: existingCode,
+        shirtSize: data.shirtSize,
+        address: data.address,
+        city: data.city,
+        state: data.state,
+        zip: data.zip,
+      });
       return { success: true, code: existingCode, existing: true };
     }
 
@@ -183,7 +192,7 @@ export async function createClaimAction(data: {
     // Capacity check — no more than 2,000 entries
     const currentCount = await redis.llen("claims:all");
     if (currentCount >= CLAIM_CAPACITY) {
-      return { success: false, error: "All 2,000 penny joints have been claimed. Thank you for playing!", reason: "capacity" };
+      return { success: false, error: "All claim slots have been filled. Thank you for playing!", reason: "capacity" };
     }
 
     // Generate a unique code (retry on collision)
@@ -199,7 +208,11 @@ export async function createClaimAction(data: {
       name: data.name,
       email: data.email,
       phone: data.phone,
-      jointCount: data.jointCount,
+      shirtSize: data.shirtSize,
+      address: data.address,
+      city: data.city,
+      state: data.state,
+      zip: data.zip,
       gameEvent: data.gameEvent,
       createdAt: new Date().toISOString(),
       redeemed: false,
@@ -218,7 +231,11 @@ export async function createClaimAction(data: {
       name: data.name,
       email: data.email,
       code,
-      jointCount: data.jointCount,
+      shirtSize: data.shirtSize,
+      address: data.address,
+      city: data.city,
+      state: data.state,
+      zip: data.zip,
     });
 
     return { success: true, code };

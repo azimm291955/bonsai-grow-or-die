@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Win Screen Preview — Bonsai: Grow or Die</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #000; font-family: 'Inter', system-ui, sans-serif; }
+
+  .preview-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+    background: #111; border-bottom: 1px solid #333;
+    display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+    font-size: 12px; color: #888;
+  }
+  .preview-bar strong { color: #fff; }
+  .toggle-btn {
+    padding: 5px 14px; border-radius: 6px; border: 1px solid #444;
+    cursor: pointer; font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+    transition: all 0.2s;
+  }
+  .toggle-btn.pure { background: rgba(139,195,74,0.15); color: #8BC34A; border-color: rgba(139,195,74,0.4); }
+  .toggle-btn.survivor { background: rgba(255,183,77,0.12); color: #FFB74D; border-color: rgba(255,183,77,0.3); }
+  .toggle-btn.active-pure { background: #8BC34A; color: #111; border-color: #8BC34A; }
+  .toggle-btn.active-survivor { background: #FFB74D; color: #111; border-color: #FFB74D; }
+
+  .prize-cycle-btn {
+    padding: 5px 14px; border-radius: 6px; border: 1px solid #555;
+    background: #222; color: #aaa; cursor: pointer; font-size: 11px;
+    font-weight: 700; margin-left: 8px;
+  }
+  .prize-label { color: #666; font-size: 11px; margin-left: 4px; }
+
+  /* ─── Game screen ─── */
+  .game-wrap {
+    min-height: 100vh;
+    padding: 64px 16px 32px;
+    overflow-y: auto;
+  }
+  .game-wrap.pure {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d4a1a 50%, #1a1a1a 100%);
+  }
+  .game-wrap.survivor {
+    background: linear-gradient(135deg, #1a1a1a 0%, #3a2a1a 50%, #1a1a1a 100%);
+  }
+  .inner { max-width: 480px; margin: 0 auto; }
+
+  /* header */
+  .header { text-align: center; margin-bottom: 24px; }
+  .logo-emoji { font-size: 64px; margin-bottom: 12px; display: block; }
+  .logo-img { width: 120px; height: 120px; object-fit: contain; margin-bottom: 12px; display: block; margin-left: auto; margin-right: auto; }
+  .win-title { font-size: 32px; font-weight: 700; letter-spacing: 2px; margin: 0; }
+  .win-subtitle { font-size: 11px; letter-spacing: 4px; margin-top: 6px; color: #888; }
+  .win-copy { color: #999; font-size: 13px; line-height: 1.6; margin-top: 16px; }
+
+  /* prize banners */
+  .prize-claimed {
+    background: #1f2e1a; border: 2px solid #8BC34A; border-radius: 12px;
+    padding: 20px; margin-bottom: 20px; text-align: center;
+  }
+  .prize-submitting {
+    background: #2a2a2a; border: 2px solid #555; border-radius: 12px;
+    padding: 20px; margin-bottom: 20px; text-align: center;
+  }
+  .prize-cta {
+    background: #2a2a2a; border: 2px solid rgba(255,183,77,0.5); border-radius: 12px;
+    padding: 20px; margin-bottom: 20px; text-align: center;
+  }
+  .claim-btn {
+    margin-top: 12px; padding: 9px 22px;
+    background: linear-gradient(135deg, #E65100, #FFB74D);
+    color: #fff; border: none; border-radius: 8px;
+    font-size: 12px; font-weight: 700; cursor: pointer;
+  }
+
+  /* section labels */
+  .section-label {
+    font-size: 10px; color: #666; font-weight: 700;
+    letter-spacing: 2px; margin-bottom: 10px;
+  }
+
+  /* stat grid */
+  .stat-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+  .stat-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+  .stat-card {
+    background: rgba(255,255,255,0.03); border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.06); padding: 12px 10px; text-align: center;
+  }
+  .stat-label { font-size: 8px; color: #555; font-weight: 600; letter-spacing: 1px; margin-bottom: 4px; }
+  .stat-value { font-size: 18px; font-weight: 800; }
+  .stat-sub { font-size: 9px; color: #444; margin-top: 2px; }
+
+  /* upgrade tiers */
+  .upgrade-panel {
+    background: rgba(255,255,255,0.03); border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.06); padding: 10px 12px; margin-bottom: 20px;
+  }
+  .upgrade-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+  .upgrade-row:last-child { border-bottom: none; }
+  .upgrade-left { display: flex; align-items: center; gap: 8px; }
+  .upgrade-icon { font-size: 16px; }
+  .upgrade-name { font-size: 12px; color: #aaa; }
+  .upgrade-right { display: flex; align-items: center; gap: 4px; }
+  .tier-pip { width: 16px; height: 4px; border-radius: 2px; }
+  .tier-pip.filled { background: #8BC34A; }
+  .tier-pip.empty { background: rgba(255,255,255,0.08); }
+  .tier-label { font-size: 10px; font-weight: 700; margin-left: 6px; }
+
+  /* achievements */
+  .achievement-panel {
+    background: rgba(255,255,255,0.03); border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.06); padding: 14px; margin-bottom: 20px; text-align: center;
+  }
+  .ach-count { font-size: 24px; font-weight: 800; color: #FFB74D; }
+  .ach-sub { font-size: 10px; color: #555; margin-top: 4px; }
+
+  /* leaderboard button */
+  .lb-btn {
+    padding: 14px 36px;
+    background: linear-gradient(135deg, #F57C00, #FFB74D);
+    color: #1a1a1a; border: none; border-radius: 8px;
+    cursor: pointer; font-size: 14px; font-weight: 700;
+    box-shadow: 0 2px 16px rgba(255,183,77,0.3); letter-spacing: 1px;
+    transition: all 0.3s;
+  }
+  .lb-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 24px rgba(255,183,77,0.4); }
+  .lb-submitted {
+    padding: 10px 20px; background: rgba(139,195,74,0.08);
+    border: 1px solid rgba(139,195,74,0.2); border-radius: 8px; display: inline-block;
+    color: #8BC34A; font-size: 13px; font-weight: 700;
+  }
+  .play-again-btn {
+    padding: 12px 32px; background: #333; color: #aaa;
+    border: 1px solid #555; border-radius: 8px; cursor: pointer; font-size: 14px;
+  }
+  .play-again-btn:hover { background: #3a3a3a; color: #ccc; }
+  .btn-row { text-align: center; margin-bottom: 20px; }
+  .play-row { text-align: center; padding-bottom: 40px; }
+</style>
+</head>
+<body>
+
+<!-- Preview control bar -->
+<div class="preview-bar">
+  <strong>Win Screen Preview</strong>
+  <span style="color:#444">|</span>
+  <button class="toggle-btn active-pure" id="btn-pure" onclick="setMode('pure')">🌿 Pure Run</button>
+  <button class="toggle-btn survivor" id="btn-survivor" onclick="setMode('survivor')">🏅 Survivor</button>
+  <span style="color:#444; margin-left:8px">|</span>
+  <span class="prize-label">Prize state:</span>
+  <button class="prize-cycle-btn" onclick="cyclePrize()">cycle →</button>
+  <span id="prize-state-label" style="color:#8BC34A; font-size:11px; font-weight:700">CTA (anonymous)</span>
+</div>
+
+<!-- Win screen -->
+<div class="game-wrap pure" id="game-wrap">
+<div class="inner">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div id="header-icon">🌿</div>
+    <h1 class="win-title" id="win-title" style="color:#8BC34A">YOU MADE IT</h1>
+    <p class="win-subtitle" id="win-subtitle">PURE RUN — NO VULTURE CAPITAL</p>
+    <p class="win-copy">12 years. Four crashes. A pandemic. You're still standing.</p>
+  </div>
+
+  <!-- PRIZE BANNER (pure only) -->
+  <div id="prize-section">
+    <!-- CTA state (default) -->
+    <div class="prize-cta" id="prize-cta">
+      <p style="color:#FFB74D; font-size:16px; font-weight:700; margin:0">🏆 Claim your a free t-shirt</p>
+      <p style="color:#888; font-size:11px; margin-top:6px">Pure run reward — redeemable at a partner dispensary.</p>
+      <button class="claim-btn">Claim Now</button>
+    </div>
+    <!-- Submitting state -->
+    <div class="prize-submitting" id="prize-submitting" style="display:none">
+      <p style="color:#888; font-size:14px; margin:0">Registering your t-shirt prize…</p>
+    </div>
+    <!-- Done state -->
+    <div class="prize-claimed" id="prize-claimed" style="display:none">
+      <p style="color:#8BC34A; font-size:16px; font-weight:700; margin:0">🎉 T-Shirt Claimed!</p>
+      <p style="color:#888; font-size:11px; margin-top:6px">We'll be in touch. Redeemable at a partner dispensary.</p>
+    </div>
+  </div>
+
+  <!-- FINANCIAL -->
+  <div class="section-label">FINANCIAL</div>
+  <div class="stat-grid-2">
+    <div class="stat-card">
+      <div class="stat-label">FINAL CASH</div>
+      <div class="stat-value" style="color:#8BC34A">$2.4M</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">NET INCOME</div>
+      <div class="stat-value" style="color:#8BC34A">$1.8M</div>
+      <div class="stat-sub">revenue − expenses</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">WHOLESALE FLOWER</div>
+      <div class="stat-value" style="color:#8BC34A">$4.1M</div>
+      <div class="stat-sub">harvest sales</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">PRE-ROLL SALES</div>
+      <div class="stat-value" style="color:#8BC34A">$620K</div>
+      <div class="stat-sub">monthly revenue</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">PEAK CASH</div>
+      <div class="stat-value" style="color:#FFB74D">$3.1M</div>
+      <div class="stat-sub">highest balance</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">LOWEST CASH</div>
+      <div class="stat-value" style="color:#ef5350">-$48K</div>
+      <div class="stat-sub">closest to death</div>
+    </div>
+  </div>
+
+  <!-- OPERATIONS -->
+  <div class="section-label">OPERATIONS</div>
+  <div class="stat-grid-3">
+    <div class="stat-card">
+      <div class="stat-label">HARVESTS</div>
+      <div class="stat-value" style="color:#fff">47</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">LBS PRODUCED</div>
+      <div class="stat-value" style="color:#fff">18,240</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">ROOMS</div>
+      <div class="stat-value" style="color:#fff">9</div>
+      <div class="stat-sub">of 9</div>
+    </div>
+  </div>
+
+  <!-- INVESTMENT -->
+  <div class="section-label">INVESTMENT</div>
+  <div class="stat-grid-3">
+    <div class="stat-card">
+      <div class="stat-label">UPGRADES</div>
+      <div class="stat-value" style="color:#ef5350">$840K</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">ROOMS</div>
+      <div class="stat-value" style="color:#ef5350">$320K</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">TOTAL SPENT</div>
+      <div class="stat-value" style="color:#ef5350">$1.16M</div>
+    </div>
+  </div>
+
+  <!-- UPGRADE TIERS -->
+  <div class="section-label">UPGRADE TIERS (HIGHEST PER TRACK)</div>
+  <div class="upgrade-panel">
+    <div class="upgrade-row">
+      <div class="upgrade-left"><span class="upgrade-icon">💡</span><span class="upgrade-name">Lighting</span></div>
+      <div class="upgrade-right">
+        <div class="tier-pip filled"></div><div class="tier-pip filled"></div><div class="tier-pip filled"></div><div class="tier-pip filled"></div><div class="tier-pip empty"></div>
+        <span class="tier-label" style="color:#FFB74D">T4</span>
+      </div>
+    </div>
+    <div class="upgrade-row">
+      <div class="upgrade-left"><span class="upgrade-icon">💧</span><span class="upgrade-name">Irrigation & Environment</span></div>
+      <div class="upgrade-right">
+        <div class="tier-pip filled"></div><div class="tier-pip filled"></div><div class="tier-pip filled"></div><div class="tier-pip filled"></div><div class="tier-pip filled"></div>
+        <span class="tier-label" style="color:#8BC34A">MAX</span>
+      </div>
+    </div>
+    <div class="upgrade-row">
+      <div class="upgrade-left"><span class="upgrade-icon">🧬</span><span class="upgrade-name">Genetics</span></div>
+      <div class="upgrade-right">
+        <div class="tier-pip filled"></div><div class="tier-pip filled"></div><div class="tier-pip filled"></div><div class="tier-pip empty"></div><div class="tier-pip empty"></div>
+        <span class="tier-label" style="color:#FFB74D">T3</span>
+      </div>
+    </div>
+    <div class="upgrade-row">
+      <div class="upgrade-left"><span class="upgrade-icon">🚬</span><span class="upgrade-name">Pre-Roll</span></div>
+      <div class="upgrade-right">
+        <div class="tier-pip filled"></div><div class="tier-pip filled"></div><div class="tier-pip empty"></div><div class="tier-pip empty"></div><div class="tier-pip empty"></div>
+        <span class="tier-label" style="color:#FFB74D">T2</span>
+      </div>
+    </div>
+    <div class="upgrade-row">
+      <div class="upgrade-left"><span class="upgrade-icon">⚙️</span><span class="upgrade-name">Operations</span></div>
+      <div class="upgrade-right">
+        <div class="tier-pip filled"></div><div class="tier-pip filled"></div><div class="tier-pip filled"></div><div class="tier-pip filled"></div><div class="tier-pip filled"></div>
+        <span class="tier-label" style="color:#8BC34A">MAX</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACHIEVEMENTS -->
+  <div class="section-label">ACHIEVEMENTS</div>
+  <div class="achievement-panel">
+    <div class="ach-count">14 / 18</div>
+    <div class="ach-sub">77% complete</div>
+  </div>
+
+  <!-- LEADERBOARD BUTTON -->
+  <div class="btn-row">
+    <button class="lb-btn" id="lb-btn" onclick="toggleSubmit()">👑 Submit to Top 420 Leaderboard</button>
+  </div>
+
+  <!-- PLAY AGAIN -->
+  <div class="play-row">
+    <button class="play-again-btn">Play Again</button>
+  </div>
+
+</div>
+</div>
+
+<script>
+  let mode = 'pure';
+  let prizeState = 'cta'; // cta | submitting | done
+  let lbSubmitted = false;
+
+  const prizeStates = ['cta', 'submitting', 'done'];
+  const prizeLabels = { cta: 'CTA (anonymous)', submitting: 'Registering…', done: 'T-Shirt Claimed' };
+
+  function setMode(m) {
+    mode = m;
+    const wrap = document.getElementById('game-wrap');
+    wrap.className = 'game-wrap ' + m;
+
+    const icon = document.getElementById('header-icon');
+    const title = document.getElementById('win-title');
+    const sub = document.getElementById('win-subtitle');
+    const prize = document.getElementById('prize-section');
+
+    if (m === 'pure') {
+      icon.innerHTML = '🌿';
+      title.textContent = 'YOU MADE IT';
+      title.style.color = '#8BC34A';
+      sub.textContent = 'PURE RUN — NO VULTURE CAPITAL';
+      prize.style.display = 'block';
+    } else {
+      icon.innerHTML = '🏅';
+      title.textContent = 'SURVIVOR';
+      title.style.color = '#FFB74D';
+      sub.textContent = 'VULTURE CAPITAL SURVIVOR';
+      prize.style.display = 'none';
+    }
+
+    document.getElementById('btn-pure').className = 'toggle-btn ' + (m === 'pure' ? 'active-pure' : 'pure');
+    document.getElementById('btn-survivor').className = 'toggle-btn ' + (m === 'survivor' ? 'active-survivor' : 'survivor');
+  }
+
+  function cyclePrize() {
+    const idx = prizeStates.indexOf(prizeState);
+    prizeState = prizeStates[(idx + 1) % prizeStates.length];
+    renderPrize();
+    document.getElementById('prize-state-label').textContent = prizeLabels[prizeState];
+
+    // Force pure mode when cycling prize
+    if (mode !== 'pure') setMode('pure');
+  }
+
+  function renderPrize() {
+    document.getElementById('prize-cta').style.display = prizeState === 'cta' ? 'block' : 'none';
+    document.getElementById('prize-submitting').style.display = prizeState === 'submitting' ? 'block' : 'none';
+    document.getElementById('prize-claimed').style.display = prizeState === 'done' ? 'block' : 'none';
+  }
+
+  function toggleSubmit() {
+    lbSubmitted = !lbSubmitted;
+    const btn = document.getElementById('lb-btn');
+    if (lbSubmitted) {
+      btn.outerHTML = '<div class="lb-submitted" id="lb-btn">✓ Submitted! Rank #42</div>';
+    } else {
+      document.getElementById('lb-btn').outerHTML = '<button class="lb-btn" id="lb-btn" onclick="toggleSubmit()">👑 Submit to Top 420 Leaderboard</button>';
+      lbSubmitted = false;
+    }
+  }
+</script>
+</body>
+</html>

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Bonsai: Grow or Die",
     description:
-      "Run a real cannabis wholesale grow from Day 1 of Colorado rec legalization. Survive to 4/20/2026 and earn a penny joint.",
+      "Run a real cannabis wholesale grow from Day 1 of Colorado rec legalization. Survive to 4/20/2026 and win a free Bonsai t-shirt.",
     type: "website",
     siteName: "Bonsai Cultivation",
   },

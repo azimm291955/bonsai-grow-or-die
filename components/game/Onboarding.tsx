@@ -100,7 +100,7 @@ export default function Onboarding() {
         <p style={{ color: "#999", fontSize: 13, lineHeight: 1.8, marginBottom: 12, maxWidth: 360, margin: "0 auto 12px", animation: "fade-up 0.8s ease-out 0.5s both" }}>
           It&apos;s <span style={{ color: "#fff", fontWeight: 600 }}>December 2015</span>. Rec cannabis has been legal for two years and the gold rush is on.
           You&apos;re the new operator of <span style={{ color: "#8BC34A", fontWeight: 600 }}>Bonsai Cultivation</span> — a scrappy Denver wholesale grow with $1M and one room.
-          <br /><br /><span style={{ color: "#888" }}>Survive to <span style={{ color: "#FFB74D", fontWeight: 700 }}>4/20/2026</span> and earn a penny joint.</span>
+          <br /><br /><span style={{ color: "#888" }}>Survive to <span style={{ color: "#FFB74D", fontWeight: 700 }}>4/20/2026</span> and win a free t-shirt!</span>
         </p>
 
         {/* Prestige capacity badge */}

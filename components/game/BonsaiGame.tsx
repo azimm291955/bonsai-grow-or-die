@@ -341,7 +341,7 @@ function MainGameUI() {
       <SpeedHint />
       {showDataForm && (
         <DataCollectionModal
-          jointCount={1}
+          mode="info"
           onSkip={() => { setShowDataForm(false); setPaused(false); }}
           onSuccess={() => { setShowDataForm(false); setPaused(false); }}
         />

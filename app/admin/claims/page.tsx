@@ -181,11 +181,17 @@ export default function AdminClaimsPage() {
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 24px", fontSize: 11, marginBottom: 14 }}>
                 <div><span style={{ color: "#555" }}>Name: </span><span style={{ color: "#ccc" }}>{lookedUp.name}</span></div>
-                <div><span style={{ color: "#555" }}>Joints: </span><span style={{ color: "#ccc" }}>{lookedUp.jointCount}</span></div>
+                <div><span style={{ color: "#555" }}>Shirt: </span><span style={{ color: "#ccc" }}>{lookedUp.shirtSize ?? "—"}</span></div>
                 <div><span style={{ color: "#555" }}>Email: </span><span style={{ color: "#ccc" }}>{lookedUp.email}</span></div>
                 <div><span style={{ color: "#555" }}>Event: </span><span style={{ color: "#ccc" }}>{lookedUp.gameEvent}</span></div>
                 <div><span style={{ color: "#555" }}>Phone: </span><span style={{ color: "#ccc" }}>{lookedUp.phone}</span></div>
                 <div><span style={{ color: "#555" }}>Claimed: </span><span style={{ color: "#ccc" }}>{fmt(lookedUp.createdAt)}</span></div>
+                {lookedUp.address && (
+                  <div style={{ gridColumn: "span 2" }}>
+                    <span style={{ color: "#555" }}>Ship to: </span>
+                    <span style={{ color: "#ccc" }}>{lookedUp.address}, {lookedUp.city}, {lookedUp.state} {lookedUp.zip}</span>
+                  </div>
+                )}
                 {lookedUp.redeemed && (
                   <div style={{ gridColumn: "span 2" }}>
                     <span style={{ color: "#555" }}>Redeemed at: </span>
@@ -202,7 +208,7 @@ export default function AdminClaimsPage() {
                   fontWeight: 700, fontSize: 11, cursor: "pointer",
                   fontFamily: mono, letterSpacing: 1.5,
                 }}>
-                  {redeemLoading ? "Marking…" : `Mark as Redeemed — ${lookedUp.jointCount} Joint${lookedUp.jointCount > 1 ? "s" : ""} →`}
+                  {redeemLoading ? "Marking…" : `Mark as Redeemed — ${lookedUp.shirtSize ?? "?"} T-Shirt →`}
                 </button>
               )}
               {redeemMsg && (
@@ -250,7 +256,7 @@ export default function AdminClaimsPage() {
                   }}>
                     <div style={{ fontWeight: 700, letterSpacing: 2, color: c.redeemed ? "#444" : ACCENT, fontSize: 12, minWidth: 130 }}>{c.code}</div>
                     <div style={{ flex: 1, fontSize: 11, color: c.redeemed ? "#555" : "#bbb", minWidth: 120 }}>{c.name}</div>
-                    <div style={{ fontSize: 10, color: "#555" }}>{c.jointCount}J · {c.gameEvent}</div>
+                    <div style={{ fontSize: 10, color: "#555" }}>{c.shirtSize ?? "?"} · {c.gameEvent}</div>
                     <div style={{
                       fontSize: 8, fontWeight: 700, padding: "3px 8px", borderRadius: 12,
                       background: c.redeemed ? "#1a1a1a" : `${ACCENT}15`,
