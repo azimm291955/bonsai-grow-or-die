@@ -3,328 +3,608 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Winner Info Form</title>
+  <title>Claim Your Bonsai T-Shirt</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: #0a0a0a;
+    :root {
+      --green: #7AAB3A;
+      --green-bright: #8BC34A;
+      --green-dim: rgba(122,171,58,0.12);
+      --green-border: rgba(122,171,58,0.22);
+      --green-glow: rgba(122,171,58,0.18);
+      --bg: #080c08;
+      --surface: #111511;
+      --surface2: #0d110d;
+      --text: #e0e0e0;
+      --muted: #888;
+      --dimmer: #555;
+      --mono: 'JetBrains Mono', monospace;
+      --serif: 'Cormorant Garamond', Georgia, serif;
+    }
+
+    html, body {
       min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--mono);
+    }
+
+    body {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 2rem 1rem;
+      padding: 48px 16px 80px;
+      background-image:
+        radial-gradient(ellipse 60% 40% at 50% 0%, rgba(122,171,58,0.06) 0%, transparent 70%);
+    }
+
+    /* Top accent bar */
+    .top-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent 0%, var(--green) 30%, var(--green) 70%, transparent 100%);
+      z-index: 100;
     }
 
     .card {
-      background: #111;
-      border: 1px solid #2a2a2a;
-      border-radius: 16px;
-      padding: 2.5rem 2rem;
+      background: linear-gradient(160deg, #141814 0%, #0f120f 100%);
+      border: 1px solid var(--green-border);
+      border-radius: 20px;
       width: 100%;
       max-width: 480px;
-      box-shadow: 0 0 40px rgba(0, 200, 80, 0.08);
+      overflow: hidden;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.03),
+        0 40px 100px rgba(0,0,0,0.8),
+        0 0 80px var(--green-glow);
+      animation: rise 0.6s cubic-bezier(0.16,1,0.3,1) both;
     }
 
-    .badge {
-      display: inline-block;
-      background: linear-gradient(135deg, #00c850, #00ff80);
-      color: #000;
-      font-size: 0.7rem;
-      font-weight: 800;
-      letter-spacing: 0.12em;
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-header {
+      padding: 36px 32px 28px;
+      text-align: center;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .eyebrow {
+      font-size: 8px;
+      letter-spacing: 4px;
+      color: var(--green);
       text-transform: uppercase;
-      padding: 0.3rem 0.75rem;
-      border-radius: 999px;
-      margin-bottom: 1rem;
+      margin-bottom: 12px;
     }
 
-    h1 {
-      color: #ffffff;
-      font-size: 1.75rem;
-      font-weight: 800;
-      line-height: 1.2;
-      margin-bottom: 0.5rem;
+    .title {
+      font-family: var(--serif);
+      font-size: 42px;
+      font-weight: 700;
+      line-height: 1.05;
+      color: var(--text);
+      margin-bottom: 10px;
+      letter-spacing: 0.5px;
     }
 
     .subtitle {
-      color: #888;
-      font-size: 0.9rem;
-      margin-bottom: 2rem;
-      line-height: 1.5;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.8;
+      max-width: 340px;
+      margin: 0 auto;
     }
 
-    .form-group {
-      margin-bottom: 1.25rem;
+    .prize-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--green-dim);
+      border: 1px solid var(--green-border);
+      border-radius: 999px;
+      padding: 8px 18px;
+      margin: 18px auto 0;
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--green-bright);
+      text-transform: uppercase;
+      font-weight: 700;
     }
+
+    .prize-badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green-bright);
+      flex-shrink: 0;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* Claim code display */
+    .code-block {
+      margin: 0 32px;
+      padding: 20px 24px;
+      background: rgba(4,10,4,0.8);
+      border: 1px solid rgba(122,171,58,0.18);
+      border-radius: 12px;
+      text-align: center;
+      margin-top: 24px;
+    }
+
+    .code-label {
+      font-size: 7px;
+      letter-spacing: 3px;
+      color: #3d5c3d;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .code-value {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 6px;
+      color: #a8e040;
+      display: block;
+      min-height: 30px;
+    }
+
+    /* Form */
+    .form-body {
+      padding: 28px 32px 32px;
+    }
+
+    .co-only-note {
+      background: rgba(255,183,77,0.06);
+      border: 1px solid rgba(255,183,77,0.18);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 22px;
+      font-size: 9px;
+      color: #FFB74D;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .field-group {
+      margin-bottom: 14px;
+    }
+
+    .field-group.row {
+      display: grid;
+      gap: 10px;
+    }
+
+    .field-group.row-3 { grid-template-columns: 1fr 60px 80px; }
+    .field-group.row-2 { grid-template-columns: 1fr auto; }
 
     label {
       display: block;
-      color: #ccc;
-      font-size: 0.85rem;
+      font-size: 8px;
+      letter-spacing: 2.5px;
+      color: var(--muted);
+      text-transform: uppercase;
       font-weight: 600;
-      margin-bottom: 0.4rem;
-      letter-spacing: 0.02em;
+      margin-bottom: 6px;
     }
 
     input[type="text"],
     input[type="email"],
     input[type="tel"] {
       width: 100%;
-      background: #1a1a1a;
-      border: 1px solid #2e2e2e;
+      background: #0d0d0d;
+      border: 1px solid #2a2a2a;
       border-radius: 8px;
-      color: #fff;
-      font-size: 1rem;
-      padding: 0.75rem 1rem;
+      padding: 10px 13px;
+      color: var(--text);
+      font-size: 13px;
+      font-family: var(--mono);
       outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+      colorScheme: dark;
     }
 
     input:focus {
-      border-color: #00c850;
-      box-shadow: 0 0 0 3px rgba(0, 200, 80, 0.15);
+      border-color: var(--green);
+      background: rgba(255,255,255,0.04);
+      box-shadow: 0 0 0 3px var(--green-glow);
     }
 
-    input::placeholder { color: #555; }
+    /* State locked field */
+    .state-locked {
+      background: #0d0d0d;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      padding: 10px 13px;
+      color: var(--green-bright);
+      font-size: 13px;
+      font-family: var(--mono);
+      font-weight: 700;
+      text-align: center;
+      cursor: default;
+      user-select: none;
+      width: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
+    /* Shirt size */
+    .size-grid {
+      display: flex;
+      gap: 8px;
+    }
+
+    .size-btn {
+      flex: 1;
+      padding: 10px 4px;
+      background: #0d0d0d;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      color: var(--dimmer);
+      font-size: 11px;
+      font-weight: 700;
+      font-family: var(--mono);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .size-btn:hover {
+      border-color: #444;
+      color: #999;
+    }
+
+    .size-btn.active {
+      background: rgba(122,171,58,0.12);
+      border-color: var(--green);
+      color: var(--green-bright);
+      box-shadow: 0 0 0 2px var(--green-glow);
+    }
+
+    /* Submit */
     .submit-btn {
       width: 100%;
-      background: linear-gradient(135deg, #00c850, #00a840);
-      color: #000;
-      font-size: 1rem;
-      font-weight: 800;
-      letter-spacing: 0.04em;
+      padding: 14px;
+      background: linear-gradient(135deg, #4a7a22, #8BC34A);
+      color: #0a1a04;
       border: none;
       border-radius: 10px;
-      padding: 0.85rem;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      font-family: var(--mono);
       cursor: pointer;
-      margin-top: 0.5rem;
-      transition: opacity 0.2s, transform 0.1s;
-    }
-
-    .submit-btn:hover { opacity: 0.9; }
-    .submit-btn:active { transform: scale(0.98); }
-
-    .divider {
-      border: none;
-      border-top: 1px solid #222;
-      margin: 2rem 0 1.5rem;
-    }
-
-    .sponsor {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .sponsor-label {
-      color: #555;
-      font-size: 0.75rem;
-      font-weight: 600;
+      box-shadow: 0 4px 24px var(--green-glow);
+      transition: all 0.25s;
+      margin-top: 22px;
+      margin-bottom: 12px;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
-      white-space: nowrap;
     }
 
-    .sponsor-name {
-      color: #e8c94b;
-      font-size: 0.95rem;
-      font-weight: 800;
-      letter-spacing: 0.02em;
+    .submit-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .submit-btn:disabled {
+      background: #141414;
+      color: #383838;
+      border: 1px solid #222;
+      box-shadow: none;
+      cursor: not-allowed;
+      transform: none;
     }
 
-    .sponsor-blaze {
-      font-size: 1.1rem;
-    }
-
-    .rewards {
-      display: flex;
-      gap: 0.75rem;
-      margin-top: 1rem;
-    }
-
-    .reward-pill {
-      flex: 1;
-      border-radius: 10px;
-      padding: 0.75rem 0.5rem;
-      text-align: center;
+    .skip-btn {
+      width: 100%;
+      padding: 10px;
+      background: transparent;
+      color: var(--dimmer);
       border: 1px solid #2a2a2a;
-      background: #161616;
-    }
-
-    .reward-pill .reward-icon { font-size: 1.4rem; display: block; margin-bottom: 0.25rem; }
-    .reward-pill .reward-qty { font-size: 1.1rem; font-weight: 800; color: #e8c94b; display: block; }
-    .reward-pill .reward-desc { font-size: 0.7rem; color: #777; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
-
-    .claim-code-display {
-      background: #0d1f10;
-      border: 1px solid #00c85044;
-      border-radius: 10px;
-      padding: 0.75rem 1rem;
-      margin-bottom: 1.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.75rem;
-    }
-
-    .claim-code-label {
-      color: #666;
-      font-size: 0.7rem;
-      font-weight: 700;
+      border-radius: 8px;
+      font-size: 9px;
+      font-family: var(--mono);
+      letter-spacing: 1.5px;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
-      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s;
     }
 
-    .claim-code-value {
-      color: #00ff80;
-      font-size: 1.05rem;
-      font-weight: 800;
-      letter-spacing: 0.12em;
-      font-family: 'Courier New', monospace;
-    }
+    .skip-btn:hover { color: #888; border-color: #444; }
 
-    .success-msg {
-      display: none;
+    .error-msg {
+      color: #ef5350;
+      font-size: 10px;
       text-align: center;
-      color: #00c850;
-      font-size: 1.1rem;
-      font-weight: 700;
-      padding: 1rem 0;
+      margin-bottom: 12px;
+      display: none;
     }
 
-    @media (max-width: 480px) {
-      .card { padding: 2rem 1.25rem; }
-      h1 { font-size: 1.5rem; }
+    .success-screen {
+      display: none;
+      padding: 40px 32px;
+      text-align: center;
+    }
+
+    .success-icon { font-size: 48px; margin-bottom: 16px; }
+
+    .success-title {
+      font-family: var(--serif);
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    .success-code {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 6px;
+      color: #a8e040;
+      font-family: var(--mono);
+      background: rgba(4,10,4,0.8);
+      border: 1px solid rgba(122,171,58,0.18);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin: 16px 0;
+    }
+
+    .success-note {
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.8;
+    }
+
+    /* Bottom logo */
+    .logo-footer {
+      margin-top: 40px;
+      text-align: center;
+      opacity: 0.7;
+    }
+
+    .logo-footer img {
+      width: 220px;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .logo-footer p {
+      font-size: 8px;
+      color: #3a4a3a;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 520px) {
+      .card-header { padding: 28px 20px 22px; }
+      .form-body { padding: 22px 20px 26px; }
+      .title { font-size: 32px; }
     }
   </style>
 </head>
 <body>
+  <div class="top-bar"></div>
 
   <div class="card">
-    <div class="badge">🏆 Congratulations, Winner!</div>
-    <h1>Claim Your Prize</h1>
-    <p class="subtitle">Fill out your info below so we can get your prize to you. All fields are required.</p>
 
-    <div class="rewards">
-      <div class="reward-pill">
-        <span class="reward-icon">🚬</span>
-        <span class="reward-qty">1 T-Shirt</span>
-        <span class="reward-desc">Just for playing</span>
-      </div>
-      <div class="reward-pill" style="border-color: #e8c94b33; background: #1a1800;">
-        <span class="reward-icon">🏆</span>
-        <span class="reward-qty">5 T-Shirts</span>
-        <span class="reward-desc">For winning</span>
+    <!-- Header -->
+    <div class="card-header">
+      <div class="eyebrow">Bonsai: Grow or Die — Prize Redemption</div>
+      <h1 class="title">Claim Your<br>Free T-Shirt</h1>
+      <p class="subtitle">You survived to 4/20/2026. Fill out your shipping info and we'll mail your Bonsai t-shirt directly to you.</p>
+      <div class="prize-badge">
+        <span class="prize-badge-dot"></span>
+        1 Free T-Shirt · Colorado Residents Only
       </div>
     </div>
 
-    <!-- Claim code display — generated before submit -->
-    <div class="claim-code-display">
-      <span class="claim-code-label">🎫 Your Claim Code</span>
-      <span class="claim-code-value" id="claim-code-display">—</span>
+    <!-- Claim code display -->
+    <div style="padding: 0 32px; margin-top: 24px;">
+      <div class="code-block" style="margin: 0;">
+        <div class="code-label">Your Claim Code</div>
+        <span class="code-value" id="claim-code-display">—</span>
+      </div>
     </div>
 
-    <!-- ✏️ Replace YOUR_FORM_ID with your Formspree form ID -->
-    <form
-      id="winner-form"
-      action="https://formspree.io/f/xwvwqwqo"
-      method="POST"
-    >
-      <!-- Hidden field — Formspree will capture this and include in auto-response email -->
-      <input type="hidden" name="claim_code" id="claim-code-field" />
-      <div class="form-group">
-        <label for="name">Full Name</label>
-        <input
-          id="name"
-          type="text"
-          name="name"
-          placeholder="Your full name"
-          required
-        />
+    <!-- Form -->
+    <div class="form-body">
+
+      <div class="co-only-note">📍 Must be in Colorado to receive a free t-shirt</div>
+
+      <form id="winner-form" action="https://formspree.io/f/xwvwqwqo" method="POST">
+        <input type="hidden" name="claim_code" id="claim-code-field" />
+        <input type="hidden" name="state" value="CO" />
+
+        <!-- Name -->
+        <div class="field-group">
+          <label for="name">Full Name</label>
+          <input id="name" type="text" name="name" placeholder="Jane Doe" required />
+        </div>
+
+        <!-- Email -->
+        <div class="field-group">
+          <label for="email">Email Address</label>
+          <input id="email" type="email" name="email" placeholder="jane@example.com" required />
+        </div>
+
+        <!-- Phone -->
+        <div class="field-group">
+          <label for="phone">Phone Number</label>
+          <input id="phone" type="tel" name="phone" placeholder="(303) 555-0100" required />
+        </div>
+
+        <!-- Street Address -->
+        <div class="field-group">
+          <label for="address">Street Address</label>
+          <input id="address" type="text" name="address" placeholder="1234 Main St" required />
+        </div>
+
+        <!-- City + State -->
+        <div class="field-group row row-2">
+          <div>
+            <label for="city">City</label>
+            <input id="city" type="text" name="city" placeholder="Denver" required />
+          </div>
+          <div>
+            <label>State</label>
+            <div class="state-locked">CO</div>
+          </div>
+        </div>
+
+        <!-- Zip -->
+        <div class="field-group">
+          <label for="zip">Zip Code</label>
+          <input id="zip" type="text" name="zip" placeholder="80210" maxlength="5" required />
+          <div class="error-msg" id="zip-error">📍 Sorry, find us in a Colorado Dispensary next time you visit!</div>
+        </div>
+
+        <!-- Shirt Size -->
+        <div class="field-group">
+          <label>T-Shirt Size</label>
+          <div class="size-grid">
+            <button type="button" class="size-btn" data-size="S">S</button>
+            <button type="button" class="size-btn" data-size="M">M</button>
+            <button type="button" class="size-btn" data-size="L">L</button>
+            <button type="button" class="size-btn" data-size="XL">XL</button>
+            <button type="button" class="size-btn" data-size="XXL">XXL</button>
+          </div>
+          <input type="hidden" name="shirt_size" id="shirt-size-field" />
+        </div>
+
+        <div class="error-msg" id="form-error"></div>
+
+        <button type="submit" class="submit-btn" id="submit-btn" disabled>Select a size to continue →</button>
+        <button type="button" class="skip-btn" onclick="window.location.reload()">← Start Over</button>
+      </form>
+
+      <!-- Success screen (shown after submit) -->
+      <div class="success-screen" id="success-screen">
+        <div class="success-icon">👕</div>
+        <div class="success-title">T-Shirt<br>Claimed!</div>
+        <div class="success-code" id="success-code">—</div>
+        <p class="success-note">
+          Check your email for confirmation.<br>
+          We'll mail your Bonsai t-shirt to you — allow 4–6 weeks for delivery.<br><br>
+          <span style="color: #555; font-size: 9px;">Code is one-time use · Non-transferable</span>
+        </p>
       </div>
 
-      <div class="form-group">
-        <label for="email">Email Address</label>
-        <input
-          id="email"
-          type="email"
-          name="email"
-          placeholder="you@example.com"
-          required
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="phone">Phone Number</label>
-        <input
-          id="phone"
-          type="tel"
-          name="phone"
-          placeholder="(555) 000-0000"
-          required
-        />
-      </div>
-
-      <button type="submit" class="submit-btn">Submit My Info →</button>
-      <p class="success-msg" id="success-msg">✅ Got it! We'll be in touch soon.</p>
-    </form>
-
-    <hr class="divider" />
-
-    <div class="sponsor">
-      <span class="sponsor-label">Sponsored by</span>
-      <span class="sponsor-blaze">🔥</span>
-      <span class="sponsor-name">Bonsai Cultivation</span>
     </div>
   </div>
 
+  <!-- Bonsai Rainbow logo at bottom -->
+  <div class="logo-footer">
+    <img src="public/Bonsai_Rainbow.png" alt="Bonsai Cultivation" />
+    <p>Bonsai Cultivation · bonsaicultivation.com</p>
+  </div>
+
   <script>
-    // --- Claim code generation ---
+    // ── Claim code generation ──────────────────────────────────────────
     function generateClaimCode() {
-      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I to avoid confusion
-      let code = 'SPJAM-';
-      for (let i = 0; i < 6; i++) {
-        code += chars[Math.floor(Math.random() * chars.length)];
-      }
-      return code;
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let suffix = '';
+      for (let i = 0; i < 6; i++) suffix += chars[Math.floor(Math.random() * chars.length)];
+      return 'BONSAI-' + suffix;
     }
 
-    const claimCode = generateClaimCode();
-    document.getElementById('claim-code-display').textContent = claimCode;
-    document.getElementById('claim-code-field').value = claimCode;
+    const code = generateClaimCode();
+    document.getElementById('claim-code-display').textContent = code;
+    document.getElementById('claim-code-field').value = code;
+    document.getElementById('success-code').textContent = code;
 
-    // --- Form submission ---
-    const form = document.getElementById('winner-form');
-    const successMsg = document.getElementById('success-msg');
-
-    form.addEventListener('submit', async function (e) {
-      e.preventDefault();
-      const btn = form.querySelector('.submit-btn');
-      btn.textContent = 'Sending…';
-      btn.disabled = true;
-
-      const data = new FormData(form);
-      const response = await fetch(form.action, {
-        method: 'POST',
-        body: data,
-        headers: { Accept: 'application/json' }
+    // ── Shirt size toggle ──────────────────────────────────────────────
+    let selectedSize = '';
+    document.querySelectorAll('.size-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedSize = btn.dataset.size;
+        document.getElementById('shirt-size-field').value = selectedSize;
+        updateSubmitBtn();
       });
+    });
 
-      if (response.ok) {
-        form.style.display = 'none';
-        successMsg.style.display = 'block';
-      } else {
-        btn.textContent = 'Submit My Info →';
+    function updateSubmitBtn() {
+      const btn = document.getElementById('submit-btn');
+      if (selectedSize) {
         btn.disabled = false;
-        alert('Something went wrong. Please try again.');
+        btn.textContent = 'Claim My T-Shirt →';
+      } else {
+        btn.disabled = true;
+        btn.textContent = 'Select a size to continue →';
+      }
+    }
+
+    // ── Phone formatting ───────────────────────────────────────────────
+    document.getElementById('phone').addEventListener('input', function() {
+      const digits = this.value.replace(/\D/g, '').slice(0, 10);
+      if (digits.length <= 3) this.value = digits.length ? `(${digits}` : '';
+      else if (digits.length <= 6) this.value = `(${digits.slice(0,3)}) ${digits.slice(3)}`;
+      else this.value = `(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`;
+    });
+
+    // ── Colorado zip validation ────────────────────────────────────────
+    function isColoradoZip(zip) {
+      const digits = zip.replace(/\D/g, '');
+      if (digits.length !== 5) return false;
+      const prefix = parseInt(digits.slice(0,2), 10);
+      return prefix === 80 || prefix === 81;
+    }
+
+    document.getElementById('zip').addEventListener('input', function() {
+      this.value = this.value.replace(/\D/g, '').slice(0, 5);
+      document.getElementById('zip-error').style.display = 'none';
+    });
+
+    // ── Form submission ────────────────────────────────────────────────
+    document.getElementById('winner-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const zip = document.getElementById('zip').value;
+      if (!isColoradoZip(zip)) {
+        document.getElementById('zip-error').style.display = 'block';
+        return;
+      }
+
+      if (!selectedSize) {
+        document.getElementById('form-error').textContent = '⚠ Please select a shirt size.';
+        document.getElementById('form-error').style.display = 'block';
+        return;
+      }
+
+      const btn = document.getElementById('submit-btn');
+      btn.disabled = true;
+      btn.textContent = 'Submitting…';
+
+      try {
+        const formData = new FormData(this);
+        await fetch(this.action, {
+          method: 'POST',
+          body: formData,
+          headers: { Accept: 'application/json' }
+        });
+
+        // Show success
+        this.style.display = 'none';
+        document.getElementById('success-screen').style.display = 'block';
+        document.querySelector('.co-only-note').style.display = 'none';
+      } catch {
+        btn.disabled = false;
+        btn.textContent = 'Claim My T-Shirt →';
+        document.getElementById('form-error').textContent = '⚠ Network error — check your connection and try again.';
+        document.getElementById('form-error').style.display = 'block';
       }
     });
   </script>
-
 </body>
 </html>

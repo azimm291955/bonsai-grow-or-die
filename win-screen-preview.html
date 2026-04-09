@@ -162,7 +162,7 @@
 
   <!-- HEADER -->
   <div class="header">
-    <div id="header-icon">🌿</div>
+    <img id="header-icon" src="public/Bonsai_Rainbow.png" alt="Bonsai Cultivation" style="width:200px;height:auto;display:block;margin:0 auto 4px;object-fit:contain">
     <h1 class="win-title" id="win-title" style="color:#8BC34A">YOU MADE IT</h1>
     <p class="win-subtitle" id="win-subtitle">PURE RUN — NO VULTURE CAPITAL</p>
     <p class="win-copy">12 years. Four crashes. A pandemic. You're still standing.</p>
@@ -172,8 +172,8 @@
   <div id="prize-section">
     <!-- CTA state (default) -->
     <div class="prize-cta" id="prize-cta">
-      <p style="color:#FFB74D; font-size:16px; font-weight:700; margin:0">🏆 Claim your a free t-shirt</p>
-      <p style="color:#888; font-size:11px; margin-top:6px">Pure run reward — redeemable at a partner dispensary.</p>
+      <p style="color:#FFB74D; font-size:16px; font-weight:700; margin:0">👕 Claim your free t-shirt</p>
+      <p style="color:#888; font-size:11px; margin-top:6px">Pure run reward — we'll mail your t-shirt directly to you.</p>
       <button class="claim-btn">Claim Now</button>
     </div>
     <!-- Submitting state -->
@@ -183,7 +183,7 @@
     <!-- Done state -->
     <div class="prize-claimed" id="prize-claimed" style="display:none">
       <p style="color:#8BC34A; font-size:16px; font-weight:700; margin:0">🎉 T-Shirt Claimed!</p>
-      <p style="color:#888; font-size:11px; margin-top:6px">We'll be in touch. Redeemable at a partner dispensary.</p>
+      <p style="color:#888; font-size:11px; margin-top:6px">Check your email for confirmation. Your t-shirt is on its way!</p>
     </div>
   </div>
 
@@ -335,17 +335,35 @@
     const prize = document.getElementById('prize-section');
 
     if (m === 'pure') {
-      icon.innerHTML = '🌿';
+      icon.src = 'public/Bonsai_Rainbow.png'; icon.style.width='200px';
       title.textContent = 'YOU MADE IT';
       title.style.color = '#8BC34A';
       sub.textContent = 'PURE RUN — NO VULTURE CAPITAL';
       prize.style.display = 'block';
+      // Reset to green for pure run
+      const prizeBox = prize.querySelector('.prize-cta');
+      if (prizeBox) { prizeBox.style.borderColor = ''; prizeBox.style.background = ''; }
+      const claimBtn = prize.querySelector('.claim-btn');
+      if (claimBtn) { claimBtn.style.background = ''; claimBtn.style.color = ''; }
     } else {
       icon.innerHTML = '🏅';
       title.textContent = 'SURVIVOR';
       title.style.color = '#FFB74D';
       sub.textContent = 'VULTURE CAPITAL SURVIVOR';
-      prize.style.display = 'none';
+      prize.style.display = 'block';
+      // Amber accent for survivor prize box
+      const prizeBox = prize.querySelector('.prize-cta');
+      if (prizeBox) {
+        prizeBox.style.borderColor = 'rgba(255,183,77,0.3)';
+        prizeBox.style.background = 'rgba(255,183,77,0.05)';
+      }
+      const claimBtn = prize.querySelector('.claim-btn');
+      if (claimBtn) {
+        claimBtn.style.background = 'linear-gradient(135deg, #b8720e, #FFB74D)';
+        claimBtn.style.color = '#0c0c0c';
+      }
+      const ctaTitle = prize.querySelector('.cta-title');
+      if (ctaTitle) ctaTitle.style.color = '#FFB74D';
     }
 
     document.getElementById('btn-pure').className = 'toggle-btn ' + (m === 'pure' ? 'active-pure' : 'pure');
@@ -358,8 +376,7 @@
     renderPrize();
     document.getElementById('prize-state-label').textContent = prizeLabels[prizeState];
 
-    // Force pure mode when cycling prize
-    if (mode !== 'pure') setMode('pure');
+    // Both pure and survivor can cycle prize states
   }
 
   function renderPrize() {
