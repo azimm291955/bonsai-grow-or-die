@@ -950,10 +950,7 @@ export const useGameStore = create<GameStore>()(
                   room.status = "ready_to_flip";
                   room.stalled = true;
                   room.rotDays = 0;
-                  // Veg stalled (no auto-flip) → AUTO-PAUSE
-                  if (autoPauseRoomIndex === null) {
-                    autoPauseRoomIndex = room.index;
-                  }
+                  // Veg ready_to_flip doesn't auto-pause, but it stalls
                 } else {
                   // Flower done → harvest ready → AUTO-PAUSE
                   room.status = "ready_to_harvest";
@@ -965,7 +962,7 @@ export const useGameStore = create<GameStore>()(
               }
             }
 
-            // If a room needs player attention, stop simulation here
+            // If a harvest is ready, stop simulation here
             if (autoPauseRoomIndex !== null) break;
 
             // ── Monthly overhead ──
@@ -1087,10 +1084,9 @@ export const useGameStore = create<GameStore>()(
         let newAch: string[] = [];
         let autoPauseRoomIndex: number | null = null;
 
-        // Snapshot which rooms are already ready_to_harvest or ready_to_flip
-        // BEFORE this tick so we only auto-pause on newly-ready rooms.
+        // Snapshot which rooms are already ready_to_harvest BEFORE this tick
         const alreadyReady = new Set(
-          prev.rooms.filter(r => r.status === "ready_to_harvest" || r.status === "ready_to_flip").map(r => r.index)
+          prev.rooms.filter(r => r.status === "ready_to_harvest").map(r => r.index)
         );
 
         // Immer produce — mutable draft with structural sharing.
@@ -1155,11 +1151,6 @@ export const useGameStore = create<GameStore>()(
                   room.status = "ready_to_flip";
                   room.stalled = true;
                   room.rotDays = 0;
-                  // Auto-pause: veg stalled (no auto-flip available)
-                  if (!alreadyReady.has(room.index) && autoPauseRoomIndex === null) {
-                    autoPauseRoomIndex = room.index;
-                    continue; // Skip rot — pause takes effect immediately
-                  }
                 } else {
                   room.status = "ready_to_harvest";
                   room.rotDays = 0;
