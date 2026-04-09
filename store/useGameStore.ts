@@ -85,6 +85,7 @@ interface GameStore {
   // Tick
   processTick: () => void;
   catchUpOfflineTime: () => void;
+  enforceVCOnLoad: () => void;
 
   // Achievements
   processAchievementQueue: () => void;
@@ -365,6 +366,8 @@ export const useGameStore = create<GameStore>()(
           }
           // Catch up any offline time since last session
           get().catchUpOfflineTime();
+          // If player refreshed to dodge Vulture Capital, auto-accept the deal
+          get().enforceVCOnLoad();
           return;
         }
 
@@ -379,6 +382,8 @@ export const useGameStore = create<GameStore>()(
               set({ state: saved, ui: { ...get().ui, screen: "game" } });
               // Catch up any offline time since last session
               get().catchUpOfflineTime();
+              // If player refreshed to dodge Vulture Capital, auto-accept the deal
+              get().enforceVCOnLoad();
               return;
             }
           }
@@ -403,6 +408,8 @@ export const useGameStore = create<GameStore>()(
                     set({ state: recovered, ui: { ...nowUI, screen: "game" } });
                     // Catch up any offline time since last session
                     get().catchUpOfflineTime();
+                    // If player refreshed to dodge Vulture Capital, auto-accept the deal
+                    get().enforceVCOnLoad();
                     return;
                   }
                 }
@@ -760,6 +767,17 @@ export const useGameStore = create<GameStore>()(
         set({ state: ns, ui: { ...ui, showVC: false } });
       },
 
+      // ── Enforce VC on load (anti-refresh exploit) ──
+      // If a player refreshes while the VC modal is showing, auto-accept the deal.
+      // This prevents dodging Vulture Capital by refreshing the page.
+      enforceVCOnLoad: () => {
+        const { state: s } = get();
+        if (!s) return;
+        if (s.vcTriggered && !s.vcTaken && !s.gameOver && s.cash < 0) {
+          get().acceptVC();
+        }
+      },
+
       // ── Decline VC ──
       declineVC: () => {
         const { state: s, ui } = get();
@@ -1017,12 +1035,12 @@ export const useGameStore = create<GameStore>()(
             if (narrativeEventId) break;
 
             // ── VC trigger ──
-            if (draft.cash <= 0 && !draft.vcTaken && !draft.gameOver && !draft.vcTriggered) {
+            if (draft.cash < 0 && !draft.vcTaken && !draft.gameOver && !draft.vcTriggered) {
               draft.vcTriggered = true;
               draft.notifications.push({ type: "vc_trigger" });
               vcTriggered = true;
               break;
-            } else if (draft.cash <= 0 && draft.vcTaken) {
+            } else if (draft.cash < 0 && draft.vcTaken) {
               draft.gameOver = true;
               draft.deathCause = "Second bankruptcy. Vulture Capital already used.";
               break;
