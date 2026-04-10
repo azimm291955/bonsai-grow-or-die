@@ -81,6 +81,26 @@ export default function RoomDetailModal() {
       >
         {/* Header */}
         <div className="px-5 pt-5 pb-3 flex justify-between items-start flex-shrink-0">
+          {/* Destroy crop — top-left, away from primary actions */}
+          <div style={{ width: 32, flexShrink: 0 }}>
+            {canDestroy && !confirmDestroy && (
+              <button
+                onClick={() => setConfirmDestroy(true)}
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: 8,
+                  width: 32, height: 32,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  cursor: "pointer", fontSize: 14,
+                  transition: "border-color 0.2s",
+                }}
+                title="Destroy Crop"
+              >
+                <span style={{ color: "rgba(239,83,80,0.5)" }}>🗑️</span>
+              </button>
+            )}
+          </div>
           <div className="flex-1 text-center">
             <h2 className="m-0 text-2xl font-extrabold tracking-tight">
               Room {selectedRoom + 1}
@@ -96,8 +116,33 @@ export default function RoomDetailModal() {
               {isVeg ? "VEGETATIVE" : "FLOWER"}
             </span>
           </div>
-          <button onClick={handleClose} className="absolute right-5 top-5 bg-white/[0.05] border border-white/[0.08] text-[#888] text-lg w-8 h-8 rounded-lg cursor-pointer flex items-center justify-center hover:bg-white/[0.08] transition-colors">×</button>
+          <button onClick={handleClose} className="bg-white/[0.05] border border-white/[0.08] text-[#888] text-lg w-8 h-8 rounded-lg cursor-pointer flex items-center justify-center hover:bg-white/[0.08] transition-colors" style={{ flexShrink: 0 }}>×</button>
         </div>
+
+        {/* Destroy confirmation — pinned to top, far from action buttons */}
+        {canDestroy && confirmDestroy && (
+          <div
+            className="mx-5 mb-2 bg-bonsai-red/[0.06] border border-bonsai-red/20 rounded-xl p-4"
+          >
+            <p className="text-[11px] text-bonsai-red/80 mb-3 text-center">
+              This will destroy the current crop. This cannot be undone.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setConfirmDestroy(false)}
+                className="flex-1 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[#888] text-xs cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => { destroyCrop(selectedRoom); setConfirmDestroy(false); }}
+                className="flex-1 py-2.5 bg-bonsai-red/15 border border-bonsai-red/30 rounded-lg text-bonsai-red font-bold text-xs cursor-pointer hover:bg-bonsai-red/25 transition-colors"
+              >
+                Confirm Destroy
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Status section — fixed size, never grows */}
         <div className="px-5 pb-2 flex-shrink-0">
@@ -284,49 +329,6 @@ export default function RoomDetailModal() {
             >
               🌿 Harvest Room
             </button>
-          )}
-
-          {/* Destroy — 66% the height of primary, subtle red trash icon */}
-          {canDestroy && !confirmDestroy && (
-            <button
-              onClick={() => setConfirmDestroy(true)}
-              style={{
-                flex: 1.32,
-                width: "100%", borderRadius: "0.75rem",
-                background: "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%)",
-                border: "1px solid rgba(255,255,255,0.09)",
-                borderTop: "1px solid rgba(255,255,255,0.12)",
-                color: "#777",
-                fontSize: 12, cursor: "pointer",
-                transition: "color 0.2s, border-color 0.2s",
-              }}
-            >
-              <span style={{ color: "rgba(239,83,80,0.6)", marginRight: 6 }}>🗑️</span>Destroy Crop
-            </button>
-          )}
-          {canDestroy && confirmDestroy && (
-            <div
-              className="bg-bonsai-red/[0.06] border border-bonsai-red/20 rounded-xl p-4 flex flex-col justify-center"
-              style={{ flex: 1.32 }}
-            >
-              <p className="text-[11px] text-bonsai-red/80 mb-3 text-center">
-                This will destroy the current crop. This cannot be undone.
-              </p>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setConfirmDestroy(false)}
-                  className="flex-1 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[#888] text-xs cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => { destroyCrop(selectedRoom); setConfirmDestroy(false); }}
-                  className="flex-1 py-2.5 bg-bonsai-red/15 border border-bonsai-red/30 rounded-lg text-bonsai-red font-bold text-xs cursor-pointer hover:bg-bonsai-red/25 transition-colors"
-                >
-                  Confirm Destroy
-                </button>
-              </div>
-            </div>
           )}
 
           {/* Close — beveled, clearly readable */}

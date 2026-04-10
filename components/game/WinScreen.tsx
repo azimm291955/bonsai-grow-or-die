@@ -194,9 +194,9 @@ export default function WinScreen() {
             </h1>
 
             <p style={{ color: "#888", fontSize: 12, lineHeight: 2, margin: "22px 0 0" }}>
-              12 years. Four crashes. A pandemic. You&apos;re still standing.{" "}
+              10 years. Four crashes. A pandemic. You&apos;re still standing.{" "}
               {isPure
-                ? "Bonsai Cultivation made it too — through market crashes, COVID, and a compression that wiped out half the industry. We're still here, still growing, and grateful for every one of you who came along for the ride."
+                ? "Bonsai Cultivation made it too — through market crashes, COVID, and a price compression that wiped out half the industry. We're still here, still growing, and grateful for every one of you who came along for the ride."
                 : "So did Bonsai Cultivation — through market crashes, COVID, and a price compression that broke countless operators. We took the hard road and kept going. Thank you for playing."}
             </p>
           </div>
