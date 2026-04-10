@@ -112,10 +112,10 @@ export default function AgeVerification({
             fontWeight: 600, lineHeight: 1.5,
           }}>
             {claimCount === null
-              ? "Final Cuts: securing your spot…"
+              ? "Checking availability…"
               : claimCount < capacity
-                ? `Final Cuts: ${(capacity - claimCount).toLocaleString()} / 2,000 spots remain. Secure your winnings before it's too late!`
-                : "Final Cuts: 0 / 2,000 spots remain. All claimed!"}
+                ? `Limited Edition Giveaway: ${(capacity - claimCount).toLocaleString()} / 2,000 spots remain. Survive until 04/20/2026 to win a free Bonsai tee!`
+                : "Limited Edition Giveaway: 0 / 2,000 spots remain. All claimed!"}
           </span>
         </div>
 

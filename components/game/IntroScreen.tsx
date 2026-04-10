@@ -100,7 +100,7 @@ export default function IntroScreen() {
           <strong style={{ color: "#CE93D8" }}>flower room</strong> for 64 more days. Then you harvest and sell at market price.
         </p>
         <p style={{ color: "#888", fontSize: 12, lineHeight: 1.6 }}>
-          Your first batch of plants just finished vegging in Room 1. Now you need a flower room to move them into.
+          Each crop takes about 3 months of game-time. Your first batch just finished vegging in Room 1 — you&apos;ll need to unlock a flower room to flip them into.
         </p>
 
         <button
@@ -113,7 +113,7 @@ export default function IntroScreen() {
           onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.opacity = "0.9"; }}
           onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.opacity = "1"; }}
         >
-          Learn the ropes →
+          Begin First Flip →
         </button>
         <button
           onClick={handleSkipTutorial}
@@ -139,6 +139,9 @@ export default function IntroScreen() {
         >
           SKIP TUTORIAL
         </button>
+        <p style={{ color: "#aaa", fontSize: 13, lineHeight: 1.7, marginTop: 16 }}>
+          The contest ends on 04/20/2026 at midnight. No t-shirts can be won after the contest closes.
+        </p>
       </div>
     </div>
   );

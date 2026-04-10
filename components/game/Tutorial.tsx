@@ -399,14 +399,14 @@ export default function Tutorial() {
               </TutTooltip>
             )}
             {step === "pnl_tab" && (
-              <TutTooltip color="#FFB74D" line="Every dollar in. Every dollar out." sub="The P&L is your financial lifeline. It tracks your revenue and your burn rate in real time. See exactly how much you are clearing right now.">
+              <TutTooltip color="#FFB74D" line="Every dollar in. Every dollar out." sub="The P&L is your financial lifeline. It tracks your revenue and your burn rate in real time. See exactly how much you're making — or losing — each month.">
                 <button onClick={handlePnL} style={{ width: "100%", padding: "12px 0", marginTop: 12, background: "rgba(255,183,77,0.12)", border: "1px solid rgba(255,183,77,0.4)", borderRadius: 8, color: "#FFB74D", fontWeight: 700, fontSize: 12, cursor: "pointer", letterSpacing: 1.5 }}>
                   OPEN P&L
                 </button>
               </TutTooltip>
             )}
             {step === "upgrades_tab" && (
-              <TutTooltip color="#8BC34A" line="Power Up Your Operation." sub="The Upgrades tab is where you scale. From automated watering systems to high-intensity LED arrays, every purchase here increases your yield or reduces your manual labor.">
+              <TutTooltip color="#8BC34A" line="Power Up Your Operation." sub="The Upgrades tab is where you scale. From automated watering systems to high-intensity LED arrays, every purchase here boosts your yield or cuts your overhead.">
                 <button onClick={handleStartClock} style={{ width: "100%", padding: "12px 0", marginTop: 12, background: "rgba(139,195,74,0.12)", border: "1px solid rgba(139,195,74,0.4)", borderRadius: 8, color: "#8BC34A", fontWeight: 700, fontSize: 12, cursor: "pointer", letterSpacing: 1.5 }}>
                   START THE CLOCK →
                 </button>
@@ -429,7 +429,7 @@ export default function Tutorial() {
               Your flower room is <span style={{ color: "#8BC34A", fontWeight: 700 }}>ready to harvest</span>. The next batch in Room 1 is <span style={{ color: "#FFB74D", fontWeight: 700 }}>ready to flip</span>.
             </div>
             <div style={{ fontSize: 13, color: "#999", lineHeight: 1.85, marginBottom: 12 }}>
-              But growth carries a heavy price tag: <span style={{ color: "#ef5350", fontWeight: 600 }}>$84,000 every single month</span> for rent, power, and labor.
+              But growth carries a heavy price tag: <span style={{ color: "#ef5350", fontWeight: 600 }}>$86,100 per room, per month</span> for rent, power, and labor. Bills are due on the first of every month.
             </div>
             <div style={{ fontSize: 13, color: "#999", lineHeight: 1.85, marginBottom: 8 }}>
               That overhead is a relentless heartbeat. The clock keeps ticking regardless of whether you are harvesting profit or just keeping the lights on.

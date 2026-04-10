@@ -173,8 +173,8 @@ export default function DataCollectionModal({ mode, gameEvent = "win", onSkip, o
                 fontFamily: "'JetBrains Mono', monospace",
                 margin: "0 0 10px",
               }}>
-                <span style={{ color: accent, fontWeight: 700 }}>Survive to 04/20</span> and we will
-                mail a <span style={{ color: accent, fontWeight: 700 }}>free t-shirt</span> to you!
+                <span style={{ color: accent, fontWeight: 700 }}>Survive to 4/20/2026</span> and we&apos;ll
+                mail you a <span style={{ color: accent, fontWeight: 700 }}>free Bonsai t-shirt</span>!
               </p>
               <p style={{
                 color: "#888", fontSize: 10, lineHeight: 1.7,
@@ -559,7 +559,7 @@ export default function DataCollectionModal({ mode, gameEvent = "win", onSkip, o
             fontFamily: "'JetBrains Mono', monospace",
             margin: "0 0 6px",
           }}>
-            12 years. Four crashes. A pandemic. You made it.
+            10 years. Four crashes. A pandemic. You made it.
           </p>
 
           {/* Prize description */}

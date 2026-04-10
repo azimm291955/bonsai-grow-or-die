@@ -90,7 +90,7 @@ export default function Onboarding() {
         <h1 style={{ color: "#fff", fontSize: 40, fontWeight: 800, margin: 0, letterSpacing: 10, textShadow: "0 0 40px rgba(139,195,74,0.3)", animation: "fade-up 0.8s ease-out both" }}>BONSAI</h1>
         <div style={{ fontSize: 13, letterSpacing: 8, marginTop: 6, marginBottom: 32, fontWeight: 600, background: "linear-gradient(90deg, #666, #8BC34A, #CE93D8, #FFB74D, #666)", backgroundSize: "200% auto", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", animation: "shimmer 6s linear infinite, fade-up 0.8s ease-out 0.2s both" }}>GROW OR DIE</div>
         <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 28, flexWrap: "wrap", animation: "fade-up 0.8s ease-out 0.4s both" }}>
-          {([["$1M", "Starting Cash", "#8BC34A"], ["12 YRS", "To Survive", "#FFB74D"], ["9 ROOMS", "To Unlock", "#CE93D8"]] as [string,string,string][]).map(([value, label, color]) => (
+          {([["$1M", "Starting Cash", "#8BC34A"], ["10 YRS", "To Survive", "#FFB74D"], ["9 ROOMS", "To Unlock", "#CE93D8"]] as [string,string,string][]).map(([value, label, color]) => (
             <div key={label} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 14px", textAlign: "center", minWidth: 85 }}>
               <div style={{ color, fontSize: 16, fontWeight: 800, letterSpacing: 1 }}>{value}</div>
               <div style={{ color: "#555", fontSize: 9, marginTop: 2, letterSpacing: 1 }}>{label}</div>
@@ -122,7 +122,7 @@ export default function Onboarding() {
             textTransform: "uppercase", fontWeight: 700,
           }}>
             {claimCount === null
-              ? "Limited to 2,000 players"
+              ? "\u00A0"
               : claimCount < capacity
                 ? `Limited to 2,000 · ${(capacity - claimCount).toLocaleString()} spots remaining`
                 : "2,000 of 2,000 · Sold Out"}
@@ -219,7 +219,7 @@ export default function Onboarding() {
             color: "#ff2222", fontSize: 9, margin: 0, letterSpacing: 0.5, lineHeight: 1.6,
             fontFamily: "'JetBrains Mono', monospace",
           }}>
-            ⚠ MUST BE 21+ TO CLAIM PRIZES — Do not break the law and try to collect your winnings if you are under the legal age.
+            ⚠ Must be 21+ to claim prizes.
           </p>
         </div>
       </div>
