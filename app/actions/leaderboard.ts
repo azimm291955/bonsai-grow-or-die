@@ -163,7 +163,7 @@ export async function submitScoreAction(
     return { success: false, error: "Missing required fields" };
   }
   if (finalCash <= 0) return { success: false, error: "Cash must be positive" };
-  if (rooms < 4) return { success: false, error: "Need at least 4 rooms" };
+  if (rooms < 1) return { success: false, error: "Need at least 1 room" };
   if (finalCash > 500000000) return { success: false, error: "Cash exceeds maximum" };
   if (playerName.length > 24) return { success: false, error: "Name too long" };
 
