@@ -185,6 +185,7 @@ export default function AdminClaimsPage() {
                 <div><span style={{ color: "#555" }}>Email: </span><span style={{ color: "#ccc" }}>{lookedUp.email}</span></div>
                 <div><span style={{ color: "#555" }}>Event: </span><span style={{ color: "#ccc" }}>{lookedUp.gameEvent}</span></div>
                 <div><span style={{ color: "#555" }}>Phone: </span><span style={{ color: "#ccc" }}>{lookedUp.phone}</span></div>
+                <div><span style={{ color: "#555" }}>DOB: </span><span style={{ color: "#ccc" }}>{lookedUp.dob ?? "—"}</span></div>
                 <div><span style={{ color: "#555" }}>Claimed: </span><span style={{ color: "#ccc" }}>{fmt(lookedUp.createdAt)}</span></div>
                 {lookedUp.address && (
                   <div style={{ gridColumn: "span 2" }}>

@@ -102,6 +102,7 @@ export interface ClaimRecord {
   name: string;
   email: string;
   phone: string;
+  dob: string;
   shirtSize: string;
   address: string;
   city: string;
@@ -158,30 +159,21 @@ export async function createClaimAction(data: {
   name: string;
   email: string;
   phone: string;
+  dob: string;
   shirtSize: string;
   address: string;
   city: string;
   state: string;
   zip: string;
   gameEvent: string;
-}): Promise<{ success: true; code: string; existing?: boolean } | { success: false; error: string; reason?: "deadline" | "capacity" }> {
+}): Promise<{ success: true; code: string } | { success: false; error: string; reason?: "deadline" | "capacity" | "duplicate" }> {
   try {
     const phoneKey = `phone:${normalizePhone(data.phone)}`;
 
-    // Check for duplicate phone number first — existing entries are always allowed
+    // Block duplicate phone numbers — one entry per phone number
     const existingCode = await redis.get<string>(phoneKey);
     if (existingCode) {
-      await sendClaimEmail({
-        name: data.name,
-        email: data.email,
-        code: existingCode,
-        shirtSize: data.shirtSize,
-        address: data.address,
-        city: data.city,
-        state: data.state,
-        zip: data.zip,
-      });
-      return { success: true, code: existingCode, existing: true };
+      return { success: false, error: "This phone number has already been used to claim a t-shirt. One entry per person.", reason: "duplicate" };
     }
 
     // Deadline check — new entries not allowed after game end
@@ -208,6 +200,7 @@ export async function createClaimAction(data: {
       name: data.name,
       email: data.email,
       phone: data.phone,
+      dob: data.dob,
       shirtSize: data.shirtSize,
       address: data.address,
       city: data.city,

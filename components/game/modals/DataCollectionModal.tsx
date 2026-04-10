@@ -43,6 +43,7 @@ export default function DataCollectionModal({ mode, gameEvent = "win", onSkip, o
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [dob, setDob] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [zip, setZip] = useState("");
@@ -257,6 +258,7 @@ export default function DataCollectionModal({ mode, gameEvent = "win", onSkip, o
         name,
         email,
         phone,
+        dob,
         shirtSize,
         address,
         city,
@@ -278,6 +280,7 @@ export default function DataCollectionModal({ mode, gameEvent = "win", onSkip, o
       body.append("name", name);
       body.append("email", email);
       body.append("phone", phone);
+      body.append("dob", dob);
       body.append("address", address);
       body.append("city", city);
       body.append("state", "CO");
@@ -625,6 +628,17 @@ export default function DataCollectionModal({ mode, gameEvent = "win", onSkip, o
               ⚠ {phoneError}
             </div>
           )}
+
+          {/* Date of Birth */}
+          <div style={{ marginBottom: 12 }}>
+            <label style={labelStyle}>Date of Birth</label>
+            <input
+              type="date" name="dob" value={dob}
+              onChange={e => setDob(e.target.value)}
+              onFocus={() => setFocused("dob")} onBlur={() => setFocused(null)}
+              required style={inputStyle("dob")}
+            />
+          </div>
 
           {/* Street Address */}
           <div style={{ marginBottom: 12 }}>
