@@ -56,18 +56,23 @@ export default function DataCollectionModal({ mode, gameEvent = "win", onSkip, o
   const [claimedAddress, setClaimedAddress] = useState<{ address: string; city: string; zip: string } | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // ── Check if registration is still open (claim mode only) ──
+  // ── Internal view mode ──
+  // Starts as the prop `mode`, but info mode can switch itself to "claim"
+  // when the player taps "Claim My T-Shirt Now" on the How to Win popup.
+  const [viewMode, setViewMode] = useState<"info" | "claim">(mode);
+
+  // ── Check if registration is still open (claim view only) ──
   const [regStatus, setRegStatus] = useState<"loading" | "open" | "deadline" | "capacity">("open");
   const [claimCount, setClaimCount] = useState<number>(0);
   const [claimCapacity] = useState<number>(2000);
 
   useEffect(() => {
-    if (mode !== "claim") return;
+    if (viewMode !== "claim") return;
     getClaimStatusAction().then(({ isOpen, reason, count }) => {
       setRegStatus(isOpen ? "open" : (reason ?? "deadline"));
       setClaimCount(count);
     });
-  }, [mode]);
+  }, [viewMode]);
 
   const accent = "#7AAB3A";
   const accentGlow = "rgba(122,171,58,0.18)";
@@ -102,7 +107,7 @@ export default function DataCollectionModal({ mode, gameEvent = "win", onSkip, o
   // ─────────────────────────────────────────────────────────────────────────
   // INFO MODE — "How to Win Bonsai Swag" informational screen
   // ─────────────────────────────────────────────────────────────────────────
-  if (mode === "info") {
+  if (viewMode === "info") {
     return (
       <div style={{
         position: "fixed", inset: 0,
@@ -204,8 +209,12 @@ export default function DataCollectionModal({ mode, gameEvent = "win", onSkip, o
               </p>
             </div>
 
+            {/* Primary CTA — switch modal to the full claim form */}
             <button
-              onClick={() => { localStorage.setItem(LS_FORM_SEEN, "true"); onSuccess(); }}
+              onClick={() => {
+                localStorage.setItem(LS_FORM_SEEN, "true");
+                setViewMode("claim");
+              }}
               style={{
                 width: "100%", padding: "13px",
                 background: `linear-gradient(135deg, #4a7a22, #8BC34A)`,
@@ -217,9 +226,28 @@ export default function DataCollectionModal({ mode, gameEvent = "win", onSkip, o
                 fontFamily: "'JetBrains Mono', monospace",
                 letterSpacing: 1.5,
                 boxShadow: `0 4px 24px ${accentGlow}`,
+                marginBottom: 10,
               }}
             >
-              Got It — Keep Growing →
+              Claim My T-Shirt Now →
+            </button>
+
+            {/* Secondary — dismiss and keep playing */}
+            <button
+              onClick={() => { localStorage.setItem(LS_FORM_SEEN, "true"); onSuccess(); }}
+              style={{
+                width: "100%", padding: "11px",
+                background: "transparent",
+                color: "#888",
+                border: "1px solid #333",
+                borderRadius: 10,
+                fontSize: 10, fontWeight: 600,
+                cursor: "pointer",
+                fontFamily: "'JetBrains Mono', monospace",
+                letterSpacing: 1.5,
+              }}
+            >
+              Keep Growing →
             </button>
           </div>
         </div>
