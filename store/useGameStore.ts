@@ -924,14 +924,13 @@ export const useGameStore = create<GameStore>()(
             // ── Win/loss check ──
             const pastWinDate = gd.year > 2026 || (gd.year === 2026 && (gd.month > 4 || (gd.month === 4 && gd.day >= 20)));
             if (pastWinDate) {
-              const activeRooms = draft.rooms.filter(r => r.unlocked).length;
-              if (draft.cash > 0 && activeRooms >= 4) {
+              if (draft.cash >= 0) {
                 draft.gameWon = true;
                 draft.winType = draft.vcTaken ? "vc" : "pure";
                 break;
               } else if (gd.year > 2026 || (gd.year === 2026 && gd.month > 4)) {
                 draft.gameOver = true;
-                draft.deathCause = draft.cash <= 0 ? "Ran out of cash" : "Not enough active rooms (need 4+)";
+                draft.deathCause = "Ran out of cash";
                 break;
               }
             }
@@ -1123,14 +1122,13 @@ export const useGameStore = create<GameStore>()(
           // Win condition
           const pastWinDate = gd.year > 2026 || (gd.year === 2026 && (gd.month > 4 || (gd.month === 4 && gd.day >= 20)));
           if (pastWinDate) {
-            const activeRooms = draft.rooms.filter(r => r.unlocked).length;
-            if (draft.cash > 0 && activeRooms >= 4) {
+            if (draft.cash >= 0) {
               draft.gameWon = true;
               draft.winType = draft.vcTaken ? "vc" : "pure";
               return;
             } else if (gd.year > 2026 || (gd.year === 2026 && gd.month > 4)) {
               draft.gameOver = true;
-              draft.deathCause = draft.cash <= 0 ? "Ran out of cash" : "Not enough active rooms (need 4+)";
+              draft.deathCause = "Ran out of cash";
               return;
             }
           }
